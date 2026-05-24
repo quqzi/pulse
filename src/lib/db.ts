@@ -1,7 +1,7 @@
 import { browser } from '$app/environment';
 import { supabase } from '$lib/supabase';
 import { ALL_BUILTIN_PRESETS } from '$lib/constants';
-import type { Subject, Topic, SrsCard, StudySession, Task } from '$lib/types';
+import type { Subject, Topic, SrsCard, StudySession, Task, Template, SubjectPreset } from '$lib/types';
 import { defaultCard } from '$lib/srs';
 
 type Mode = 'guest' | 'authenticated';
@@ -98,6 +98,16 @@ function mapTaskFromDb(row: Record<string, unknown>): Task {
     priority: row.priority as Task['priority'],
     dueDate: row.due_date as string | undefined,
     completedAt: row.completed_at as string | undefined,
+    createdAt: row.created_at as string,
+  };
+}
+
+function mapTemplateFromDb(row: Record<string, unknown>): Template {
+  return {
+    id: row.id as string,
+    userId: row.user_id as string,
+    name: row.name as string,
+    presets: row.presets as SubjectPreset[],
     createdAt: row.created_at as string,
   };
 }
@@ -254,6 +264,53 @@ export const db = {
       return;
     }
     await supabase.from('tasks').delete().eq('id', taskId);
+  },
+
+  // ── TEMPLATES ─────────────────────────────────────────────
+  async getTemplates(userId: string, mode: Mode): Promise<Template[]> {
+    if (mode === 'guest') return lsGet<Template>('pulse_templates');
+    const { data } = await supabase.from('templates').select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    return (data ?? []).map(mapTemplateFromDb);
+  },
+
+  async saveTemplate(template: Template, mode: Mode): Promise<void> {
+    if (mode === 'guest') {
+      const all = lsGet<Template>('pulse_templates');
+      const idx = all.findIndex(t => t.id === template.id);
+      if (idx >= 0) all[idx] = template; else all.push(template);
+      lsSet('pulse_templates', all);
+      return;
+    }
+    await supabase.from('templates').upsert({
+      id: template.id,
+      user_id: template.userId,
+      name: template.name,
+      presets: template.presets,
+      created_at: template.createdAt,
+    });
+  },
+
+  async deleteTemplate(templateId: string, mode: Mode): Promise<void> {
+    if (mode === 'guest') {
+      lsSet('pulse_templates', lsGet<Template>('pulse_templates').filter(t => t.id !== templateId));
+      return;
+    }
+    await supabase.from('templates').delete().eq('id', templateId);
+  },
+
+  async deleteSubject(subjectId: string, mode: Mode): Promise<void> {
+    if (mode === 'guest') {
+      const allTopics = lsGet<Topic>('pulse_topics');
+      const topicIds = new Set(allTopics.filter(t => t.subjectId === subjectId).map(t => t.id));
+      lsSet('pulse_topics', allTopics.filter(t => t.subjectId !== subjectId));
+      lsSet('pulse_srs_cards', lsGet<SrsCard>('pulse_srs_cards').filter(c => !topicIds.has(c.topicId)));
+      lsSet('pulse_subjects', lsGet<Subject>('pulse_subjects').filter(s => s.id !== subjectId));
+      return;
+    }
+    // topics + srs_cards cascade-delete in Supabase via FK constraints
+    await supabase.from('subjects').delete().eq('id', subjectId);
   },
 
   newId,
