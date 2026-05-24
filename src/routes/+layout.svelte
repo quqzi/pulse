@@ -30,7 +30,12 @@
   });
 
   $: if (browser) {
-    document.body.className = `palette-${$settings.palette}${$resolvedTheme === 'dark' ? ' theme-dark' : ''}`;
+    const isDark = $settings.designTheme === 'resend' || $resolvedTheme === 'dark';
+    document.body.className = [
+      `palette-${$settings.palette}`,
+      `design-${$settings.designTheme}`,
+      isDark ? 'theme-dark' : '',
+    ].filter(Boolean).join(' ');
     const meta = document.getElementById('meta-theme-color');
     if (meta) meta.setAttribute('content', getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#f43f5e');
   }

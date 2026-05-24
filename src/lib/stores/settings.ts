@@ -7,10 +7,12 @@ export type Palette =
   'slate'|'zinc'|'stone'|'red'|'yellow'|'warm'|'matcha'|'academia';
 
 export type Theme = 'light'|'dark'|'auto';
+export type DesignTheme = 'vercel'|'apple'|'resend';
 
 export interface Settings {
   palette: Palette;
   theme: Theme;
+  designTheme: DesignTheme;
   lang: 'en'|'th';
   dailyGoalHours: number;
   pomodoroWork: number;
@@ -18,7 +20,7 @@ export interface Settings {
 }
 
 function defaults(): Settings {
-  return { palette: 'rose', theme: 'auto', lang: 'en', dailyGoalHours: 4, pomodoroWork: 25, pomodoroBreak: 5 };
+  return { palette: 'rose', theme: 'auto', designTheme: 'vercel', lang: 'en', dailyGoalHours: 4, pomodoroWork: 25, pomodoroBreak: 5 };
 }
 
 function load(): Settings {
