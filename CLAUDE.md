@@ -179,6 +179,16 @@ All tables have RLS enabled. Policy: `auth.uid() = user_id`.
 
 ---
 
+## Design References
+
+Detailed design token specs for the three supported themes:
+
+- `docs/design/vercel.md` — Vercel design language (ink black, Geist font, mesh gradient)
+- `docs/design/apple.md` — Apple design language (Action Blue, SF Pro, photography-first)
+- `docs/design/resend.md` — Resend design language (true black canvas, Domaine Display serif, atmospheric glows)
+
+---
+
 ## Active Plans & Specs
 
 - `docs/superpowers/specs/2026-05-24-subject-management-design.md` — subject + template management (planned, not yet implemented)
