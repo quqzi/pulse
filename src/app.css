@@ -5,7 +5,7 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { -webkit-text-size-adjust: 100%; }
 body {
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font-sans, 'Inter', system-ui, sans-serif);
   background: var(--bg);
   color: var(--text);
   min-height: 100dvh;
@@ -43,6 +43,13 @@ body, body.design-vercel {
   --shadow-sm: 0 0 0 1px rgba(0,0,0,.08), 0 1px 1px rgba(0,0,0,.03), 0 2px 2px rgba(0,0,0,.04);
   --shadow-md: 0 0 0 1px rgba(0,0,0,.08), 0 2px 2px rgba(0,0,0,.04), 0 8px 8px -8px rgba(0,0,0,.06);
   --shadow-lg: 0 0 0 1px rgba(0,0,0,.08), 0 2px 2px rgba(0,0,0,.04), 0 8px 16px -4px rgba(0,0,0,.08);
+  --font-sans: 'Geist', 'Inter', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, monospace;
+  --font-display: 'Geist', 'Inter', system-ui, sans-serif;
+  --tracking-display: -0.03em;
+  --tracking-body: -0.01em;
+  --weight-heading: 600;
+  --font-eyebrow: var(--font-mono);
 }
 body.design-vercel.theme-dark {
   --bg:     #0a0a0a;
@@ -74,6 +81,13 @@ body.design-apple {
   --shadow-md: 0 2px 8px rgba(0,0,0,.10), 0 0 0 1px rgba(0,0,0,.04);
   --shadow-lg: 0 4px 20px rgba(0,0,0,.14), 0 0 0 1px rgba(0,0,0,.04);
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+  --font-sans: -apple-system, 'SF Pro Text', 'Inter', system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'Geist Mono', monospace;
+  --font-display: -apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif;
+  --tracking-display: -0.02em;
+  --tracking-body: -0.02em;
+  --weight-heading: 600;
+  --font-eyebrow: var(--font-sans);
 }
 body.design-apple.theme-dark {
   --bg:     #000000;
@@ -108,6 +122,13 @@ body.design-resend.theme-dark {
   --shadow-md: 0 0 0 1px rgba(255,255,255,.14);
   --shadow-lg: 0 0 0 1px rgba(255,255,255,.14);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, monospace;
+  --font-display: Georgia, ui-serif, serif;
+  --tracking-display: -0.02em;
+  --tracking-body: 0em;
+  --weight-heading: 500;
+  --font-eyebrow: var(--font-sans);
 }
 
 /* --- Legacy dark mode overlay (used when no design-* class is set) --- */
@@ -175,6 +196,15 @@ body.theme-dark.palette-warm    { --primary:#fb923c; --primary-dark:#f97316; --p
 body.theme-dark.palette-matcha  { --primary:#86efac; --primary-dark:#4d7c0f; --primary-l:#052e16; }
 body.theme-dark.palette-academia{ --primary:#c4b5a4; --primary-dark:#7c6f64; --primary-l:#1c1713; }
 
+/* --- Resend always uses white as primary (palette picker hidden in settings for Resend) --- */
+body.design-resend,
+body.design-resend[class*="palette-"] {
+  --primary: #fcfdff;
+  --primary-dark: #e4e5e8;
+  --primary-l: #101012;
+  --primary-rgb: 252,253,255;
+}
+
 /* --- Subject colors (fixed, never palette-dependent) --- */
 :root {
   --subject-physics:   #0d9488;
@@ -194,15 +224,15 @@ body.theme-dark {
 }
 
 /* --- Typography --- */
-.text-large-title { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
-.text-heading     { font-size: 17px; font-weight: 700; }
-.text-body        { font-size: 15px; font-weight: 400; }
+.text-large-title { font-size: 26px; font-weight: 700; font-family: var(--font-display, var(--font-sans, inherit)); letter-spacing: var(--tracking-display, -0.02em); }
+.text-heading     { font-size: 17px; font-weight: var(--weight-heading, 700); letter-spacing: var(--tracking-body, 0); }
+.text-body        { font-size: 15px; font-weight: 400; letter-spacing: var(--tracking-body, 0); }
 .text-caption     { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-.text-mono-stat   { font-size: 32px; font-weight: 700; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.text-mono-stat   { font-size: 32px; font-weight: 700; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; font-family: var(--font-mono, inherit); }
 .text-subject-sym { font-size: 15px; font-weight: 700; }
 .text-muted       { color: var(--muted); }
 .text-primary     { color: var(--primary); }
-.section-label    { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); padding: 0 4px 6px; }
+.section-label    { font-size: 11px; font-weight: 600; font-family: var(--font-eyebrow, var(--font-sans, inherit)); text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); padding: 0 4px 6px; }
 
 /* --- Cards --- */
 .card        { background: var(--bg2); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); overflow: hidden; }
@@ -264,6 +294,51 @@ body.theme-dark {
 .subject-tile:hover { transform: translateY(-2px) scale(1.04); box-shadow: 0 4px 16px rgba(var(--tile-rgb,0,0,0), 0.25); }
 @media (hover: none) { .subject-tile:hover { transform: none; box-shadow: var(--shadow-sm); } }
 @media (prefers-reduced-motion: reduce) { .subject-tile { transition: none; } .subject-tile:hover { transform: none; } }
+
+/* ============================================================
+   SIGNATURE STYLES — per-design visual flourishes
+   ============================================================ */
+
+/* Vercel: section labels in Geist Mono — the technical eyebrow voice */
+body.design-vercel .section-label {
+  font-family: var(--font-mono);
+  letter-spacing: 0.06em;
+}
+
+/* Apple: pill-shaped primary buttons, SF-style tracking */
+body.design-apple .btn-primary,
+body.design-apple .btn-secondary {
+  border-radius: 9999px;
+  letter-spacing: -0.02em;
+}
+body.design-apple .btn {
+  border-radius: 9999px;
+}
+
+/* Resend: HeroCard becomes dark editorial card with atmospheric blue glow */
+body.design-resend .hero-card {
+  background: var(--bg2);
+  border: 1px solid rgba(255,255,255,.14);
+  box-shadow: 0 0 80px rgba(59,158,255,.08), 0 0 0 1px rgba(255,255,255,.14);
+  color: var(--text);
+  --hero-fill: var(--primary);
+  --hero-track: var(--bg3);
+}
+body.design-resend .hero-card::after { display: none; }
+
+/* Resend: white CTA pill on black canvas */
+body.design-resend .btn-primary {
+  background: #fcfdff;
+  color: #000000;
+  border-radius: 8px;
+}
+body.design-resend .btn-primary:hover { opacity: 0.88; }
+
+/* Resend: cards use hairline border elevation only */
+body.design-resend .card {
+  box-shadow: none;
+  border: 1px solid rgba(255,255,255,.14);
+}
 
 /* --- Scrollbar --- */
 ::-webkit-scrollbar { width: 4px; height: 4px; }

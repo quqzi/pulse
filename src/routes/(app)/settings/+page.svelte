@@ -43,6 +43,8 @@
     { value:'resend', label:'Resend', desc:'Pitch black · 12px radius · borders only', bg:'#000000', text:'#fcfdff', card:'#0a0a0c', radius:'12px' },
   ];
 
+  $: isResend = $settings.designTheme === 'resend';
+
   async function signOut() {
     await supabase.auth.signOut();
     goto('/auth/login');
@@ -54,7 +56,8 @@
 
   <p class="section-label">Appearance</p>
   <div class="card section-card">
-    <p style="font-size:14px;font-weight:600;margin-bottom:12px">Color</p>
+    {#if !isResend}
+    <p style="font-size:14px;font-weight:600;margin-bottom:12px">Accent</p>
     <div class="palette-grid">
       {#each palettes as p}
         <button
@@ -80,6 +83,7 @@
         >{t.label}</button>
       {/each}
     </div>
+    {/if}
 
     <p style="font-size:14px;font-weight:600;margin:18px 0 10px">Design</p>
     <div class="design-row">

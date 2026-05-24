@@ -85,14 +85,14 @@
   .streak-label { font-size: 10px; font-weight: 600; text-transform: uppercase; opacity: 0.75; }
   .progress-track {
     height: 6px;
-    background: rgba(255,255,255,.25);
+    background: var(--hero-track, rgba(255,255,255,.25));
     border-radius: 3px;
     overflow: hidden;
     margin-bottom: 8px;
   }
   .progress-fill {
     height: 100%;
-    background: rgba(255,255,255,.9);
+    background: var(--hero-fill, rgba(255,255,255,.9));
     border-radius: 3px;
     transition: transform 500ms cubic-bezier(.4,0,.2,1);
   }
