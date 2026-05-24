@@ -5,7 +5,8 @@
   import { settings } from '$lib/stores/settings';
   import {
     subjects, topics, srsCards, sessions,
-    dueCards, todayHours, streak, loadData, getAuthContext
+    dueCards, todayHours, streak, loadData, getAuthContext,
+    tasks, tasksDueToday,
   } from '$lib/stores/data';
   import { setTimerSubject } from '$lib/stores/timer';
   import { cardTilt } from '$lib/effects';
@@ -103,6 +104,40 @@
     on:start={handleStart}
   />
 
+  {#if $tasksDueToday.length > 0}
+    <section class="tasks-section">
+      <div class="section-label">TASKS DUE</div>
+      <div class="card tasks-card">
+        {#each $tasksDueToday.slice(0, 5) as task (task.id)}
+          <div class="task-row">
+            <button class="dash-check" on:click={async () => {
+              const { mode } = getAuthContext();
+              const updated = { ...task, completedAt: new Date().toISOString() };
+              tasks.update(all => all.map(t => t.id === task.id ? updated : t));
+              await db.saveTask(updated, mode);
+            }} aria-label="Complete task">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="8" r="7" stroke="var(--border)" stroke-width="1.5"/>
+              </svg>
+            </button>
+            <span class="dash-task-title">{task.title}</span>
+            {#if task.dueDate}
+              <span class="dash-due" class:overdue={task.dueDate < new Date().toISOString().split('T')[0]}>
+                {new Date(task.dueDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              </span>
+            {/if}
+          </div>
+          {#if task !== $tasksDueToday.slice(0, 5).at(-1)}
+            <div class="task-divider"></div>
+          {/if}
+        {/each}
+        {#if $tasksDueToday.length > 5}
+          <a href="/tasks" class="see-more">+{$tasksDueToday.length - 5} more</a>
+        {/if}
+      </div>
+    </section>
+  {/if}
+
   <QuickLog
     subjects={$subjects}
     topics={$topics}
@@ -134,5 +169,14 @@
   @media (max-width: 360px) {
     .subjects-grid { grid-template-columns: repeat(3, 1fr); }
   }
+  .tasks-section { margin-top: 20px; }
+  .tasks-card { padding: 4px 0; }
+  .task-row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; }
+  .dash-check { background: none; border: none; cursor: pointer; padding: 0; flex-shrink: 0; line-height: 0; }
+  .dash-task-title { flex: 1; font-size: 14px; font-weight: 500; color: var(--text); }
+  .dash-due { font-size: 12px; color: var(--muted); flex-shrink: 0; }
+  .dash-due.overdue { color: #ef4444; font-weight: 600; }
+  .task-divider { height: 1px; background: var(--border); margin: 0 14px; }
+  .see-more { display: block; text-align: center; padding: 8px; font-size: 13px; color: var(--primary); text-decoration: none; font-weight: 500; }
   .bottom-spacer { height: 32px; }
 </style>
