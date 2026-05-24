@@ -1,6 +1,6 @@
 <script lang="ts">
   import '../app.css';
-  import { settings, resolvedTheme } from '$lib/stores/settings';
+  import { settings } from '$lib/stores/settings';
   import { auth } from '$lib/stores/auth';
   import { supabase } from '$lib/supabase';
   import { onMount } from 'svelte';
@@ -22,21 +22,18 @@
         auth.set({ mode: 'guest', user: null, name: localStorage.getItem('pulse_guest_name') ?? 'Student' });
       }
     });
-
-    // Re-derive when system dark mode changes
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-      settings.update(s => ({ ...s }));
-    });
   });
 
   $: if (browser) {
-    const isDark = $settings.designTheme === 'resend' || $resolvedTheme === 'dark';
+    const t = $settings.theme;
+    const design = t === 'resend' ? 'resend' : t.split('-')[0];
+    const isDark = t === 'resend' || t.endsWith('-dark');
     document.body.className = [
-      `design-${$settings.designTheme}`,
+      `design-${design}`,
       isDark ? 'theme-dark' : '',
     ].filter(Boolean).join(' ');
     const meta = document.getElementById('meta-theme-color');
-    if (meta) meta.setAttribute('content', getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#f43f5e');
+    if (meta) meta.setAttribute('content', getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#171717');
   }
 </script>
 
