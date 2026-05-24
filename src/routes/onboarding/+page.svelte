@@ -1,13 +1,13 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { settings } from '$lib/stores/settings';
-  import { TCAS_SUBJECTS } from '$lib/constants';
+  import { ALL_BUILTIN_PRESETS } from '$lib/constants';
   import { db } from '$lib/db';
   import type { Subject } from '$lib/types';
 
   let step = 0;
   let examDate = '';
-  const ALL_SUBJECTS = ['Physics', 'Chemistry', 'Mathematics', 'Biology', 'English', 'TGAT/Social'];
+  const ALL_SUBJECTS = ['Physics', 'Chemistry', 'Mathematics', 'Biology', 'English', 'Thai'];
   let selectedSubjects = [...ALL_SUBJECTS];
   let dailyGoalHours = 4;
   let targetScores: Record<string, number> = {};
@@ -22,15 +22,15 @@
     localStorage.setItem('pulse_onboarded', '1');
 
     const subjectRecords: Subject[] = selectedSubjects.map((name, i) => {
-      const template = TCAS_SUBJECTS.find(s => s.name === name);
+      const preset = ALL_BUILTIN_PRESETS.get(name.toLowerCase());
       return {
         id: db.newId(),
         userId: 'guest',
         name,
-        symbol: template?.symbol ?? name.slice(0, 2),
-        color: template?.color ?? '#6366f1',
-        colorRgb: template?.colorRgb ?? '99,102,241',
-        orderIndex: template?.orderIndex ?? i,
+        symbol: preset?.symbol ?? name.slice(0, 2),
+        color: preset?.color ?? '#6366f1',
+        colorRgb: preset?.colorRgb ?? '99,102,241',
+        orderIndex: i,
         targetScore: targetScores[name],
       };
     });
