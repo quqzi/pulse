@@ -51,3 +51,18 @@ export interface Task {
   completedAt?: string;  // ISO timestamp, undefined = incomplete
   createdAt: string;     // ISO timestamp
 }
+
+export interface SubjectPreset {
+  name: string;
+  symbol: string;
+  color: string;
+  colorRgb: string;
+}
+
+export interface Template {
+  id: string;
+  userId: string;  // 'builtin' for built-ins
+  name: string;
+  presets: SubjectPreset[];
+  createdAt: string;
+}

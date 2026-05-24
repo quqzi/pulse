@@ -1,6 +1,6 @@
 import { browser } from '$app/environment';
 import { supabase } from '$lib/supabase';
-import { TCAS_SUBJECTS } from '$lib/constants';
+import { ALL_BUILTIN_PRESETS } from '$lib/constants';
 import type { Subject, Topic, SrsCard, StudySession, Task } from '$lib/types';
 import { defaultCard } from '$lib/srs';
 
@@ -27,15 +27,15 @@ function today(): string {
 /** Convert legacy string[] from onboarding into Subject[] and persist */
 function seedSubjectsFromNames(names: string[]): Subject[] {
   const result: Subject[] = names.map((name, i) => {
-    const template = TCAS_SUBJECTS.find(s => s.name === name);
+    const preset = ALL_BUILTIN_PRESETS.get(name.toLowerCase());
     return {
       id: newId(),
       userId: 'guest',
       name,
-      symbol: template?.symbol ?? name.slice(0, 2),
-      color: template?.color ?? '#6366f1',
-      colorRgb: template?.colorRgb ?? '99,102,241',
-      orderIndex: template?.orderIndex ?? i,
+      symbol: preset?.symbol ?? name.slice(0, 2),
+      color: preset?.color ?? '#6366f1',
+      colorRgb: preset?.colorRgb ?? '99,102,241',
+      orderIndex: i,
     };
   });
   lsSet('pulse_subjects', result);
