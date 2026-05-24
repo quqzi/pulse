@@ -13,6 +13,7 @@
   let dueDateInput = '';
   let subjectIdInput = '';
   let adding = false;
+  let titleError = false;
 
   // undo toast state
   let undoTask: Task | null = null;
@@ -38,7 +39,7 @@
   onMount(() => loadData($auth));
 
   async function addTask() {
-    if (!titleInput.trim()) return;
+    if (!titleInput.trim()) { titleError = true; setTimeout(() => titleError = false, 600); return; }
     const { userId, mode } = getAuthContext();
     const task: Task = {
       id: db.newId(),
@@ -125,9 +126,11 @@
     <div class="add-form card">
       <input
         class="title-input"
+        class:error={titleError}
         bind:value={titleInput}
         placeholder="Task title…"
         on:keydown={handleKeydown}
+        on:input={() => titleError = false}
         autofocus
       />
       <div class="form-row">
@@ -151,7 +154,7 @@
       </div>
       <div class="form-actions">
         <button class="btn-cancel" on:click={() => { adding = false; titleInput = ''; }}>Cancel</button>
-        <button class="btn-add" on:click={addTask} disabled={!titleInput.trim()}>Add task</button>
+        <button class="btn-add" on:click={addTask}>Add task</button>
       </div>
     </div>
   {:else}
@@ -288,7 +291,10 @@
     background: var(--primary); color: var(--bg); font-family: inherit; font-size: 13px;
     font-weight: 600; cursor: pointer;
   }
-  .btn-add:disabled { opacity: 0.4; cursor: not-allowed; }
+  .title-input.error { color: #ef4444; }
+  .title-input.error::placeholder { color: #ef4444; }
+  @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+  .title-input.error { animation: shake 200ms ease; }
 
   .filter-row { display: flex; gap: 4px; margin-bottom: 12px; }
   .filter-btn {
