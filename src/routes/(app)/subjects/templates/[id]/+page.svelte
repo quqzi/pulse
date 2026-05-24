@@ -16,8 +16,10 @@
   $: existingNames = new Set($subjects.map(s => s.name.toLowerCase()));
 
   let checked: Set<string> = new Set();
+  let initializedFor = '';
 
-  $: if (template) {
+  $: if (template && template.id !== initializedFor) {
+    initializedFor = template.id;
     checked = new Set(
       template.presets
         .filter(p => !existingNames.has(p.name.toLowerCase()))
@@ -25,7 +27,7 @@
     );
   }
 
-  $: selectedCount = [...checked].filter(name => !existingNames.has(name.toLowerCase())).length;
+  $: selectedCount = checked.size;
 
   function toggle(name: string) {
     if (existingNames.has(name.toLowerCase())) return;

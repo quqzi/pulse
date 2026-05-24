@@ -195,7 +195,7 @@
   .due-badge {
     position: absolute; top: -4px; right: -4px;
     min-width: 18px; height: 18px; border-radius: 9px;
-    color: #fff; font-size: 11px; font-weight: 700;
+    color: #ffffff; font-size: 11px; font-weight: 700;
     display: flex; align-items: center; justify-content: center;
     padding: 0 4px; pointer-events: none;
   }
