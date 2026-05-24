@@ -1,35 +1,8 @@
 <script lang="ts">
-  import { settings, type Palette, type Theme, type DesignTheme } from '$lib/stores/settings';
+  import { settings, type Theme, type DesignTheme } from '$lib/stores/settings';
   import { auth } from '$lib/stores/auth';
   import { supabase } from '$lib/supabase';
   import { goto } from '$app/navigation';
-
-  const palettes: { name: Palette; primary: string; bg: string }[] = [
-    { name:'rose',     primary:'#f43f5e', bg:'#fff1f2' },
-    { name:'teal',     primary:'#0d9488', bg:'#f0fdfa' },
-    { name:'blue',     primary:'#3b82f6', bg:'#eff6ff' },
-    { name:'green',    primary:'#22c55e', bg:'#f0fdf4' },
-    { name:'amber',    primary:'#f59e0b', bg:'#fffbeb' },
-    { name:'purple',   primary:'#a855f7', bg:'#faf5ff' },
-    { name:'pink',     primary:'#ec4899', bg:'#fdf2f8' },
-    { name:'orange',   primary:'#f97316', bg:'#fff7ed' },
-    { name:'crimson',  primary:'#dc2626', bg:'#fef2f2' },
-    { name:'indigo',   primary:'#6366f1', bg:'#eef2ff' },
-    { name:'cyan',     primary:'#06b6d4', bg:'#ecfeff' },
-    { name:'lime',     primary:'#84cc16', bg:'#f7fee7' },
-    { name:'violet',   primary:'#7c3aed', bg:'#f5f3ff' },
-    { name:'sky',      primary:'#0ea5e9', bg:'#f0f9ff' },
-    { name:'emerald',  primary:'#10b981', bg:'#ecfdf5' },
-    { name:'fuchsia',  primary:'#d946ef', bg:'#fdf4ff' },
-    { name:'slate',    primary:'#64748b', bg:'#f8fafc' },
-    { name:'zinc',     primary:'#71717a', bg:'#fafafa' },
-    { name:'stone',    primary:'#78716c', bg:'#fafaf9' },
-    { name:'red',      primary:'#ef4444', bg:'#fef2f2' },
-    { name:'yellow',   primary:'#eab308', bg:'#fefce8' },
-    { name:'warm',     primary:'#f97316', bg:'#fff7ed' },
-    { name:'matcha',   primary:'#4d7c0f', bg:'#f7fee7' },
-    { name:'academia', primary:'#7c6f64', bg:'#fdf8f0' },
-  ];
 
   const themes: { value: Theme; label: string }[] = [
     { value:'light', label:'Light' },
@@ -38,9 +11,9 @@
   ];
 
   const designThemes: { value: DesignTheme; label: string; desc: string; bg: string; text: string; card: string; radius: string }[] = [
-    { value:'vercel', label:'Vercel', desc:'Clean · 8px radius · hairline shadows',   bg:'#fafafa', text:'#171717', card:'#ffffff', radius:'8px' },
-    { value:'apple',  label:'Apple',  desc:'Parchment · 18px radius · soft shadows',  bg:'#f5f5f7', text:'#1d1d1f', card:'#ffffff', radius:'18px' },
-    { value:'resend', label:'Resend', desc:'Pitch black · 12px radius · borders only', bg:'#000000', text:'#fcfdff', card:'#0a0a0c', radius:'12px' },
+    { value:'vercel', label:'Vercel', desc:'Ink · 8px radius · stacked shadows',      bg:'#fafafa', text:'#171717', card:'#ffffff', radius:'8px' },
+    { value:'apple',  label:'Apple',  desc:'Parchment · 18px radius · action blue',   bg:'#f5f5f7', text:'#1d1d1f', card:'#ffffff', radius:'18px' },
+    { value:'resend', label:'Resend', desc:'Pitch black · 12px radius · always dark',  bg:'#000000', text:'#fcfdff', card:'#0a0a0c', radius:'12px' },
   ];
 
   $: isResend = $settings.designTheme === 'resend';
@@ -57,23 +30,7 @@
   <p class="section-label">Appearance</p>
   <div class="card section-card">
     {#if !isResend}
-    <p style="font-size:14px;font-weight:600;margin-bottom:12px">Accent</p>
-    <div class="palette-grid">
-      {#each palettes as p}
-        <button
-          class="palette-chip"
-          class:selected={$settings.palette === p.name}
-          style="background:{p.bg};--chip-accent:{p.primary}"
-          on:click={() => settings.update(s => ({ ...s, palette: p.name }))}
-          title={p.name}
-          aria-label={p.name}
-        >
-          <div class="chip-dot" style="background:{p.primary}"></div>
-        </button>
-      {/each}
-    </div>
-
-    <p style="font-size:14px;font-weight:600;margin:18px 0 10px">Theme</p>
+    <p style="font-size:14px;font-weight:600;margin-bottom:10px">Mode</p>
     <div class="theme-row">
       {#each themes as t}
         <button
@@ -170,11 +127,6 @@
 
 <style>
   .section-card { padding:6px 16px; }
-  .palette-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:8px; }
-  .palette-chip { aspect-ratio:1; border-radius:10px; border:2px solid transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 120ms ease, border-color 120ms ease; }
-  .palette-chip:hover { transform:scale(1.08); }
-  .palette-chip.selected { border-color:var(--chip-accent); }
-  .chip-dot { width:12px; height:12px; border-radius:999px; }
   .theme-row { display:flex; border:1.5px solid var(--border); border-radius:var(--radius-sm); overflow:hidden; }
   .theme-btn { flex:1; padding:9px; border:none; background:transparent; color:var(--muted); font-family:inherit; font-size:14px; font-weight:500; cursor:pointer; transition:background 120ms ease, color 120ms ease; }
   .theme-btn.active { background:var(--primary); color:#fff; font-weight:600; }

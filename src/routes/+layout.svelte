@@ -32,7 +32,6 @@
   $: if (browser) {
     const isDark = $settings.designTheme === 'resend' || $resolvedTheme === 'dark';
     document.body.className = [
-      `palette-${$settings.palette}`,
       `design-${$settings.designTheme}`,
       isDark ? 'theme-dark' : '',
     ].filter(Boolean).join(' ');

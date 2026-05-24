@@ -1,16 +1,10 @@
 import { writable, derived } from 'svelte/store';
 import { browser } from '$app/environment';
 
-export type Palette =
-  'rose'|'teal'|'blue'|'green'|'amber'|'purple'|'pink'|'orange'|
-  'crimson'|'indigo'|'cyan'|'lime'|'violet'|'sky'|'emerald'|'fuchsia'|
-  'slate'|'zinc'|'stone'|'red'|'yellow'|'warm'|'matcha'|'academia';
-
 export type Theme = 'light'|'dark'|'auto';
 export type DesignTheme = 'vercel'|'apple'|'resend';
 
 export interface Settings {
-  palette: Palette;
   theme: Theme;
   designTheme: DesignTheme;
   lang: 'en'|'th';
@@ -20,7 +14,7 @@ export interface Settings {
 }
 
 function defaults(): Settings {
-  return { palette: 'rose', theme: 'auto', designTheme: 'vercel', lang: 'en', dailyGoalHours: 4, pomodoroWork: 25, pomodoroBreak: 5 };
+  return { theme: 'auto', designTheme: 'vercel', lang: 'en', dailyGoalHours: 4, pomodoroWork: 25, pomodoroBreak: 5 };
 }
 
 function load(): Settings {

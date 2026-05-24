@@ -17,10 +17,13 @@ body {
    DESIGN TOKENS — shared layer
    ============================================================ */
 :root {
-  --primary:      #f43f5e;
-  --primary-dark: #e11d48;
-  --primary-l:    #fff1f2;
-  --primary-rgb:  244,63,94;
+  /* Vercel defaults (always overridden by design-* class on body) */
+  --primary:      #171717;
+  --primary-dark: #0a0a0a;
+  --primary-l:    #f5f5f5;
+  --primary-rgb:  23,23,23;
+  --nav-main:  #0070f3;
+  --nav-track: #888888;
   --tab-bar-height: 56px;
   --sidebar-width:  240px;
 }
@@ -36,6 +39,14 @@ body, body.design-vercel {
   --border: #ebebeb;
   --text:   #171717;
   --muted:  #888888;
+  /* Vercel: ink black primary — CTAs are pure near-black pill */
+  --primary:      #171717;
+  --primary-dark: #0a0a0a;
+  --primary-l:    #f5f5f5;
+  --primary-rgb:  23,23,23;
+  /* Sidebar group label colors */
+  --nav-main:  #0070f3;
+  --nav-track: #4d4d4d;
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
@@ -58,6 +69,12 @@ body.design-vercel.theme-dark {
   --border: rgba(255,255,255,.10);
   --text:   #ededed;
   --muted:  #888888;
+  --primary:      #ededed;
+  --primary-dark: #d4d4d4;
+  --primary-l:    #1a1a1a;
+  --primary-rgb:  237,237,237;
+  --nav-main:  #3291ff;
+  --nav-track: #888888;
   --shadow-sm: 0 0 0 1px rgba(255,255,255,.06), 0 1px 2px rgba(0,0,0,.40);
   --shadow-md: 0 0 0 1px rgba(255,255,255,.06), 0 4px 8px rgba(0,0,0,.50);
   --shadow-lg: 0 0 0 1px rgba(255,255,255,.06), 0 8px 24px rgba(0,0,0,.60);
@@ -74,6 +91,14 @@ body.design-apple {
   --border: rgba(0,0,0,.08);
   --text:   #1d1d1f;
   --muted:  #7a7a7a;
+  /* Apple: single action blue accent — every interactive element */
+  --primary:      #0066cc;
+  --primary-dark: #004499;
+  --primary-l:    #d3e5ff;
+  --primary-rgb:  0,102,204;
+  /* Sidebar group label colors */
+  --nav-main:  #0066cc;
+  --nav-track: #7a7a7a;
   --radius-sm: 8px;
   --radius-md: 18px;
   --radius-lg: 22px;
@@ -96,6 +121,13 @@ body.design-apple.theme-dark {
   --border: rgba(255,255,255,.10);
   --text:   #f2f2f7;
   --muted:  #8e8e93;
+  /* Sky link blue for dark surfaces */
+  --primary:      #2997ff;
+  --primary-dark: #0071e3;
+  --primary-l:    #172554;
+  --primary-rgb:  41,151,255;
+  --nav-main:  #2997ff;
+  --nav-track: #8e8e93;
   --shadow-sm: 0 1px 3px rgba(0,0,0,.40), 0 0 0 1px rgba(255,255,255,.06);
   --shadow-md: 0 4px 12px rgba(0,0,0,.50), 0 0 0 1px rgba(255,255,255,.06);
   --shadow-lg: 0 8px 24px rgba(0,0,0,.60), 0 0 0 1px rgba(255,255,255,.06);
@@ -114,6 +146,14 @@ body.design-resend.theme-dark {
   --border: rgba(255,255,255,.14);
   --text:   #fcfdff;
   --muted:  rgba(252,253,255,.65);
+  /* Resend: white as primary — loudest pixel on the dark canvas */
+  --primary:      #fcfdff;
+  --primary-dark: #e4e5e8;
+  --primary-l:    #101012;
+  --primary-rgb:  252,253,255;
+  /* Sidebar: accent blue from Resend DESIGN.md for Main */
+  --nav-main:  #3b9eff;
+  --nav-track: rgba(252,253,255,.65);
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
@@ -144,68 +184,7 @@ body.theme-dark:not([class*="design-"]) {
   --shadow-lg: 0 8px 24px rgba(0,0,0,.35);
 }
 
-/* --- 24 Palettes (light) --- */
-body.palette-rose,   body:not([class*="palette-"]) { --primary:#f43f5e; --primary-dark:#e11d48; --primary-l:#fff1f2; --primary-rgb:244,63,94; }
-body.palette-teal    { --primary:#0d9488; --primary-dark:#0f766e; --primary-l:#f0fdfa; --primary-rgb:13,148,136; }
-body.palette-blue    { --primary:#3b82f6; --primary-dark:#2563eb; --primary-l:#eff6ff; --primary-rgb:59,130,246; }
-body.palette-green   { --primary:#22c55e; --primary-dark:#16a34a; --primary-l:#f0fdf4; --primary-rgb:34,197,94; }
-body.palette-amber   { --primary:#f59e0b; --primary-dark:#d97706; --primary-l:#fffbeb; --primary-rgb:245,158,11; }
-body.palette-purple  { --primary:#a855f7; --primary-dark:#9333ea; --primary-l:#faf5ff; --primary-rgb:168,85,247; }
-body.palette-pink    { --primary:#ec4899; --primary-dark:#db2777; --primary-l:#fdf2f8; --primary-rgb:236,72,153; }
-body.palette-orange  { --primary:#f97316; --primary-dark:#ea580c; --primary-l:#fff7ed; --primary-rgb:249,115,22; }
-body.palette-crimson { --primary:#dc2626; --primary-dark:#b91c1c; --primary-l:#fef2f2; --primary-rgb:220,38,38; }
-body.palette-indigo  { --primary:#6366f1; --primary-dark:#4f46e5; --primary-l:#eef2ff; --primary-rgb:99,102,241; }
-body.palette-cyan    { --primary:#06b6d4; --primary-dark:#0891b2; --primary-l:#ecfeff; --primary-rgb:6,182,212; }
-body.palette-lime    { --primary:#84cc16; --primary-dark:#65a30d; --primary-l:#f7fee7; --primary-rgb:132,204,22; }
-body.palette-violet  { --primary:#7c3aed; --primary-dark:#6d28d9; --primary-l:#f5f3ff; --primary-rgb:124,58,237; }
-body.palette-sky     { --primary:#0ea5e9; --primary-dark:#0284c7; --primary-l:#f0f9ff; --primary-rgb:14,165,233; }
-body.palette-emerald { --primary:#10b981; --primary-dark:#059669; --primary-l:#ecfdf5; --primary-rgb:16,185,129; }
-body.palette-fuchsia { --primary:#d946ef; --primary-dark:#c026d3; --primary-l:#fdf4ff; --primary-rgb:217,70,239; }
-body.palette-slate   { --primary:#64748b; --primary-dark:#475569; --primary-l:#f8fafc; --primary-rgb:100,116,139; }
-body.palette-zinc    { --primary:#71717a; --primary-dark:#52525b; --primary-l:#fafafa; --primary-rgb:113,113,122; }
-body.palette-stone   { --primary:#78716c; --primary-dark:#57534e; --primary-l:#fafaf9; --primary-rgb:120,113,108; }
-body.palette-red     { --primary:#ef4444; --primary-dark:#dc2626; --primary-l:#fef2f2; --primary-rgb:239,68,68; }
-body.palette-yellow  { --primary:#eab308; --primary-dark:#ca8a04; --primary-l:#fefce8; --primary-rgb:234,179,8; }
-body.palette-warm    { --primary:#f97316; --primary-dark:#c2410c; --primary-l:#fff7ed; --primary-rgb:249,115,22; }
-body.palette-matcha  { --primary:#4d7c0f; --primary-dark:#3f6212; --primary-l:#f7fee7; --primary-rgb:77,124,15; }
-body.palette-academia{ --primary:#7c6f64; --primary-dark:#5c4a3a; --primary-l:#fdf8f0; --primary-rgb:124,111,100; }
-
-/* --- 24 Palettes (dark — primaries lighten one step) --- */
-body.theme-dark.palette-rose,   body.theme-dark:not([class*="palette-"]) { --primary:#fb7185; --primary-dark:#f43f5e; --primary-l:#4c0519; }
-body.theme-dark.palette-teal    { --primary:#2dd4bf; --primary-dark:#0d9488; --primary-l:#042f2e; }
-body.theme-dark.palette-blue    { --primary:#60a5fa; --primary-dark:#3b82f6; --primary-l:#172554; }
-body.theme-dark.palette-green   { --primary:#4ade80; --primary-dark:#22c55e; --primary-l:#052e16; }
-body.theme-dark.palette-amber   { --primary:#fbbf24; --primary-dark:#f59e0b; --primary-l:#451a03; }
-body.theme-dark.palette-purple  { --primary:#c084fc; --primary-dark:#a855f7; --primary-l:#2e1065; }
-body.theme-dark.palette-pink    { --primary:#f472b6; --primary-dark:#ec4899; --primary-l:#500724; }
-body.theme-dark.palette-orange  { --primary:#fb923c; --primary-dark:#f97316; --primary-l:#431407; }
-body.theme-dark.palette-crimson { --primary:#f87171; --primary-dark:#dc2626; --primary-l:#450a0a; }
-body.theme-dark.palette-indigo  { --primary:#818cf8; --primary-dark:#6366f1; --primary-l:#1e1b4b; }
-body.theme-dark.palette-cyan    { --primary:#22d3ee; --primary-dark:#06b6d4; --primary-l:#083344; }
-body.theme-dark.palette-lime    { --primary:#a3e635; --primary-dark:#84cc16; --primary-l:#1a2e05; }
-body.theme-dark.palette-violet  { --primary:#a78bfa; --primary-dark:#7c3aed; --primary-l:#2e1065; }
-body.theme-dark.palette-sky     { --primary:#38bdf8; --primary-dark:#0ea5e9; --primary-l:#082f49; }
-body.theme-dark.palette-emerald { --primary:#34d399; --primary-dark:#10b981; --primary-l:#022c22; }
-body.theme-dark.palette-fuchsia { --primary:#e879f9; --primary-dark:#d946ef; --primary-l:#4a044e; }
-body.theme-dark.palette-slate   { --primary:#94a3b8; --primary-dark:#64748b; --primary-l:#0f172a; }
-body.theme-dark.palette-zinc    { --primary:#a1a1aa; --primary-dark:#71717a; --primary-l:#18181b; }
-body.theme-dark.palette-stone   { --primary:#a8a29e; --primary-dark:#78716c; --primary-l:#1c1917; }
-body.theme-dark.palette-red     { --primary:#f87171; --primary-dark:#ef4444; --primary-l:#450a0a; }
-body.theme-dark.palette-yellow  { --primary:#fde047; --primary-dark:#eab308; --primary-l:#422006; }
-body.theme-dark.palette-warm    { --primary:#fb923c; --primary-dark:#f97316; --primary-l:#431407; }
-body.theme-dark.palette-matcha  { --primary:#86efac; --primary-dark:#4d7c0f; --primary-l:#052e16; }
-body.theme-dark.palette-academia{ --primary:#c4b5a4; --primary-dark:#7c6f64; --primary-l:#1c1713; }
-
-/* --- Resend always uses white as primary (palette picker hidden in settings for Resend) --- */
-body.design-resend,
-body.design-resend[class*="palette-"] {
-  --primary: #fcfdff;
-  --primary-dark: #e4e5e8;
-  --primary-l: #101012;
-  --primary-rgb: 252,253,255;
-}
-
-/* --- Subject colors (fixed, never palette-dependent) --- */
+/* --- Subject colors (fixed) --- */
 :root {
   --subject-physics:   #0d9488;
   --subject-chemistry: #d97706;
@@ -298,6 +277,28 @@ body.theme-dark {
 /* ============================================================
    SIGNATURE STYLES — per-design visual flourishes
    ============================================================ */
+
+/* Vercel: develop gradient hero (blue→teal from brand mesh) */
+body.design-vercel .hero-card {
+  background: linear-gradient(140deg, #007cf0, #00dfd8);
+  box-shadow: 0 4px 24px rgba(0,124,240,.25), 0 0 0 1px rgba(0,0,0,.06);
+  color: #fff;
+}
+
+/* Apple: action blue hero */
+body.design-apple .hero-card {
+  background: linear-gradient(140deg, #0066cc, #0071e3);
+  box-shadow: 0 4px 20px rgba(0,102,204,.35), 0 0 0 1px rgba(0,0,0,.04);
+  color: #fff;
+}
+body.design-apple.theme-dark .hero-card {
+  background: linear-gradient(140deg, #2997ff, #0071e3);
+  box-shadow: 0 4px 20px rgba(41,151,255,.30);
+}
+
+/* Vercel: btn-primary is ink black pill — white text */
+body.design-vercel .btn-primary { background: #171717; color: #fff; }
+body.design-vercel.theme-dark .btn-primary { background: #ededed; color: #000; }
 
 /* Vercel: section labels in Geist Mono — the technical eyebrow voice */
 body.design-vercel .section-label {

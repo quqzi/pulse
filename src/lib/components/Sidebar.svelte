@@ -2,12 +2,12 @@
   import { page } from '$app/stores';
 
   const groups = [
-    { label: 'Main', color: '#0d9488', items: [
+    { label: 'Main', colorVar: 'var(--nav-main)', items: [
       { label: 'Dashboard', href: '/dashboard', d: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' },
       { label: 'Timer',     href: '/timer',     d: 'M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zM12 6v6l4 2' },
       { label: 'Subjects',  href: '/subjects',  d: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z' },
     ]},
-    { label: 'Track', color: '#d97706', items: [
+    { label: 'Track', colorVar: 'var(--nav-track)', items: [
       { label: 'Analytics', href: '/analytics', d: 'M18 20V10M12 20V4M6 20v-6' },
       { label: 'Insights',  href: '/insights',  d: 'M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zM12 8v4M12 16h.01' },
       { label: 'Journey',   href: '/journey',   d: 'M22 12h-4l-3 9L9 3l-3 9H2' },
@@ -15,7 +15,7 @@
       { label: 'Schedule',  href: '/schedule',  d: 'M3 4h18a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM16 2v4M8 2v4M2 10h20' },
       { label: 'Scores',    href: '/scores',    d: 'M23 6L13.5 15.5 8.5 10.5 1 18M17 6h6v6' },
     ]},
-    { label: 'Settings', color: '#475569', items: [
+    { label: 'Settings', colorVar: 'var(--muted)', items: [
       { label: 'Settings',  href: '/settings',  d: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z' },
     ]},
   ];
@@ -36,7 +36,7 @@
 
   {#each groups as group}
     <div class="nav-group">
-      <span class="nav-group-label" style="color:{group.color}">{group.label}</span>
+      <span class="nav-group-label" style="color:{group.colorVar}">{group.label}</span>
       {#each group.items as item}
         <a href={item.href} class="nav-item" class:active={path.startsWith(item.href)}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
