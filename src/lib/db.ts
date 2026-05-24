@@ -1,7 +1,7 @@
 import { browser } from '$app/environment';
 import { supabase } from '$lib/supabase';
 import { TCAS_SUBJECTS } from '$lib/constants';
-import type { Subject, Topic, SrsCard, StudySession } from '$lib/types';
+import type { Subject, Topic, SrsCard, StudySession, Task } from '$lib/types';
 import { defaultCard } from '$lib/srs';
 
 type Mode = 'guest' | 'authenticated';
@@ -86,6 +86,19 @@ function mapSessionFromDb(row: Record<string, unknown>): StudySession {
     endedAt: row.ended_at as string,
     durationSec: row.duration_sec as number,
     mode: row.mode as StudySession['mode'],
+  };
+}
+
+function mapTaskFromDb(row: Record<string, unknown>): Task {
+  return {
+    id: row.id as string,
+    userId: row.user_id as string,
+    subjectId: row.subject_id as string | undefined,
+    title: row.title as string,
+    priority: row.priority as Task['priority'],
+    dueDate: row.due_date as string | undefined,
+    completedAt: row.completed_at as string | undefined,
+    createdAt: row.created_at as string,
   };
 }
 
@@ -204,6 +217,43 @@ export const db = {
       topic_id: session.topicId ?? null, started_at: session.startedAt,
       ended_at: session.endedAt, duration_sec: session.durationSec, mode: session.mode,
     });
+  },
+
+  // ── TASKS ─────────────────────────────────────────────────
+  async getTasks(userId: string, mode: Mode): Promise<Task[]> {
+    if (mode === 'guest') return lsGet<Task>('pulse_tasks');
+    const { data } = await supabase.from('tasks').select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    return (data ?? []).map(mapTaskFromDb);
+  },
+
+  async saveTask(task: Task, mode: Mode): Promise<void> {
+    if (mode === 'guest') {
+      const all = lsGet<Task>('pulse_tasks');
+      const idx = all.findIndex(t => t.id === task.id);
+      if (idx >= 0) all[idx] = task; else all.unshift(task);
+      lsSet('pulse_tasks', all);
+      return;
+    }
+    await supabase.from('tasks').upsert({
+      id: task.id,
+      user_id: task.userId,
+      subject_id: task.subjectId ?? null,
+      title: task.title,
+      priority: task.priority,
+      due_date: task.dueDate ?? null,
+      completed_at: task.completedAt ?? null,
+      created_at: task.createdAt,
+    });
+  },
+
+  async deleteTask(taskId: string, mode: Mode): Promise<void> {
+    if (mode === 'guest') {
+      lsSet('pulse_tasks', lsGet<Task>('pulse_tasks').filter(t => t.id !== taskId));
+      return;
+    }
+    await supabase.from('tasks').delete().eq('id', taskId);
   },
 
   newId,

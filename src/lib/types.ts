@@ -38,3 +38,16 @@ export interface StudySession {
   durationSec: number;
   mode: StudyMode;
 }
+
+export type Priority = 'high' | 'medium' | 'low';
+
+export interface Task {
+  id: string;
+  userId: string;
+  subjectId?: string;
+  title: string;
+  priority: Priority;
+  dueDate?: string;      // YYYY-MM-DD
+  completedAt?: string;  // ISO timestamp, undefined = incomplete
+  createdAt: string;     // ISO timestamp
+}
