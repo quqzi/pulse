@@ -1,12 +1,13 @@
 import { writable, derived } from 'svelte/store';
 import { db } from '$lib/db';
-import type { Subject, Topic, SrsCard, StudySession } from '$lib/types';
+import type { Subject, Topic, SrsCard, StudySession, Task } from '$lib/types';
 import type { AuthState } from '$lib/stores/auth';
 
 export const subjects = writable<Subject[]>([]);
 export const topics = writable<Topic[]>([]);
 export const srsCards = writable<SrsCard[]>([]);
 export const sessions = writable<StudySession[]>([]);
+export const tasks = writable<Task[]>([]);
 
 export const todaysSessions = derived(sessions, ($s) => {
   const today = new Date().toISOString().split('T')[0];
@@ -41,6 +42,11 @@ export const streak = derived(sessions, ($s) => {
   return count;
 });
 
+export const tasksDueToday = derived(tasks, ($tasks) => {
+  const today = new Date().toISOString().split('T')[0];
+  return $tasks.filter(t => !t.completedAt && t.dueDate && t.dueDate <= today);
+});
+
 let _mode: 'guest' | 'authenticated' = 'guest';
 let _userId = 'guest';
 
@@ -49,16 +55,18 @@ export async function loadData(authState: AuthState): Promise<void> {
   _mode = authState.mode;
   _userId = authState.mode === 'guest' ? 'guest' : (authState.user?.id ?? '');
 
-  const [s, t, c, sess] = await Promise.all([
+  const [s, t, c, sess, tsk] = await Promise.all([
     db.getSubjects(_userId, _mode),
     db.getTopics(_userId, _mode),
     db.getSrsCards(_userId, _mode),
     db.getSessions(_userId, _mode),
+    db.getTasks(_userId, _mode),
   ]);
   subjects.set(s);
   topics.set(t);
   srsCards.set(c);
   sessions.set(sess);
+  tasks.set(tsk);
 }
 
 export function getAuthContext(): { userId: string; mode: 'guest' | 'authenticated' } {
