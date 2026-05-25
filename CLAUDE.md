@@ -191,5 +191,6 @@ Detailed design token specs for the three supported themes:
 
 ## Active Plans & Specs
 
-- `docs/superpowers/specs/2026-05-24-subject-management-design.md` — subject + template management (planned, not yet implemented)
+- `docs/superpowers/specs/2026-05-24-subject-management-design.md` — subject + template management (completed)
+- `docs/superpowers/specs/2026-05-25-auth-onboarding-design.md` — auth + onboarding fix (completed)
 - `docs/superpowers/plans/2026-05-24-pulse-plan-3a-tasks.md` — Tasks feature (completed)
