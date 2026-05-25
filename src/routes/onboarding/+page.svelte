@@ -30,6 +30,7 @@
   function next() { step < TOTAL ? step++ : finish(); }
 
   async function finish() {
+    saveError = '';
     settings.update(s => ({ ...s, dailyGoalHours }));
     localStorage.setItem('pulse_exam_date', examDate);
     localStorage.setItem('pulse_target_scores', JSON.stringify(targetScores));
