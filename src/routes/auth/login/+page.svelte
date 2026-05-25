@@ -7,15 +7,16 @@
   async function login() {
     loading = true; error = '';
     const { data: authData, error: err } = await supabase.auth.signInWithPassword({ email, password });
-    loading = false;
-    if (err) { error = err.message; return; }
+    if (err) { error = err.message; loading = false; return; }
+    if (!authData.session) { goto('/onboarding'); loading = false; return; }
 
     const { data: existing } = await supabase
       .from('subjects')
       .select('id')
-      .eq('user_id', authData.session!.user.id)
+      .eq('user_id', authData.session.user.id)
       .limit(1);
 
+    loading = false;
     goto(existing && existing.length > 0 ? '/dashboard' : '/onboarding');
   }
 
