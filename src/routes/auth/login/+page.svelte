@@ -6,10 +6,17 @@
 
   async function login() {
     loading = true; error = '';
-    const { error: err } = await supabase.auth.signInWithPassword({ email, password });
+    const { data: authData, error: err } = await supabase.auth.signInWithPassword({ email, password });
     loading = false;
     if (err) { error = err.message; return; }
-    goto('/dashboard');
+
+    const { data: existing } = await supabase
+      .from('subjects')
+      .select('id')
+      .eq('user_id', authData.session!.user.id)
+      .limit(1);
+
+    goto(existing && existing.length > 0 ? '/dashboard' : '/onboarding');
   }
 
   function continueAsGuest() {
