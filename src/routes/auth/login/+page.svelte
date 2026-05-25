@@ -16,6 +16,7 @@
       .eq('user_id', authData.session.user.id)
       .limit(1);
 
+    loading = false;
     goto(existing && existing.length > 0 ? '/dashboard' : '/onboarding');
   }
 

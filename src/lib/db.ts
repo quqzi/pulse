@@ -133,11 +133,12 @@ export const db = {
       lsSet('pulse_subjects', all);
       return;
     }
-    await supabase.from('subjects').upsert({
+    const { error } = await supabase.from('subjects').upsert({
       id: subject.id, user_id: subject.userId, name: subject.name,
       symbol: subject.symbol, color: subject.color, color_rgb: subject.colorRgb,
       order_index: subject.orderIndex, target_score: subject.targetScore ?? null,
     });
+    if (error) throw error;
   },
 
   // ── TOPICS ────────────────────────────────────────────────
