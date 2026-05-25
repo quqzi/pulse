@@ -3,12 +3,14 @@
   import { goto } from '$app/navigation';
 
   let name = '', email = '', password = '', error = '', loading = false;
+  let confirmSent = false;
 
   async function signup() {
     loading = true; error = '';
-    const { error: err } = await supabase.auth.signUp({ email, password, options: { data: { name } } });
+    const { data, error: err } = await supabase.auth.signUp({ email, password, options: { data: { name } } });
     loading = false;
     if (err) { error = err.message; return; }
+    if (!data.session) { confirmSent = true; return; }
     goto('/onboarding');
   }
 </script>
@@ -27,6 +29,12 @@
     <h1 class="text-heading" style="margin-bottom:20px">Create account</h1>
     {#if error}<p class="error-msg">{error}</p>{/if}
 
+    {#if confirmSent}
+      <div class="confirm-msg">
+        <p style="font-weight:600; margin-bottom:4px">Check your email</p>
+        <p style="color:var(--muted); font-size:14px">We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account, then <a href="/auth/login">sign in</a>.</p>
+      </div>
+    {:else}
     <form on:submit|preventDefault={signup} class="auth-form">
       <label><span class="field-label">Name</span><input type="text" bind:value={name} placeholder="Your name" required /></label>
       <label><span class="field-label">Email</span><input type="email" bind:value={email} placeholder="student@example.com" required /></label>
@@ -35,6 +43,7 @@
     </form>
 
     <p class="auth-footer">Already have an account? <a href="/auth/login">Sign in</a></p>
+    {/if}
   </div>
 </div>
 
@@ -52,4 +61,6 @@
   .error-msg { background:#fef2f2; color:#dc2626; border-radius:8px; padding:10px 12px; font-size:13px; margin-bottom:14px; }
   .auth-footer { text-align:center; font-size:13px; color:var(--muted); margin-top:16px; }
   .auth-footer a { color:var(--primary); text-decoration:none; font-weight:600; }
+  .confirm-msg { background:var(--bg3); border:1.5px solid var(--border); border-radius:var(--radius-md); padding:16px; margin-bottom:16px; }
+  .confirm-msg a { color:var(--primary); text-decoration:none; font-weight:600; }
 </style>
