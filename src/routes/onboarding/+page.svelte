@@ -13,11 +13,11 @@
   let checked: Set<string> = new Set();
   let dailyGoalHours = 4;
   let targetScores: Record<string, number> = {};
+  let saveError = '';
   const TOTAL = 4;
 
-  $: if (pickedTemplate) {
-    checked = new Set(pickedTemplate.presets.map(p => p.name));
-  }
+  $: checked = new Set((pickedTemplate?.presets ?? []).map(p => p.name));
+  $: isAuthenticated = $auth.mode === 'authenticated';
   $: selectedPresets = pickedTemplate?.presets.filter(p => checked.has(p.name)) ?? [];
   $: nextDisabled = step === 1 && (pickedTemplate === null || selectedPresets.length === 0);
 
@@ -54,7 +54,12 @@
     if (mode === 'guest') {
       localStorage.setItem('pulse_subjects', JSON.stringify(subjectRecords));
     } else {
-      await Promise.all(subjectRecords.map(s => db.saveSubject(s, 'authenticated')));
+      try {
+        await Promise.all(subjectRecords.map(s => db.saveSubject(s, 'authenticated')));
+      } catch {
+        saveError = 'Failed to save your subjects. Please try again.';
+        return;
+      }
     }
 
     goto('/dashboard');
@@ -140,6 +145,10 @@
       <p class="text-body text-muted sub">Your study tracker is ready. Let's go.</p>
     {/if}
 
+    {#if saveError}
+      <p class="save-error">{saveError}</p>
+    {/if}
+
     <div class="actions">
       {#if step > 0}<button class="btn btn-secondary" on:click={() => step--}>Back</button>{/if}
       <button class="btn btn-primary" style="flex:1" on:click={next} disabled={nextDisabled}>
@@ -147,7 +156,7 @@
       </button>
     </div>
 
-    {#if step === 0}
+    {#if step === 0 && !isAuthenticated}
       <button class="skip-btn" on:click={finish}>Skip setup</button>
     {/if}
   </div>
@@ -183,7 +192,7 @@
   .checklist-header { display:flex; flex-direction:column; gap:4px; }
   .back-link { background:none; border:none; cursor:pointer; color:var(--primary); font-size:13px; font-family:inherit; text-align:left; padding:0; }
   .preset-list { display:flex; flex-direction:column; gap:6px; }
-  .preset-row { display:flex; align-items:center; gap:10px; padding:8px 12px; border-radius:8px; background:var(--bg3); cursor:pointer; font-size:15px; }
+  .preset-row { display:flex; align-items:center; gap:10px; padding:8px 12px; border-radius:var(--radius-md); background:var(--bg3); cursor:pointer; font-size:15px; }
   .preset-symbol { font-weight:700; width:28px; flex-shrink:0; }
 
   /* daily goal */
@@ -194,9 +203,10 @@
   /* target scores */
   .score-list { display:flex; flex-direction:column; gap:8px; }
   .score-row { display:flex; align-items:center; gap:10px; }
-  .score-input { width:72px; padding:8px 10px; border-radius:8px; border:1.5px solid var(--border); background:var(--bg); color:var(--text); font-family:inherit; font-size:15px; text-align:center; outline:none; }
+  .score-input { width:72px; padding:8px 10px; border-radius:var(--radius-md); border:1.5px solid var(--border); background:var(--bg); color:var(--text); font-family:inherit; font-size:15px; text-align:center; outline:none; }
   .score-input:focus { border-color:var(--primary); }
 
   .actions { display:flex; gap:10px; margin-top:8px; }
   .skip-btn { background:none; border:none; color:var(--muted); font-size:13px; cursor:pointer; font-family:inherit; text-align:center; }
+  .save-error { color: #dc2626; font-size: 13px; text-align: center; }
 </style>
