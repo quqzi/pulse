@@ -16,10 +16,12 @@
 </div>
 
 <style>
-  .app-shell { display: flex; min-height: 100dvh; }
+  .app-shell { display: flex; height: 100dvh; overflow: hidden; }
   .sidebar-slot { display: none; }
   .main-content {
     flex: 1;
+    min-width: 0;
+    overflow-y: auto;
     padding: 20px 16px calc(var(--tab-bar-height) + 20px + env(safe-area-inset-bottom)) 16px;
   }
   @media (min-width: 768px) {
