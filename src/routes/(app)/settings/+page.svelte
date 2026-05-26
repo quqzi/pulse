@@ -79,6 +79,88 @@
     </div>
   </div>
 
+  <p class="section-label" style="margin-top:20px">Calendar & Scheduling</p>
+  <div class="card section-card">
+    <div class="setting-row">
+      <div class="setting-info">
+        <span class="text-body">School hours</span>
+        <span class="text-muted" style="font-size:13px">Block these times from auto-scheduling</span>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" bind:checked={$settings.schoolHoursEnabled} />
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+
+    {#if $settings.schoolHoursEnabled}
+      <div class="school-hours-config">
+        <div class="day-picker">
+          {#each [['M',1],['T',2],['W',3],['T',4],['F',5],['S',6],['S',7]] as [label, val] (val)}
+            <button
+              class="day-chip"
+              class:active={$settings.schoolDays.includes(val as number)}
+              on:click={() => {
+                const v = val as number;
+                const days = $settings.schoolDays.includes(v)
+                  ? $settings.schoolDays.filter(d => d !== v)
+                  : [...$settings.schoolDays, v];
+                settings.update(s => ({ ...s, schoolDays: days }));
+              }}
+            >{label}</button>
+          {/each}
+        </div>
+        <div class="time-row">
+          <label class="time-field">
+            <span>From</span>
+            <input type="time" bind:value={$settings.schoolStart} />
+          </label>
+          <label class="time-field">
+            <span>To</span>
+            <input type="time" bind:value={$settings.schoolEnd} />
+          </label>
+        </div>
+      </div>
+    {/if}
+
+    <div class="divider"></div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <span class="text-body">Energy profile</span>
+        <span class="text-muted" style="font-size:13px">Auto-schedule matches hard subjects to your peak hours</span>
+      </div>
+    </div>
+    <div class="energy-options">
+      {#each [['morning','🌅 Morning person','Peak 6am–12pm'],['neutral','☀️ No preference','Equal weighting'],['evening','🌙 Evening person','Peak 6pm–10pm']] as [val, label, desc] ([val, label, desc])}
+        <button
+          class="energy-chip"
+          class:active={$settings.energyProfile === val}
+          on:click={() => settings.update(s => ({ ...s, energyProfile: val as 'morning' | 'evening' | 'neutral' }))}
+        >
+          <span class="energy-label">{label}</span>
+          <span class="energy-desc">{desc}</span>
+        </button>
+      {/each}
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <span class="text-body">Buffer between sessions</span>
+        <span class="text-muted" style="font-size:13px">{$settings.bufferMinutes} min gap after each auto-scheduled block</span>
+      </div>
+      <input
+        type="range"
+        min="0"
+        max="30"
+        step="5"
+        bind:value={$settings.bufferMinutes}
+        style="width:100px"
+      />
+    </div>
+  </div>
+
   {#if $auth.mode === 'authenticated'}
     <p class="section-label" style="margin-top:20px">Account</p>
     <div class="card section-card">
@@ -141,4 +223,56 @@
   .tc-btn { height:6px; width:36%; border-radius:999px; margin-top:2px; }
   .tc-label { font-size:12px; font-weight:700; color:var(--t-text); margin-bottom:1px; }
   .tc-sub   { font-size:10px; color:var(--t-text); opacity:.55; line-height:1.3; }
+
+  .setting-info { display:flex; flex-direction:column; gap:2px; }
+
+  .toggle { display:flex; align-items:center; cursor:pointer; flex-shrink:0; }
+  .toggle input { display:none; }
+  .toggle-track {
+    width:44px; height:24px; border-radius:999px; background:var(--border);
+    position:relative; transition:background 150ms ease;
+  }
+  .toggle-track::after {
+    content:''; position:absolute; top:2px; left:2px;
+    width:20px; height:20px; border-radius:50%; background:white;
+    transition:transform 150ms ease;
+  }
+  .toggle input:checked + .toggle-track { background:var(--primary); }
+  .toggle input:checked + .toggle-track::after { transform:translateX(20px); }
+
+  .school-hours-config {
+    padding: 10px 0 6px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .day-picker { display:flex; gap:4px; }
+  .day-chip {
+    width:28px; height:28px; border-radius:50%;
+    border:1.5px solid var(--border); background:var(--bg);
+    color:var(--text); font-size:11px; font-weight:600;
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .day-chip.active { background:var(--primary); border-color:var(--primary); color:white; }
+  .time-row { display:flex; gap:12px; }
+  .time-field { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text); }
+  .time-field input {
+    border:1px solid var(--border); border-radius:6px; padding:4px 8px;
+    background:var(--bg); color:var(--text); font-size:13px;
+  }
+
+  .energy-options {
+    display:flex; flex-direction:column; gap:6px; padding:6px 0 10px 0;
+  }
+  .energy-chip {
+    display:flex; flex-direction:column; align-items:flex-start;
+    padding:8px 12px; border-radius:8px; border:1.5px solid var(--border);
+    background:var(--bg); color:var(--text); cursor:pointer; text-align:left;
+  }
+  .energy-chip.active {
+    border-color:var(--primary);
+    background:color-mix(in srgb, var(--primary) 8%, var(--bg));
+  }
+  .energy-label { font-size:13px; font-weight:600; }
+  .energy-desc { font-size:11px; color:var(--muted); margin-top:1px; }
 </style>
