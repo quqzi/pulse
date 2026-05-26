@@ -97,6 +97,18 @@
     </section>
   {/if}
 
+  {#if $dueCards.length > 0}
+    <section class="review-section">
+      <button class="review-cta" on:click={() => goto('/review')}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/>
+          <path d="M12 6v6l4 2"/>
+        </svg>
+        Review {$dueCards.length} due card{$dueCards.length === 1 ? '' : 's'}
+      </button>
+    </section>
+  {/if}
+
   <TodaysPlan
     subjects={$subjects}
     topics={$topics}
@@ -179,4 +191,22 @@
   .task-divider { height: 1px; background: var(--border); margin: 0 14px; }
   .see-more { display: block; text-align: center; padding: 8px; font-size: 13px; color: var(--primary); text-decoration: none; font-weight: 500; }
   .bottom-spacer { height: 32px; }
+  .review-section { margin-top: 20px; }
+  .review-cta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--primary);
+    background: color-mix(in srgb, var(--primary) 8%, transparent);
+    color: var(--primary);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: transform 400ms cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .review-cta:active { transform: scale(0.97); transition: transform 80ms ease-in; }
 </style>
