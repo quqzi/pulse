@@ -2,10 +2,14 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { auth } from '$lib/stores/auth';
-  import { subjects, topics, tasks, sessions, scheduleSlots, loadData, loadScheduleSlots, getAuthContext } from '$lib/stores/data';
+  import { subjects, topics, srsCards, tasks, sessions, scheduleSlots, loadData, loadScheduleSlots, getAuthContext } from '$lib/stores/data';
+  import { settings } from '$lib/stores/settings';
   import { db } from '$lib/db';
+  import { generateSchedule } from '$lib/scheduler';
   import WeekGrid from '$lib/components/calendar/WeekGrid.svelte';
   import MiniMonth from '$lib/components/calendar/MiniMonth.svelte';
+  import ScheduleSidebar from '$lib/components/calendar/ScheduleSidebar.svelte';
+  import ExamBanner from '$lib/components/calendar/ExamBanner.svelte';
   import type { ScheduleSlot } from '$lib/types';
 
   // ── Week navigation ───────────────────────────────────────────
@@ -47,6 +51,31 @@
   // Reload slots whenever the week changes and auth is ready
   $: if ($auth.mode !== 'loading') {
     loadScheduleSlots(viewedWeekStart, weekEnd);
+  }
+
+  // ── Auto-schedule ─────────────────────────────────────────────
+  let isScheduling = false;
+
+  function handleAutoSchedule() {
+    if (isScheduling) return;
+    isScheduling = true;
+    const { userId } = getAuthContext();
+    const examDate = localStorage.getItem('pulse_exam_date');
+    scheduleSlots.update(all => all.filter(s => !s.isAiSuggested));
+    const suggested = generateSchedule({
+      weekStart: viewedWeekStart,
+      subjects: $subjects,
+      sessions: $sessions,
+      srsCards: $srsCards,
+      tasks: $tasks,
+      topics: $topics,
+      existingSlots: $scheduleSlots,
+      settings: $settings,
+      examDate,
+      userId,
+    });
+    scheduleSlots.update(all => [...all, ...suggested]);
+    isScheduling = false;
   }
 
   // ── Event handlers ────────────────────────────────────────────
@@ -140,6 +169,19 @@
     });
   }
 
+  async function handleAcceptAll() {
+    const { mode } = getAuthContext();
+    const suggested = $scheduleSlots.filter(s => s.isAiSuggested && !s.isConfirmed);
+    await db.confirmAllSuggested(suggested, mode);
+    scheduleSlots.update(all => all.map(s =>
+      s.isAiSuggested ? { ...s, isConfirmed: true, isAiSuggested: false } : s
+    ));
+  }
+
+  function handleRejectAll() {
+    scheduleSlots.update(all => all.filter(s => !s.isAiSuggested));
+  }
+
   onMount(async () => {
     await loadData($auth);
     loadScheduleSlots(viewedWeekStart, weekEnd);
@@ -160,12 +202,24 @@
 
   <!-- Main calendar area -->
   <div class="main-area">
+    <ExamBanner subjects={$subjects} sessions={$sessions} settings={$settings} />
+
     <header class="cal-header">
       <div class="week-nav">
         <button class="nav-btn icon-btn" on:click={prevWeek} aria-label="Previous week">‹</button>
         <button class="nav-btn icon-btn" on:click={nextWeek} aria-label="Next week">›</button>
         <span class="week-title">{weekTitle}</span>
         <button class="today-btn" on:click={goToday}>Today</button>
+      </div>
+      <div class="header-actions">
+        <button
+          class="auto-btn"
+          class:loading={isScheduling}
+          on:click={handleAutoSchedule}
+          disabled={isScheduling}
+        >
+          {isScheduling ? 'Scheduling…' : '✦ Auto-schedule'}
+        </button>
       </div>
     </header>
 
@@ -175,6 +229,7 @@
       subjects={$subjects}
       topics={$topics}
       tasks={$tasks}
+      settings={$settings}
       on:createSlot={handleCreateSlot}
       on:moveSlot={handleMoveSlot}
       on:resizeSlot={handleResizeSlot}
@@ -185,6 +240,17 @@
       on:changeSubject={handleChangeSubject}
     />
   </div>
+
+  <ScheduleSidebar
+    slots={$scheduleSlots}
+    subjects={$subjects}
+    topics={$topics}
+    srsCards={$srsCards}
+    settings={$settings}
+    weekStart={viewedWeekStart}
+    on:acceptAll={handleAcceptAll}
+    on:rejectAll={handleRejectAll}
+  />
 </div>
 
 <style>
@@ -215,6 +281,7 @@
   .cal-header {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     padding: 10px 16px;
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
@@ -259,6 +326,23 @@
     margin-left: 4px;
   }
   .today-btn:hover { background: var(--bg3); }
+
+  .header-actions { display: flex; align-items: center; gap: 8px; }
+
+  .auto-btn {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1.5px solid var(--primary);
+    background: var(--primary);
+    color: white;
+    cursor: pointer;
+    letter-spacing: 0.01em;
+  }
+  .auto-btn:hover:not(:disabled) { opacity: 0.88; }
+  .auto-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .auto-btn.loading { opacity: 0.7; }
 
   @media (max-width: 768px) {
     .left-panel { display: none; }
