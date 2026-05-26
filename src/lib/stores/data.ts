@@ -1,6 +1,6 @@
 import { writable, derived } from 'svelte/store';
 import { db } from '$lib/db';
-import type { Subject, Topic, SrsCard, StudySession, Task, Template, ScheduleSlot } from '$lib/types';
+import type { Subject, Topic, SrsCard, StudySession, Task, Template, ScheduleSlot, MockScore } from '$lib/types';
 import type { AuthState } from '$lib/stores/auth';
 
 export const subjects = writable<Subject[]>([]);
@@ -10,6 +10,7 @@ export const sessions = writable<StudySession[]>([]);
 export const tasks = writable<Task[]>([]);
 export const templates = writable<Template[]>([]);
 export const scheduleSlots = writable<ScheduleSlot[]>([]);
+export const scores = writable<MockScore[]>([]);
 
 export const todaysSessions = derived(sessions, ($s) => {
   const today = new Date().toISOString().split('T')[0];
@@ -57,13 +58,14 @@ export async function loadData(authState: AuthState): Promise<void> {
   _mode = authState.mode;
   _userId = authState.mode === 'guest' ? 'guest' : (authState.user?.id ?? '');
 
-  const [s, t, c, sess, tsk, tmpl] = await Promise.all([
+  const [s, t, c, sess, tsk, tmpl, sc] = await Promise.all([
     db.getSubjects(_userId, _mode),
     db.getTopics(_userId, _mode),
     db.getSrsCards(_userId, _mode),
     db.getSessions(_userId, _mode),
     db.getTasks(_userId, _mode),
     db.getTemplates(_userId, _mode),
+    db.getScores(_userId, _mode),
   ]);
   subjects.set(s);
   topics.set(t);
@@ -71,6 +73,7 @@ export async function loadData(authState: AuthState): Promise<void> {
   sessions.set(sess);
   tasks.set(tsk);
   templates.set(tmpl);
+  scores.set(sc);
 }
 
 export async function loadScheduleSlots(weekStart: Date, weekEnd: Date): Promise<void> {
