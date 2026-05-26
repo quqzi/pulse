@@ -66,3 +66,29 @@ export interface Template {
   presets: SubjectPreset[];
   createdAt: string;
 }
+
+export interface ScheduleSlot {
+  id: string;
+  userId: string;
+  subjectId: string;
+  topicId?: string;
+  startTime: string;          // local ISO: "2026-05-19T08:00:00"
+  endTime: string;            // local ISO: "2026-05-19T09:30:00"
+  isAiSuggested: boolean;
+  isConfirmed: boolean;
+  isFocusBlock: boolean;
+  isRecurring: boolean;
+  recurrenceDays: number[];   // [1,3,5] = Mon/Wed/Fri
+  recurrenceEndDate?: string; // YYYY-MM-DD
+  createdAt: string;
+}
+
+export interface IdealWeekSlot {
+  id: string;
+  userId: string;
+  subjectId: string;
+  dayOfWeek: number;       // 0=Sun … 6=Sat
+  startHour: number;
+  startMinute: number;
+  durationMinutes: number;
+}

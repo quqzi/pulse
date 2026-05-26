@@ -14,10 +14,28 @@ export interface Settings {
   dailyGoalHours: number;
   pomodoroWork: number;
   pomodoroBreak: number;
+  schoolHoursEnabled: boolean;
+  schoolDays: number[];        // [1,2,3,4,5] = Mon–Fri
+  schoolStart: string;         // "08:00"
+  schoolEnd: string;           // "15:30"
+  energyProfile: 'morning' | 'evening' | 'neutral';
+  bufferMinutes: number;
 }
 
 function defaults(): Settings {
-  return { theme: 'vercel-light', lang: 'en', dailyGoalHours: 4, pomodoroWork: 25, pomodoroBreak: 5 };
+  return {
+    theme: 'vercel-light',
+    lang: 'en',
+    dailyGoalHours: 4,
+    pomodoroWork: 25,
+    pomodoroBreak: 5,
+    schoolHoursEnabled: false,
+    schoolDays: [1, 2, 3, 4, 5],
+    schoolStart: '08:00',
+    schoolEnd: '15:30',
+    energyProfile: 'neutral',
+    bufferMinutes: 10,
+  };
 }
 
 function load(): Settings {
