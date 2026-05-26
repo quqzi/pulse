@@ -33,6 +33,9 @@
   }
 
   async function deleteTopic(topicId: string) {
+    const topic = $topics.find(t => t.id === topicId);
+    if (!topic) return;
+    if (!confirm(`Delete topic "${topic.name}"? Its SRS cards will also be deleted.`)) return;
     const { mode } = getAuthContext();
     await db.deleteTopic(topicId, mode);
     topics.update(ts => ts.filter(t => t.id !== topicId));

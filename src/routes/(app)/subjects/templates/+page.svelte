@@ -48,6 +48,7 @@
   }
 
   async function deleteTemplate(template: Template) {
+    if (!confirm(`Delete template "${template.name}"? This cannot be undone.`)) return;
     const { mode } = getAuthContext();
     templates.update(all => all.filter(t => t.id !== template.id));
     await db.deleteTemplate(template.id, mode);

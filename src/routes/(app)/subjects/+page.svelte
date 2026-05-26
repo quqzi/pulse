@@ -75,6 +75,7 @@
 
   async function deleteSubject() {
     if (!editingSubject) return;
+    if (!confirm(`Delete "${editingSubject.name}" and all its topics and SRS cards? This cannot be undone.`)) return;
     const { mode } = getAuthContext();
     const id = editingSubject.id;
     const removedTopicIds = new Set($topics.filter(t => t.subjectId === id).map(t => t.id));

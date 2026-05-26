@@ -71,6 +71,7 @@
   }
 
   function deleteTask(task: Task) {
+    if (!confirm(`Delete "${task.title}"?`)) return;
     if (undoTimer) clearTimeout(undoTimer);
     tasks.update(all => all.filter(t => t.id !== task.id));
     undoTask = task;
