@@ -1,9 +1,11 @@
-import type { Subject, SrsCard, StudySession, Task, ScheduleSlot } from '$lib/types';
+import type { Subject, Topic, SrsCard, StudySession, Task, ScheduleSlot } from '$lib/types';
 import type { Settings } from '$lib/stores/settings';
 
 export interface SchedulerInput {
+  userId: string;
   weekStart: Date;
   subjects: Subject[];
+  topics?: Topic[];
   sessions: StudySession[];       // past 14 days (for deficit calc)
   srsCards: SrsCard[];
   tasks: Task[];
@@ -44,14 +46,6 @@ function toLocalISO(date: Date, hour: number, minute: number): string {
 function addMinutes(hour: number, minute: number, mins: number): { hour: number; minute: number } {
   const total = hour * 60 + minute + mins;
   return { hour: Math.floor(total / 60), minute: total % 60 };
-}
-
-// Convert startTime/endTime strings to minute-offsets from midnight
-function slotToMinutes(timeStr: string): { start: number; end: number } {
-  // timeStr: "YYYY-MM-DDTHH:MM:SS"
-  const timePart = timeStr.split('T')[1] ?? '00:00:00';
-  const [h, m] = timePart.split(':').map(Number);
-  return { start: h * 60 + m, end: h * 60 + m };
 }
 
 function timeStrToMinutes(timeStr: string): number {
@@ -155,7 +149,7 @@ function findBestSlot(
 
 // ── Main export ────────────────────────────────────────────────────────────
 export function generateSchedule(input: SchedulerInput): ScheduleSlot[] {
-  const { weekStart, subjects, sessions, srsCards, tasks, existingSlots, settings, examDate } = input;
+  const { userId, weekStart, subjects, topics, sessions, srsCards, tasks, existingSlots, settings, examDate } = input;
 
   // Build array of 7 day Dates: Mon … Sun
   const days: Date[] = [];
@@ -211,18 +205,14 @@ export function generateSchedule(input: SchedulerInput): ScheduleSlot[] {
     daysToExam = Math.max(0, (examMs - nowMs) / (1000 * 60 * 60 * 24));
   }
 
-  // Map topicId -> subjectId via SRS cards (for counting SRS per subject)
-  // We need to know which subject each card belongs to via topic
-  // Since Topic type isn't in input, we relate via srsCard.topicId and the session subjectId
-  // For SRS counting per subject: we match srsCards.userId (not ideal) — instead we'll
-  // need to rely on sessions or the topicId. Since we don't have topics in input,
-  // we use a workaround: group srs cards by their topicId prefix won't work.
-  // The algorithm says "srsOverdueCount" and "srsDueThisWeekCount" per subject.
-  // Since we only have topicId on srsCards, and Topic isn't in input,
-  // we approximate by matching sessions: build topicId -> subjectId from sessions.
+  // Map topicId -> subjectId for SRS card counting per subject.
+  // Populated from topics (complete) then supplemented from sessions (for cards on studied topics).
   const topicToSubject = new Map<string, string>();
+  if (topics) {
+    for (const t of topics) topicToSubject.set(t.id, t.subjectId);
+  }
   for (const s of sessions) {
-    if (s.topicId) topicToSubject.set(s.topicId, s.subjectId);
+    if (s.topicId && !topicToSubject.has(s.topicId)) topicToSubject.set(s.topicId, s.subjectId);
   }
 
   const todayStr = toDateStr(new Date());
@@ -279,7 +269,7 @@ export function generateSchedule(input: SchedulerInput): ScheduleSlot[] {
   // Sort descending by score
   scored.sort((a, b) => b.score - a.score);
 
-  // ── Step 5: Task deadline injection ───────────────────────────────────────
+  // ── Step 4: Task deadline injection ───────────────────────────────────────
   const results: ScheduleSlot[] = [];
   const TASK_BLOCK = 45; // minutes
 
@@ -316,7 +306,7 @@ export function generateSchedule(input: SchedulerInput): ScheduleSlot[] {
 
       results.push({
         id: genId(),
-        userId: '',
+        userId,
         subjectId: task.subjectId,
         topicId: undefined,
         startTime: toLocalISO(day, startHour, startMin),
@@ -339,7 +329,7 @@ export function generateSchedule(input: SchedulerInput): ScheduleSlot[] {
     }
   }
 
-  // ── Step 4: Greedy fill ────────────────────────────────────────────────────
+  // ── Step 5: Greedy fill ────────────────────────────────────────────────────
 
   // Track total minutes scheduled per day to enforce daily goal
   const dailyGoalMinutes = settings.dailyGoalHours * 60;
@@ -372,7 +362,7 @@ export function generateSchedule(input: SchedulerInput): ScheduleSlot[] {
 
       results.push({
         id: genId(),
-        userId: '',
+        userId,
         subjectId: subject.id,
         topicId: undefined,
         startTime,
