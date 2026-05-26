@@ -52,9 +52,12 @@
     });
   })();
 
-  $: visibleDayGroups = dayGroups.slice(0, TIMELINE_PAGE_SIZE);
-  $: hasMore = dayGroups.length > TIMELINE_PAGE_SIZE;
-  $: remainingDays = dayGroups.length - TIMELINE_PAGE_SIZE;
+  let shownCount = TIMELINE_PAGE_SIZE;
+  $: visibleDayGroups = dayGroups.slice(0, shownCount);
+  $: hasMore = dayGroups.length > shownCount;
+  $: remainingDays = dayGroups.length - shownCount;
+
+  function showMore() { shownCount += TIMELINE_PAGE_SIZE; }
 
   function formatTimeRange(startedAt: string, endedAt: string): string {
     const fmt = (iso: string) =>
@@ -131,7 +134,8 @@
                 <div class="session-row">
                   <div
                     class="subject-badge"
-                    style="background: rgba({subject?.colorRgb ?? '0,0,0'}, 0.12); color: {subject?.color ?? 'var(--muted)'};"
+                    class:unknown-subject={!subject}
+                    style={subject ? `background: rgba(${subject.colorRgb}, 0.12); color: ${subject.color};` : ''}
                   >
                     {subject?.symbol ?? '?'}
                   </div>
@@ -158,7 +162,7 @@
 
         {#if hasMore}
           <div class="show-more">
-            <span class="show-more-text">+{remainingDays} more day{remainingDays === 1 ? '' : 's'} not shown</span>
+            <button class="show-more-btn" on:click={showMore}>Show {remainingDays} more day{remainingDays === 1 ? '' : 's'}</button>
           </div>
         {/if}
       </div>
@@ -202,6 +206,7 @@
   .session-row { display: flex; align-items: center; gap: 12px; padding: 11px 14px; }
 
   .subject-badge { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .unknown-subject { background: rgba(var(--primary-rgb), 0.08); color: var(--muted); }
 
   .session-meta { flex: 1; min-width: 0; }
   .session-top { display: flex; align-items: baseline; gap: 4px; margin-bottom: 3px; }
@@ -219,7 +224,8 @@
   .mode-quick { background: rgba(var(--primary-rgb), 0.06); color: var(--muted); }
 
   .show-more { text-align: center; padding: 12px; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); }
-  .show-more-text { font-size: 13px; color: var(--muted); }
+  .show-more-btn { font-size: 13px; color: var(--muted); background: none; border: none; cursor: pointer; padding: 0; }
+  .show-more-btn:hover { color: var(--text); }
 
   .bottom-spacer { height: 40px; }
 </style>
