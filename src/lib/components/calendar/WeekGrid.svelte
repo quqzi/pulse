@@ -152,6 +152,8 @@
 
   function onDayMousedown(e: MouseEvent, dayIdx: number) {
     if ((e.target as HTMLElement).closest('.cal-block')) return;
+    if ((e.target as HTMLElement).closest('.block-popover-create')) return;
+    if ((e.target as HTMLElement).closest('.popover-backdrop')) return;
     e.preventDefault();
     const gridY = getGridY(e, dayIdx);
     dragMode = 'create';
@@ -392,7 +394,8 @@
           {#if pendingBlock && pendingBlock.dayIdx === i}
             <!-- Ghost preview of the block being created -->
             <div class="ghost-block pending" style="top: {pendingBlock.top}px; height: {(new Date(pendingBlock.endTime).getTime() - new Date(pendingBlock.startTime).getTime()) / 60000}px;"></div>
-            <div style="position: absolute; top: {pendingBlock.top}px; left: 0; z-index: 160; width: 240px;">
+            <!-- svelte-ignore a11y-no-static-element-interactions -->
+            <div style="position: absolute; top: {pendingBlock.top}px; left: 0; z-index: 160; width: 240px;" on:mousedown|stopPropagation on:click|stopPropagation>
               <BlockPopover
                 {subjects}
                 {topics}
