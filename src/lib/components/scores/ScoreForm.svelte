@@ -1,0 +1,155 @@
+<script lang="ts">
+  import { createEventDispatcher } from 'svelte';
+  import type { Subject, MockScore } from '$lib/types';
+
+  export let subjects: Subject[];
+  export let initial: MockScore | null = null;
+
+  const dispatch = createEventDispatcher<{
+    save: MockScore;
+    cancel: void;
+  }>();
+
+  function todayStr(): string {
+    return new Date().toISOString().split('T')[0];
+  }
+
+  let subjectId = initial?.subjectId ?? (subjects[0]?.id ?? '');
+  let rawScore = initial ? String(initial.score) : '';
+  let rawMax = initial ? String(initial.maxScore) : '100';
+  let takenAt = initial?.takenAt ?? todayStr();
+  let notes = initial?.notes ?? '';
+
+  let scoreError = false;
+
+  function handleSave() {
+    const score = parseFloat(rawScore);
+    const maxScore = parseFloat(rawMax);
+    if (!subjectId || isNaN(score) || isNaN(maxScore) || maxScore <= 0 || score < 0) {
+      scoreError = true;
+      setTimeout(() => scoreError = false, 600);
+      return;
+    }
+    const entry: MockScore = {
+      id: initial?.id ?? crypto.randomUUID(),
+      userId: initial?.userId ?? '',
+      subjectId,
+      score,
+      maxScore,
+      takenAt,
+      notes: notes.trim() || undefined,
+      createdAt: initial?.createdAt ?? new Date().toISOString(),
+    };
+    dispatch('save', entry);
+  }
+
+  function handleCancel() {
+    dispatch('cancel');
+  }
+
+  function handleKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter') handleSave();
+    if (e.key === 'Escape') handleCancel();
+  }
+</script>
+
+<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+<div class="form card" on:keydown={handleKeydown} role="form">
+  <div class="form-row">
+    <label class="field-label" for="sf-subject">Subject</label>
+    <select id="sf-subject" class="field-select" bind:value={subjectId}>
+      {#each subjects as s}
+        <option value={s.id}>{s.name}</option>
+      {/each}
+    </select>
+  </div>
+
+  <div class="form-row score-row">
+    <label class="field-label" for="sf-score">Score</label>
+    <div class="score-inputs" class:error={scoreError}>
+      <input
+        id="sf-score"
+        class="field-input score-num"
+        type="number"
+        min="0"
+        bind:value={rawScore}
+        placeholder="42"
+      />
+      <span class="slash">/</span>
+      <input
+        class="field-input score-num"
+        type="number"
+        min="1"
+        bind:value={rawMax}
+        placeholder="100"
+      />
+    </div>
+  </div>
+
+  <div class="form-row">
+    <label class="field-label" for="sf-date">Date</label>
+    <input id="sf-date" class="field-input date-input" type="date" bind:value={takenAt} />
+  </div>
+
+  <div class="form-row">
+    <label class="field-label" for="sf-notes">Notes</label>
+    <input
+      id="sf-notes"
+      class="field-input notes-input"
+      type="text"
+      bind:value={notes}
+      placeholder="Optional notes…"
+    />
+  </div>
+
+  <div class="form-actions">
+    <button class="btn-cancel" on:click={handleCancel}>Cancel</button>
+    <button class="btn-save" on:click={handleSave}>
+      {initial ? 'Save changes' : 'Add score'}
+    </button>
+  </div>
+</div>
+
+<style>
+  .form { padding: 14px 16px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px; }
+
+  .form-row { display: flex; align-items: center; gap: 10px; }
+  .field-label { font-size: 13px; color: var(--muted); width: 56px; flex-shrink: 0; }
+
+  .field-input {
+    height: 30px; padding: 0 10px; border: 1.5px solid var(--border);
+    border-radius: 6px; background: var(--bg); color: var(--text);
+    font-family: inherit; font-size: 13px; outline: none;
+    transition: border-color 100ms ease;
+  }
+  .field-input:focus { border-color: var(--primary); }
+
+  .field-select {
+    height: 30px; padding: 0 8px; border: 1.5px solid var(--border);
+    border-radius: 6px; background: var(--bg); color: var(--text);
+    font-family: inherit; font-size: 13px; outline: none; cursor: pointer;
+    transition: border-color 100ms ease;
+  }
+  .field-select:focus { border-color: var(--primary); }
+
+  .score-inputs { display: flex; align-items: center; gap: 6px; }
+  .score-inputs.error .field-input { border-color: #ef4444; }
+  @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+  .score-inputs.error { animation: shake 200ms ease; }
+  .score-num { width: 64px; text-align: right; }
+  .slash { color: var(--muted); font-size: 16px; }
+
+  .date-input { width: 136px; }
+  .notes-input { flex: 1; }
+
+  .form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+  .btn-cancel {
+    padding: 6px 14px; border-radius: 8px; border: 1.5px solid var(--border);
+    background: none; color: var(--muted); font-family: inherit; font-size: 13px; cursor: pointer;
+  }
+  .btn-save {
+    padding: 6px 16px; border-radius: 8px; border: none;
+    background: var(--primary); color: var(--bg); font-family: inherit;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+</style>
