@@ -18,6 +18,7 @@
     deleteSlot: { slotId: string };
     acceptSlot: { slotId: string };
     dismissSlot: { slotId: string };
+    startFocus: { slot: ScheduleSlot };
   }>();
 
   const HOUR_HEIGHT = 60; // 1px = 1 minute
@@ -380,6 +381,7 @@
                   on:delete={(e) => dispatch('deleteSlot', { slotId: e.detail.slotId })}
                   on:accept={(e) => dispatch('acceptSlot', { slotId: e.detail.slotId })}
                   on:dismiss={(e) => dispatch('dismissSlot', { slotId: e.detail.slotId })}
+                  on:startFocus={(e) => dispatch('startFocus', e.detail)}
                 />
               </div>
             {/if}

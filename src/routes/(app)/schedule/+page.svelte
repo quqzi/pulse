@@ -167,6 +167,7 @@
       on:deleteSlot={handleDeleteSlot}
       on:acceptSlot={handleAcceptSlot}
       on:dismissSlot={handleDismissSlot}
+      on:startFocus={handleStartFocus}
     />
   </div>
 </div>
