@@ -1,7 +1,7 @@
 import { browser } from '$app/environment';
 import { supabase } from '$lib/supabase';
 import { ALL_BUILTIN_PRESETS } from '$lib/constants';
-import type { Subject, Topic, SrsCard, StudySession, Task, Template, SubjectPreset } from '$lib/types';
+import type { Subject, Topic, SrsCard, StudySession, Task, Template, SubjectPreset, ScheduleSlot, IdealWeekSlot } from '$lib/types';
 import { defaultCard } from '$lib/srs';
 
 type Mode = 'guest' | 'authenticated';
@@ -109,6 +109,40 @@ function mapTemplateFromDb(row: Record<string, unknown>): Template {
     name: row.name as string,
     presets: row.presets as SubjectPreset[],
     createdAt: row.created_at as string,
+  };
+}
+
+function mapScheduleSlotFromDb(row: Record<string, unknown>): ScheduleSlot {
+  const startRaw = row.start_time as string;
+  const endRaw = row.end_time as string;
+  // Strip timezone suffix so we treat as local time
+  const toLocal = (s: string) => s.replace(/\+.*$|Z$/, '').replace(' ', 'T').substring(0, 19);
+  return {
+    id: row.id as string,
+    userId: row.user_id as string,
+    subjectId: row.subject_id as string,
+    topicId: row.topic_id as string | undefined,
+    startTime: toLocal(startRaw),
+    endTime: toLocal(endRaw),
+    isAiSuggested: row.is_ai_suggested as boolean,
+    isConfirmed: row.is_confirmed as boolean,
+    isFocusBlock: row.is_focus_block as boolean,
+    isRecurring: row.is_recurring as boolean,
+    recurrenceDays: (row.recurrence_days as number[]) ?? [],
+    recurrenceEndDate: row.recurrence_end as string | undefined,
+    createdAt: row.created_at as string,
+  };
+}
+
+function mapIdealWeekSlotFromDb(row: Record<string, unknown>): IdealWeekSlot {
+  return {
+    id: row.id as string,
+    userId: row.user_id as string,
+    subjectId: row.subject_id as string,
+    dayOfWeek: row.day_of_week as number,
+    startHour: row.start_hour as number,
+    startMinute: row.start_minute as number,
+    durationMinutes: row.duration_minutes as number,
   };
 }
 
@@ -312,6 +346,95 @@ export const db = {
     }
     // topics + srs_cards cascade-delete in Supabase via FK constraints
     await supabase.from('subjects').delete().eq('id', subjectId);
+  },
+
+  // ── SCHEDULE SLOTS ────────────────────────────────────────
+  async getScheduleSlots(
+    userId: string, mode: Mode,
+    weekStart: string, weekEnd: string
+  ): Promise<ScheduleSlot[]> {
+    if (mode === 'guest') {
+      const all = lsGet<ScheduleSlot>('pulse_schedule_slots');
+      return all.filter(s => s.startTime >= weekStart && s.startTime < weekEnd);
+    }
+    const { data } = await supabase.from('schedule_slots').select('*')
+      .eq('user_id', userId)
+      .gte('start_time', weekStart)
+      .lt('start_time', weekEnd)
+      .order('start_time');
+    return (data ?? []).map(mapScheduleSlotFromDb);
+  },
+
+  async saveScheduleSlot(slot: ScheduleSlot, mode: Mode): Promise<void> {
+    if (mode === 'guest') {
+      const all = lsGet<ScheduleSlot>('pulse_schedule_slots');
+      const idx = all.findIndex(s => s.id === slot.id);
+      if (idx >= 0) all[idx] = slot; else all.push(slot);
+      lsSet('pulse_schedule_slots', all);
+      return;
+    }
+    await supabase.from('schedule_slots').upsert({
+      id: slot.id,
+      user_id: slot.userId,
+      subject_id: slot.subjectId,
+      topic_id: slot.topicId ?? null,
+      start_time: slot.startTime,
+      end_time: slot.endTime,
+      is_ai_suggested: slot.isAiSuggested,
+      is_confirmed: slot.isConfirmed,
+      is_focus_block: slot.isFocusBlock,
+      is_recurring: slot.isRecurring,
+      recurrence_days: slot.recurrenceDays,
+      recurrence_end: slot.recurrenceEndDate ?? null,
+      created_at: slot.createdAt,
+    });
+  },
+
+  async deleteScheduleSlot(slotId: string, mode: Mode): Promise<void> {
+    if (mode === 'guest') {
+      lsSet('pulse_schedule_slots', lsGet<ScheduleSlot>('pulse_schedule_slots').filter(s => s.id !== slotId));
+      return;
+    }
+    await supabase.from('schedule_slots').delete().eq('id', slotId);
+  },
+
+  async confirmAllSuggested(slots: ScheduleSlot[], mode: Mode): Promise<void> {
+    const confirmed = slots.map(s => ({ ...s, isConfirmed: true, isAiSuggested: false }));
+    await Promise.all(confirmed.map(s => db.saveScheduleSlot(s, mode)));
+  },
+
+  // ── IDEAL WEEK SLOTS ──────────────────────────────────────
+  async getIdealWeekSlots(userId: string, mode: Mode): Promise<IdealWeekSlot[]> {
+    if (mode === 'guest') return lsGet<IdealWeekSlot>('pulse_ideal_week_slots');
+    const { data } = await supabase.from('ideal_week_slots').select('*').eq('user_id', userId);
+    return (data ?? []).map(mapIdealWeekSlotFromDb);
+  },
+
+  async saveIdealWeekSlot(slot: IdealWeekSlot, mode: Mode): Promise<void> {
+    if (mode === 'guest') {
+      const all = lsGet<IdealWeekSlot>('pulse_ideal_week_slots');
+      const idx = all.findIndex(s => s.id === slot.id);
+      if (idx >= 0) all[idx] = slot; else all.push(slot);
+      lsSet('pulse_ideal_week_slots', all);
+      return;
+    }
+    await supabase.from('ideal_week_slots').upsert({
+      id: slot.id,
+      user_id: slot.userId,
+      subject_id: slot.subjectId,
+      day_of_week: slot.dayOfWeek,
+      start_hour: slot.startHour,
+      start_minute: slot.startMinute,
+      duration_minutes: slot.durationMinutes,
+    });
+  },
+
+  async deleteIdealWeekSlot(slotId: string, mode: Mode): Promise<void> {
+    if (mode === 'guest') {
+      lsSet('pulse_ideal_week_slots', lsGet<IdealWeekSlot>('pulse_ideal_week_slots').filter(s => s.id !== slotId));
+      return;
+    }
+    await supabase.from('ideal_week_slots').delete().eq('id', slotId);
   },
 
   newId,
