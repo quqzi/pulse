@@ -3,6 +3,7 @@
   import { auth } from '$lib/stores/auth';
   import { subjects, topics, sessions, streak, loadData } from '$lib/stores/data';
   import HeatmapGrid from '$lib/components/journey/HeatmapGrid.svelte';
+  import { formatDuration, localDateStr } from '$lib/utils';
 
   const TIMELINE_PAGE_SIZE = 30;
 
@@ -14,15 +15,6 @@
     const hh = Math.floor(h);
     const mm = Math.round((h - hh) * 60);
     return mm ? `${hh}h ${mm}m` : `${hh}h`;
-  }
-
-  function formatDuration(sec: number): string {
-    if (sec <= 0) return '0m';
-    const h = Math.floor(sec / 3600);
-    const m = Math.round((sec % 3600) / 60);
-    if (h === 0) return `${m}m`;
-    if (m === 0) return `${h}h`;
-    return `${h}h ${m}m`;
   }
 
   type DayGroup = {
@@ -38,7 +30,7 @@
   $: dayGroups = (() => {
     const map = new Map<string, typeof $sessions>();
     for (const s of $sessions) {
-      const day = s.startedAt.split('T')[0];
+      const day = localDateStr(new Date(s.startedAt));
       if (!map.has(day)) map.set(day, []);
       map.get(day)!.push(s);
     }
@@ -101,7 +93,7 @@
       <span class="section-sub">Last 16 weeks</span>
     </div>
     <div class="card heatmap-card">
-      <HeatmapGrid sessions={$sessions} subjects={$subjects} />
+      <HeatmapGrid sessions={$sessions} />
     </div>
   </section>
 

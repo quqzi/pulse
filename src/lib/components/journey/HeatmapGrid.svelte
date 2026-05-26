@@ -1,8 +1,8 @@
 <script lang="ts">
-  import type { StudySession, Subject } from '$lib/types';
+  import type { StudySession } from '$lib/types';
+  import { formatDuration, localDateStr } from '$lib/utils';
 
   export let sessions: StudySession[] = [];
-  export let subjects: Subject[] = [];
 
   const WEEKS = 16;
   const INTENSITY_HOURS = [0, 0.5, 1.5, 3];
@@ -10,20 +10,11 @@
   function sessionsByDay(ss: StudySession[]): Map<string, StudySession[]> {
     const map = new Map<string, StudySession[]>();
     for (const s of ss) {
-      const day = s.startedAt.split('T')[0];
+      const day = localDateStr(new Date(s.startedAt));
       if (!map.has(day)) map.set(day, []);
       map.get(day)!.push(s);
     }
     return map;
-  }
-
-  function formatDuration(sec: number): string {
-    if (sec <= 0) return '0m';
-    const h = Math.floor(sec / 3600);
-    const m = Math.round((sec % 3600) / 60);
-    if (h === 0) return `${m}m`;
-    if (m === 0) return `${h}h`;
-    return `${h}h ${m}m`;
   }
 
   function intensityLevel(hours: number): number {
@@ -48,7 +39,7 @@
     const startDate = new Date(endSunday);
     startDate.setDate(endSunday.getDate() - WEEKS * 7 + 1);
 
-    const todayStr = today.toISOString().split('T')[0];
+    const todayStr = localDateStr(today);
     const cols: Cell[][] = [];
 
     for (let w = 0; w < WEEKS; w++) {
@@ -56,7 +47,7 @@
       for (let d = 0; d < 7; d++) {
         const cell = new Date(startDate);
         cell.setDate(startDate.getDate() + w * 7 + d);
-        const dateStr = cell.toISOString().split('T')[0];
+        const dateStr = localDateStr(cell);
         const isFuture = dateStr > todayStr;
         const daySessions = byDay.get(dateStr) ?? [];
         const totalSec = daySessions.reduce((s, x) => s + x.durationSec, 0);
