@@ -25,6 +25,6 @@
   @media (min-width: 768px) {
     .sidebar-slot { display: block; width: var(--sidebar-width); flex-shrink: 0; }
     .tabbar-slot  { display: none; }
-    .main-content { padding: 28px 28px 28px calc(var(--sidebar-width) + 28px); }
+    .main-content { padding: 28px; }
   }
 </style>
