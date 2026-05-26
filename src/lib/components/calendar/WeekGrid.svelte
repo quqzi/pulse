@@ -25,10 +25,11 @@
   }>();
 
   const HOUR_HEIGHT = 60; // 1px = 1 minute
-  const START_HOUR = 6;
-  const END_HOUR = 23;
-  const TOTAL_HEIGHT = (END_HOUR - START_HOUR) * HOUR_HEIGHT; // 1020px
-  const HOURS = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => START_HOUR + i);
+  const START_HOUR = 0;  // midnight
+  const END_HOUR = 24;   // next midnight
+  const GAP_HOURS = 1;   // 12am–1am and 11pm–12am shown as dimmed gaps
+  const TOTAL_HEIGHT = END_HOUR * HOUR_HEIGHT; // 1440px (full day)
+  const HOURS = Array.from({ length: END_HOUR }, (_, i) => i); // 0..23
 
   const DAY_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -45,7 +46,7 @@
 
   function updateNow() {
     const now = new Date();
-    nowTop = now.getHours() * 60 + now.getMinutes() - START_HOUR * 60;
+    nowTop = now.getHours() * 60 + now.getMinutes();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const base = new Date(weekStart);
@@ -331,8 +332,8 @@
     updateNow();
     nowInterval = setInterval(updateNow, 60000);
     await tick();
-    if (gridScrollEl && nowTop > 0) {
-      gridScrollEl.scrollTop = Math.max(0, nowTop - 120);
+    if (gridScrollEl) {
+      gridScrollEl.scrollTop = Math.max(0, nowTop - 200);
     }
   });
 
@@ -403,6 +404,7 @@
         {#each HOURS as hour}
           <div class="hour-label" style="top: {(hour - START_HOUR) * HOUR_HEIGHT}px;">{formatHour(hour)}</div>
         {/each}
+        <div class="hour-label" style="top: {TOTAL_HEIGHT}px;">12am</div>
       </div>
 
       <!-- Day columns -->
@@ -413,6 +415,10 @@
           data-day={i}
           on:mousedown={(e) => onDayMousedown(e, i)}
         >
+          <!-- Midnight gap shading -->
+          <div class="gap-shade" style="top: 0; height: {GAP_HOURS * HOUR_HEIGHT}px;"></div>
+          <div class="gap-shade" style="top: {(END_HOUR - GAP_HOURS) * HOUR_HEIGHT}px; height: {GAP_HOURS * HOUR_HEIGHT}px;"></div>
+
           <!-- Hour lines -->
           {#each HOURS as hour}
             <div class="hour-line" style="top: {(hour - START_HOUR) * HOUR_HEIGHT}px;"></div>
@@ -667,6 +673,17 @@
     top: 0;
     bottom: 0;
     transition: width 0.3s ease;
+  }
+
+  /* Midnight gap shading */
+  .gap-shade {
+    position: absolute;
+    left: 0;
+    right: 0;
+    background: var(--bg3);
+    opacity: 0.6;
+    pointer-events: none;
+    z-index: 0;
   }
 
   /* School hours shading */
