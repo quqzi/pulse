@@ -1,13 +1,12 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
-  import type { ScheduleSlot, Subject, SrsCard, StudySession, Topic } from '$lib/types';
+  import type { ScheduleSlot, Subject, SrsCard, Topic } from '$lib/types';
   import type { Settings } from '$lib/stores/settings';
 
   export let slots: ScheduleSlot[] = [];
   export let subjects: Subject[] = [];
   export let topics: Topic[] = [];
   export let srsCards: SrsCard[] = [];
-  export let sessions: StudySession[] = [];
   export let settings: Settings | null = null;
   export let weekStart: Date = new Date();
 
