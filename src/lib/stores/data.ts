@@ -1,6 +1,6 @@
 import { writable, derived } from 'svelte/store';
 import { db } from '$lib/db';
-import type { Subject, Topic, SrsCard, StudySession, Task, Template } from '$lib/types';
+import type { Subject, Topic, SrsCard, StudySession, Task, Template, ScheduleSlot } from '$lib/types';
 import type { AuthState } from '$lib/stores/auth';
 
 export const subjects = writable<Subject[]>([]);
@@ -9,6 +9,7 @@ export const srsCards = writable<SrsCard[]>([]);
 export const sessions = writable<StudySession[]>([]);
 export const tasks = writable<Task[]>([]);
 export const templates = writable<Template[]>([]);
+export const scheduleSlots = writable<ScheduleSlot[]>([]);
 
 export const todaysSessions = derived(sessions, ($s) => {
   const today = new Date().toISOString().split('T')[0];
@@ -70,6 +71,15 @@ export async function loadData(authState: AuthState): Promise<void> {
   sessions.set(sess);
   tasks.set(tsk);
   templates.set(tmpl);
+}
+
+export async function loadScheduleSlots(weekStart: Date, weekEnd: Date): Promise<void> {
+  const slots = await db.getScheduleSlots(
+    _userId, _mode,
+    weekStart.toISOString().substring(0, 19),
+    weekEnd.toISOString().substring(0, 19)
+  );
+  scheduleSlots.set(slots);
 }
 
 export function getAuthContext(): { userId: string; mode: 'guest' | 'authenticated' } {
