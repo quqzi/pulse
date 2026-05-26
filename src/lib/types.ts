@@ -92,3 +92,14 @@ export interface IdealWeekSlot {
   startMinute: number;
   durationMinutes: number;
 }
+
+export interface MockScore {
+  id: string;
+  userId: string;
+  subjectId: string;
+  score: number;        // raw score, e.g. 42
+  maxScore: number;     // max possible, e.g. 60
+  takenAt: string;      // YYYY-MM-DD
+  notes?: string;
+  createdAt: string;    // ISO timestamp
+}
