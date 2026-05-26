@@ -66,15 +66,15 @@ body.design-vercel.theme-dark {
   --bg:     #0a0a0a;
   --bg2:    #1a1a1a;
   --bg3:    #262626;
-  --border: rgba(255,255,255,.10);
+  --border: #2a2a2a;
   --text:   #ededed;
-  --muted:  #888888;
+  --muted:  #a1a1aa;
   --primary:      #ededed;
   --primary-dark: #d4d4d4;
   --primary-l:    #1a1a1a;
   --primary-rgb:  237,237,237;
   --nav-main:  #3291ff;
-  --nav-track: #888888;
+  --nav-track: #a1a1aa;
   --shadow-sm: 0 0 0 1px rgba(255,255,255,.06), 0 1px 2px rgba(0,0,0,.40);
   --shadow-md: 0 0 0 1px rgba(255,255,255,.06), 0 4px 8px rgba(0,0,0,.50);
   --shadow-lg: 0 0 0 1px rgba(255,255,255,.06), 0 8px 24px rgba(0,0,0,.60);
@@ -118,16 +118,16 @@ body.design-apple.theme-dark {
   --bg:     #000000;
   --bg2:    #1c1c1e;
   --bg3:    #2c2c2e;
-  --border: rgba(255,255,255,.10);
+  --border: #2c2c2e;
   --text:   #f2f2f7;
-  --muted:  #8e8e93;
+  --muted:  #ababab;
   /* Sky link blue for dark surfaces */
   --primary:      #2997ff;
   --primary-dark: #0071e3;
   --primary-l:    #172554;
   --primary-rgb:  41,151,255;
   --nav-main:  #2997ff;
-  --nav-track: #8e8e93;
+  --nav-track: #ababab;
   --shadow-sm: 0 1px 3px rgba(0,0,0,.40), 0 0 0 1px rgba(255,255,255,.06);
   --shadow-md: 0 4px 12px rgba(0,0,0,.50), 0 0 0 1px rgba(255,255,255,.06);
   --shadow-lg: 0 8px 24px rgba(0,0,0,.60), 0 0 0 1px rgba(255,255,255,.06);
@@ -143,9 +143,9 @@ body.design-resend.theme-dark {
   --bg:     #000000;
   --bg2:    #0a0a0c;
   --bg3:    #101012;
-  --border: rgba(255,255,255,.14);
+  --border: #1a1a1d;
   --text:   #fcfdff;
-  --muted:  rgba(252,253,255,.65);
+  --muted:  #888888;
   /* Resend: white as primary — loudest pixel on the dark canvas */
   --primary:      #fcfdff;
   --primary-dark: #e4e5e8;
@@ -153,7 +153,7 @@ body.design-resend.theme-dark {
   --primary-rgb:  252,253,255;
   /* Sidebar: accent blue from Resend DESIGN.md for Main */
   --nav-main:  #3b9eff;
-  --nav-track: rgba(252,253,255,.65);
+  --nav-track: #888888;
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
