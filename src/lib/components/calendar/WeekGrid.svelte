@@ -557,6 +557,7 @@
     overflow-y: auto;
     overflow-x: hidden;
     position: relative;
+    min-height: 0;
   }
   .grid-inner {
     display: grid;
