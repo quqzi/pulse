@@ -70,7 +70,7 @@ export interface Template {
 export interface ScheduleSlot {
   id: string;
   userId: string;
-  subjectId: string;
+  subjectId?: string;
   topicId?: string;
   startTime: string;          // local ISO: "2026-05-19T08:00:00"
   endTime: string;            // local ISO: "2026-05-19T09:30:00"

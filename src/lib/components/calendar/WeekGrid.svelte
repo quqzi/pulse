@@ -12,13 +12,14 @@
   export let tasks: Task[] = [];
 
   const dispatch = createEventDispatcher<{
-    createSlot: { subjectId: string; topicId?: string; startTime: string; endTime: string; isFocusBlock: boolean };
+    createSlot: { subjectId?: string; topicId?: string; startTime: string; endTime: string; isFocusBlock: boolean };
     moveSlot: { slotId: string; startTime: string; endTime: string };
     resizeSlot: { slotId: string; startTime: string; endTime: string };
     deleteSlot: { slotId: string };
     acceptSlot: { slotId: string };
     dismissSlot: { slotId: string };
     startFocus: { slot: ScheduleSlot };
+    changeSubject: { slotId: string; subjectId: string | undefined };
   }>();
 
   const HOUR_HEIGHT = 60; // 1px = 1 minute
@@ -92,8 +93,8 @@
     return map;
   })();
 
-  function getSubject(id: string): Subject | undefined {
-    return subjects.find(s => s.id === id);
+  function getSubject(id: string | undefined): Subject | undefined {
+    return id ? subjects.find(s => s.id === id) : undefined;
   }
 
   function getTopic(id: string | undefined): Topic | undefined {
@@ -145,8 +146,8 @@
     const dayCol = document.querySelector(`.day-col[data-day="${dayIdx}"]`) as HTMLElement | null;
     if (!dayCol) return 0;
     const rect = dayCol.getBoundingClientRect();
-    const scrollTop = gridScrollEl?.scrollTop ?? 0;
-    return e.clientY - rect.top + scrollTop;
+    // rect.top already accounts for scroll — no need to add scrollTop
+    return e.clientY - rect.top;
   }
 
   function onDayMousedown(e: MouseEvent, dayIdx: number) {
@@ -369,22 +370,22 @@
 
           <!-- Actual blocks -->
           {#each slotsByDay.get(i) ?? [] as slot (slot.id)}
-            {@const subject = getSubject(slot.subjectId)}
-            {#if subject}
-              <div style={slotStyle(slot)}>
-                <CalBlock
-                  {slot}
-                  {subject}
-                  topic={getTopic(slot.topicId)}
-                  on:dragStart={onBlockDragStart}
-                  on:resizeStart={onBlockResizeStart}
-                  on:delete={(e) => dispatch('deleteSlot', { slotId: e.detail.slotId })}
-                  on:accept={(e) => dispatch('acceptSlot', { slotId: e.detail.slotId })}
-                  on:dismiss={(e) => dispatch('dismissSlot', { slotId: e.detail.slotId })}
-                  on:startFocus={(e) => dispatch('startFocus', e.detail)}
-                />
-              </div>
-            {/if}
+            {@const subject = slot.subjectId ? getSubject(slot.subjectId) : undefined}
+            <div style={slotStyle(slot)}>
+              <CalBlock
+                {slot}
+                {subject}
+                topic={getTopic(slot.topicId)}
+                {subjects}
+                on:dragStart={onBlockDragStart}
+                on:resizeStart={onBlockResizeStart}
+                on:delete={(e) => dispatch('deleteSlot', { slotId: e.detail.slotId })}
+                on:accept={(e) => dispatch('acceptSlot', { slotId: e.detail.slotId })}
+                on:dismiss={(e) => dispatch('dismissSlot', { slotId: e.detail.slotId })}
+                on:startFocus={(e) => dispatch('startFocus', e.detail)}
+                on:changeSubject={(e) => dispatch('changeSubject', e.detail)}
+              />
+            </div>
           {/each}
 
           <!-- BlockPopover for this day after drag-create -->

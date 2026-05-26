@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { auth } from '$lib/stores/auth';
-  import { subjects, topics, tasks, sessions, scheduleSlots, loadScheduleSlots, getAuthContext } from '$lib/stores/data';
+  import { subjects, topics, tasks, sessions, scheduleSlots, loadData, loadScheduleSlots, getAuthContext } from '$lib/stores/data';
   import { db } from '$lib/db';
   import WeekGrid from '$lib/components/calendar/WeekGrid.svelte';
   import MiniMonth from '$lib/components/calendar/MiniMonth.svelte';
@@ -127,7 +127,21 @@
     goto(`/timer?subjectId=${slot.subjectId}${slot.topicId ? `&topicId=${slot.topicId}` : ''}&mode=focus`);
   }
 
-  onMount(() => {
+  async function handleChangeSubject(e: CustomEvent) {
+    const { mode } = getAuthContext();
+    const { slotId, subjectId } = e.detail as { slotId: string; subjectId: string | undefined };
+    scheduleSlots.update(all => {
+      return all.map(s => {
+        if (s.id !== slotId) return s;
+        const updated = { ...s, subjectId, topicId: undefined };
+        db.saveScheduleSlot(updated, mode);
+        return updated;
+      });
+    });
+  }
+
+  onMount(async () => {
+    await loadData($auth);
     loadScheduleSlots(viewedWeekStart, weekEnd);
   });
 </script>
@@ -168,6 +182,7 @@
       on:acceptSlot={handleAcceptSlot}
       on:dismissSlot={handleDismissSlot}
       on:startFocus={handleStartFocus}
+      on:changeSubject={handleChangeSubject}
     />
   </div>
 </div>

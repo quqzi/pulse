@@ -8,16 +8,17 @@
   export let endTime: string = '';
 
   const dispatch = createEventDispatcher<{
-    save: { subjectId: string; topicId: string | undefined; isFocusBlock: boolean };
+    save: { subjectId: string | undefined; topicId: string | undefined; isFocusBlock: boolean };
     cancel: void;
   }>();
 
-  let selectedSubjectId = subjects[0]?.id ?? '';
+  // Start with no subject selected so user makes a deliberate choice
+  let selectedSubjectId: string | null = null;
   let selectedTopicId = '';
   let isFocusBlock = false;
 
-  $: filteredTopics = topics.filter(t => t.subjectId === selectedSubjectId);
-  $: if (selectedSubjectId) selectedTopicId = '';
+  $: filteredTopics = selectedSubjectId ? topics.filter(t => t.subjectId === selectedSubjectId) : [];
+  $: if (selectedSubjectId !== null) selectedTopicId = '';
 
   $: timeLabel = (() => {
     const fmt = (s: string) => {
@@ -31,9 +32,8 @@
   })();
 
   function save() {
-    if (!selectedSubjectId) return;
     dispatch('save', {
-      subjectId: selectedSubjectId,
+      subjectId: selectedSubjectId ?? undefined,
       topicId: selectedTopicId || undefined,
       isFocusBlock,
     });
@@ -55,6 +55,15 @@
 
   <div class="field-label">Subject</div>
   <div class="subject-list">
+    <button
+      class="subject-chip"
+      class:active={selectedSubjectId === null}
+      style="--chip-color: var(--muted);"
+      on:click={() => selectedSubjectId = null}
+    >
+      <span class="chip-dot" style="background: var(--muted);"></span>
+      Free
+    </button>
     {#each subjects as subject}
       <button
         class="subject-chip"
@@ -85,7 +94,7 @@
 
   <div class="pop-actions">
     <button class="pop-btn cancel" on:click={() => dispatch('cancel')}>Cancel</button>
-    <button class="pop-btn save" disabled={!selectedSubjectId} on:click={save}>Add block</button>
+    <button class="pop-btn save" on:click={save}>Add block</button>
   </div>
 </div>
 
@@ -188,6 +197,5 @@
     color: white;
     border-color: var(--primary);
   }
-  .pop-btn.save:disabled { opacity: 0.4; cursor: not-allowed; }
-  .pop-btn:not(:disabled):hover { opacity: 0.85; }
+  .pop-btn:hover { opacity: 0.85; }
 </style>

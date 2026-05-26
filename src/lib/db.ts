@@ -120,8 +120,8 @@ function mapScheduleSlotFromDb(row: Record<string, unknown>): ScheduleSlot {
   return {
     id: row.id as string,
     userId: row.user_id as string,
-    subjectId: row.subject_id as string,
-    topicId: row.topic_id as string | undefined,
+    subjectId: (row.subject_id as string | null) ?? undefined,
+    topicId: (row.topic_id as string | null) ?? undefined,
     startTime: toLocal(startRaw),
     endTime: toLocal(endRaw),
     isAiSuggested: row.is_ai_suggested as boolean,
@@ -376,7 +376,7 @@ export const db = {
     await supabase.from('schedule_slots').upsert({
       id: slot.id,
       user_id: slot.userId,
-      subject_id: slot.subjectId,
+      subject_id: slot.subjectId ?? null,
       topic_id: slot.topicId ?? null,
       start_time: slot.startTime,
       end_time: slot.endTime,
