@@ -4,12 +4,14 @@
   import CalBlock from './CalBlock.svelte';
   import BlockPopover from './BlockPopover.svelte';
   import type { ScheduleSlot, Subject, Topic, Task } from '$lib/types';
+  import type { Settings } from '$lib/stores/settings';
 
   export let weekStart: Date;
   export let slots: ScheduleSlot[] = [];
   export let subjects: Subject[] = [];
   export let topics: Topic[] = [];
   export let tasks: Task[] = [];
+  export let settings: Settings | null = null;
 
   const dispatch = createEventDispatcher<{
     createSlot: { subjectId?: string; topicId?: string; startTime: string; endTime: string; isFocusBlock: boolean };
@@ -92,6 +94,58 @@
     }
     return map;
   })();
+
+  $: plannedMinutesByDay = (() => {
+    const map = new Map<number, number>();
+    for (let i = 0; i < 7; i++) map.set(i, 0);
+    for (const slot of slots) {
+      if (!slot.isConfirmed) continue;
+      const idx = slotDayIdx(slot);
+      if (idx < 0 || idx >= 7) continue;
+      const dur = (new Date(slot.endTime).getTime() - new Date(slot.startTime).getTime()) / 60000;
+      map.set(idx, (map.get(idx) ?? 0) + dur);
+    }
+    return map;
+  })();
+
+  function loadBarColor(dayIdx: number): string {
+    if (!settings) return 'var(--border)';
+    const planned = plannedMinutesByDay.get(dayIdx) ?? 0;
+    const goal = settings.dailyGoalHours * 60;
+    const ratio = planned / goal;
+    if (ratio >= 1.0) return '#ef4444';
+    if (ratio >= 0.5) return 'var(--primary)';
+    return 'var(--border)';
+  }
+
+  function loadBarWidth(dayIdx: number): number {
+    if (!settings) return 0;
+    const planned = plannedMinutesByDay.get(dayIdx) ?? 0;
+    const goal = settings.dailyGoalHours * 60;
+    return Math.min(100, (planned / goal) * 100);
+  }
+
+  function loadBarTooltip(dayIdx: number): string {
+    const planned = plannedMinutesByDay.get(dayIdx) ?? 0;
+    const h = Math.floor(planned / 60);
+    const m = planned % 60;
+    const label = h > 0 ? `${h}h${m > 0 ? ` ${m}m` : ''}` : `${m}m`;
+    const goal = settings ? `${settings.dailyGoalHours}h goal` : '';
+    return `${label} planned · ${goal}`;
+  }
+
+  function schoolHoursBounds(dayIdx: number): { top: number; height: number } | null {
+    if (!settings?.schoolHoursEnabled) return null;
+    const day = weekDays[dayIdx];
+    const dow = (day.getDay() + 6) % 7; // Mon=0
+    if (!settings.schoolDays.includes(dow + 1)) return null; // settings uses 1=Mon
+    const [sh, sm] = settings.schoolStart.split(':').map(Number);
+    const [eh, em] = settings.schoolEnd.split(':').map(Number);
+    const top = sh * 60 + sm - START_HOUR * 60;
+    const height = (eh * 60 + em) - (sh * 60 + sm);
+    if (top < 0 || height <= 0) return null;
+    return { top, height };
+  }
 
   function getSubject(id: string | undefined): Subject | undefined {
     return id ? subjects.find(s => s.id === id) : undefined;
@@ -317,6 +371,16 @@
     {/each}
   </div>
 
+  <!-- Load bar row -->
+  <div class="load-bar-row">
+    <div class="time-gutter"></div>
+    {#each weekDays as _day, i}
+      <div class="load-bar-cell" title={loadBarTooltip(i)}>
+        <div class="load-bar-fill" style="width: {loadBarWidth(i)}%; background: {loadBarColor(i)};"></div>
+      </div>
+    {/each}
+  </div>
+
   <!-- All-day task pills -->
   <div class="allday-row">
     <div class="time-gutter"></div>
@@ -357,6 +421,11 @@
           {#each HOURS as hour}
             <div class="half-hour-line" style="top: {(hour - START_HOUR) * HOUR_HEIGHT + 30}px;"></div>
           {/each}
+
+          <!-- School hours shading -->
+          {#if schoolHoursBounds(i)}
+            <div class="school-shade" style="top: {schoolHoursBounds(i)?.top}px; height: {schoolHoursBounds(i)?.height}px;"></div>
+          {/if}
 
           <!-- Current time indicator -->
           {#if i === todayColIdx && nowTop >= 0 && nowTop <= TOTAL_HEIGHT}
@@ -576,4 +645,38 @@
     z-index: 5;
   }
   .ghost-block.pending { opacity: 0.5; }
+
+  /* Load bar row */
+  .load-bar-row {
+    display: grid;
+    grid-template-columns: 44px repeat(7, 1fr);
+    flex-shrink: 0;
+    height: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .load-bar-cell {
+    position: relative;
+    border-left: 1px solid var(--border);
+    background: var(--bg3);
+    overflow: hidden;
+  }
+  .load-bar-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    transition: width 0.3s ease;
+  }
+
+  /* School hours shading */
+  .school-shade {
+    position: absolute;
+    left: 0;
+    right: 0;
+    background: rgba(var(--primary-rgb), 0.04);
+    border-top: 1px dashed var(--border);
+    border-bottom: 1px dashed var(--border);
+    pointer-events: none;
+    z-index: 1;
+  }
 </style>
