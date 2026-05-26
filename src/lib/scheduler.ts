@@ -279,66 +279,8 @@ export function generateSchedule(input: SchedulerInput): ScheduleSlot[] {
   // Sort descending by score
   scored.sort((a, b) => b.score - a.score);
 
-  // ── Step 4: Greedy fill ────────────────────────────────────────────────────
-  const results: ScheduleSlot[] = [];
-
-  // Track total minutes scheduled per day to enforce daily goal
-  const dailyGoalMinutes = settings.dailyGoalHours * 60;
-  const scheduledPerDay = new Map<string, number>();
-  for (const day of days) scheduledPerDay.set(toDateStr(day), 0);
-
-  for (const { subject, deficitMinutes } of scored) {
-    if (deficitMinutes <= 0) continue;
-
-    let minutesLeft = deficitMinutes;
-
-    for (const day of days) {
-      if (minutesLeft <= 0) break;
-
-      const dateStr = toDateStr(day);
-      const dayScheduled = scheduledPerDay.get(dateStr)!;
-      if (dayScheduled >= dailyGoalMinutes) continue;
-
-      const blocked = blockedMap.get(dateStr)!;
-      const slot = findBestSlot(blocked, day, settings.energyProfile, minutesLeft);
-      if (!slot) continue;
-
-      const { startMinute, durationMinutes } = slot;
-      const startHour = Math.floor(startMinute / 60);
-      const startMin = startMinute % 60;
-      const end = addMinutes(startHour, startMin, durationMinutes);
-
-      const startTime = toLocalISO(day, startHour, startMin);
-      const endTime = toLocalISO(day, end.hour, end.minute);
-
-      results.push({
-        id: genId(),
-        userId: '',
-        subjectId: subject.id,
-        topicId: undefined,
-        startTime,
-        endTime,
-        isAiSuggested: true,
-        isConfirmed: false,
-        isFocusBlock: false,
-        isRecurring: false,
-        recurrenceDays: [],
-        createdAt: new Date().toISOString(),
-      });
-
-      // Block the used time + buffer
-      blockRange(
-        blocked,
-        startMinute,
-        startMinute + durationMinutes + settings.bufferMinutes
-      );
-
-      scheduledPerDay.set(dateStr, dayScheduled + durationMinutes);
-      minutesLeft -= durationMinutes;
-    }
-  }
-
   // ── Step 5: Task deadline injection ───────────────────────────────────────
+  const results: ScheduleSlot[] = [];
   const TASK_BLOCK = 45; // minutes
 
   for (const task of tasks) {
@@ -394,6 +336,64 @@ export function generateSchedule(input: SchedulerInput): ScheduleSlot[] {
       );
 
       injected = true;
+    }
+  }
+
+  // ── Step 4: Greedy fill ────────────────────────────────────────────────────
+
+  // Track total minutes scheduled per day to enforce daily goal
+  const dailyGoalMinutes = settings.dailyGoalHours * 60;
+  const scheduledPerDay = new Map<string, number>();
+  for (const day of days) scheduledPerDay.set(toDateStr(day), 0);
+
+  for (const { subject, deficitMinutes } of scored) {
+    if (deficitMinutes <= 0) continue;
+
+    let minutesLeft = deficitMinutes;
+
+    for (const day of days) {
+      if (minutesLeft <= 0) break;
+
+      const dateStr = toDateStr(day);
+      const dayScheduled = scheduledPerDay.get(dateStr)!;
+      if (dayScheduled >= dailyGoalMinutes) continue;
+
+      const blocked = blockedMap.get(dateStr)!;
+      const slot = findBestSlot(blocked, day, settings.energyProfile, minutesLeft);
+      if (!slot) continue;
+
+      const { startMinute, durationMinutes } = slot;
+      const startHour = Math.floor(startMinute / 60);
+      const startMin = startMinute % 60;
+      const end = addMinutes(startHour, startMin, durationMinutes);
+
+      const startTime = toLocalISO(day, startHour, startMin);
+      const endTime = toLocalISO(day, end.hour, end.minute);
+
+      results.push({
+        id: genId(),
+        userId: '',
+        subjectId: subject.id,
+        topicId: undefined,
+        startTime,
+        endTime,
+        isAiSuggested: true,
+        isConfirmed: false,
+        isFocusBlock: false,
+        isRecurring: false,
+        recurrenceDays: [],
+        createdAt: new Date().toISOString(),
+      });
+
+      // Block the used time + buffer
+      blockRange(
+        blocked,
+        startMinute,
+        startMinute + durationMinutes + settings.bufferMinutes
+      );
+
+      scheduledPerDay.set(dateStr, dayScheduled + durationMinutes);
+      minutesLeft -= durationMinutes;
     }
   }
 
