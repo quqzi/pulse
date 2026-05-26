@@ -373,7 +373,7 @@
           <!-- Actual blocks -->
           {#each slotsByDay.get(i) ?? [] as slot (slot.id)}
             {@const subject = slot.subjectId ? getSubject(slot.subjectId) : undefined}
-            <div style={slotStyle(slot)}>
+            <div class="slot-wrap" style={slotStyle(slot)}>
               <CalBlock
                 {slot}
                 {subject}
@@ -554,6 +554,14 @@
     height: 7px;
     border-radius: 50%;
     background: #ef4444;
+  }
+
+  /* Slot wrapper — absolutely positioned per slotStyle() */
+  .slot-wrap {
+    position: absolute;
+    left: 3px;
+    right: 3px;
+    overflow: visible;
   }
 
   /* Ghost */

@@ -84,21 +84,23 @@
   on:click={onBlockClick}
   on:mousedown={onMousedown}
 >
-  {#if slot.isFocusBlock && !slot.isAiSuggested && subject}
-    <span class="focus-icon" aria-hidden="true">⚡</span>
-  {/if}
-  <div class="block-label">
-    {#if slot.isAiSuggested && subject}<span class="suggest-star">✦ </span>{/if}
-    {#if subject}
-      <strong>{subject.symbol}</strong>
-      {#if !isShort && topic}<span class="block-topic"> · {topic.name}</span>{/if}
-    {:else}
-      <span class="free-label">Free</span>
+  <div class="block-content">
+    {#if slot.isFocusBlock && !slot.isAiSuggested && subject}
+      <span class="focus-icon" aria-hidden="true">⚡</span>
+    {/if}
+    <div class="block-label">
+      {#if slot.isAiSuggested && subject}<span class="suggest-star">✦ </span>{/if}
+      {#if subject}
+        <strong>{subject.symbol}</strong>
+        {#if !isShort && topic}<span class="block-topic"> · {topic.name}</span>{/if}
+      {:else}
+        <span class="free-label">Free</span>
+      {/if}
+    </div>
+    {#if !isShort}
+      <div class="block-time">{timeLabel}</div>
     {/if}
   </div>
-  {#if !isShort}
-    <div class="block-time">{timeLabel}</div>
-  {/if}
 
   {#if !slot.isAiSuggested}
     <div class="block-resize" on:mousedown={onResizeMousedown} aria-hidden="true"></div>
@@ -172,16 +174,23 @@
 
 <style>
   .cal-block {
-    position: absolute;
-    left: 3px;
-    right: 3px;
+    position: relative;
+    width: 100%;
+    height: 100%;
     border-radius: var(--radius-md);
-    padding: 3px 6px;
     cursor: pointer;
-    overflow: hidden;
+    overflow: visible;
     user-select: none;
     box-sizing: border-box;
     min-height: 15px;
+  }
+  .block-content {
+    position: absolute;
+    inset: 0;
+    padding: 3px 6px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    pointer-events: none;
   }
   .cal-block.focus-block {
     border-left: 3px solid rgba(255,255,255,0.8) !important;
