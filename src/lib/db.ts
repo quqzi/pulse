@@ -1,7 +1,7 @@
 import { browser } from '$app/environment';
 import { supabase } from '$lib/supabase';
 import { ALL_BUILTIN_PRESETS } from '$lib/constants';
-import type { Subject, Topic, SrsCard, StudySession, Task, Template, SubjectPreset, ScheduleSlot, IdealWeekSlot } from '$lib/types';
+import type { Subject, Topic, SrsCard, StudySession, Task, Template, SubjectPreset, ScheduleSlot, IdealWeekSlot, MockScore } from '$lib/types';
 import { defaultCard } from '$lib/srs';
 
 type Mode = 'guest' | 'authenticated';
@@ -143,6 +143,19 @@ function mapIdealWeekSlotFromDb(row: Record<string, unknown>): IdealWeekSlot {
     startHour: row.start_hour as number,
     startMinute: row.start_minute as number,
     durationMinutes: row.duration_minutes as number,
+  };
+}
+
+function mapScoreFromDb(row: Record<string, unknown>): MockScore {
+  return {
+    id: row.id as string,
+    userId: row.user_id as string,
+    subjectId: row.subject_id as string,
+    score: row.score as number,
+    maxScore: row.max_score as number,
+    takenAt: (row.taken_at as string).split('T')[0],
+    notes: (row.notes as string | null) ?? undefined,
+    createdAt: row.created_at as string,
   };
 }
 
@@ -435,6 +448,43 @@ export const db = {
       return;
     }
     await supabase.from('ideal_week_slots').delete().eq('id', slotId);
+  },
+
+  // ── MOCK SCORES ───────────────────────────────────────────
+  async getScores(userId: string, mode: Mode): Promise<MockScore[]> {
+    if (mode === 'guest') return lsGet<MockScore>('pulse_mock_scores');
+    const { data } = await supabase.from('mock_scores').select('*')
+      .eq('user_id', userId)
+      .order('taken_at', { ascending: false });
+    return (data ?? []).map(mapScoreFromDb);
+  },
+
+  async saveScore(score: MockScore, mode: Mode): Promise<void> {
+    if (mode === 'guest') {
+      const all = lsGet<MockScore>('pulse_mock_scores');
+      const idx = all.findIndex(s => s.id === score.id);
+      if (idx >= 0) all[idx] = score; else all.unshift(score);
+      lsSet('pulse_mock_scores', all);
+      return;
+    }
+    await supabase.from('mock_scores').upsert({
+      id: score.id,
+      user_id: score.userId,
+      subject_id: score.subjectId,
+      score: score.score,
+      max_score: score.maxScore,
+      taken_at: score.takenAt,
+      notes: score.notes ?? null,
+      created_at: score.createdAt,
+    });
+  },
+
+  async deleteScore(scoreId: string, mode: Mode): Promise<void> {
+    if (mode === 'guest') {
+      lsSet('pulse_mock_scores', lsGet<MockScore>('pulse_mock_scores').filter(s => s.id !== scoreId));
+      return;
+    }
+    await supabase.from('mock_scores').delete().eq('id', scoreId);
   },
 
   newId,
