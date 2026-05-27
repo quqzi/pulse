@@ -19,6 +19,15 @@ npm run preview      # Preview production build locally
 
 ---
 
+## Session Start — Always Do This First
+
+Before doing anything in a new conversation:
+1. Read the **Active Plans** section at the bottom of this file — know what's open and what's done
+2. Check which plan the user is likely working on, or ask if unclear
+3. Never start implementing without knowing where the task fits in the plan list
+
+---
+
 ## Claude's Role
 
 Claude is the primary full-stack developer on this project. Every feature goes through a deliberate workflow. Pick the right tier based on scope:
@@ -140,12 +149,13 @@ Claude is the primary full-stack developer on this project. Every feature goes t
 
 ## Definition of Done
 
-Before declaring any task complete, all four must pass:
+Before declaring any task complete, all steps must pass in order:
 
 1. **`npm run check`** — zero type errors
 2. **`verify` skill** (or `run` + manual browser check) — feature works visually in browser
 3. **`superpowers:verification-before-completion`** — self-review checklist passes
 4. **`commit-commands:commit`** (or `commit-push-pr` if ready to push)
+5. **If completing a plan:** move it from **Open → Completed** in the Active Plans section of this file and commit the change
 
 ---
 
@@ -345,6 +355,8 @@ All tables have RLS enabled. Policy: `auth.uid() = user_id`.
 ---
 
 ## Active Plans
+
+> **Rule:** When a plan is fully implemented and committed, move it from Open → Completed here, then commit this file. Never leave a finished plan in the Open list.
 
 ### Open (ready to implement)
 
