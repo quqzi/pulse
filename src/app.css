@@ -39,6 +39,7 @@ body, body.design-vercel {
   --border: #ebebeb;
   --text:   #171717;
   --muted:  #888888;
+  --danger: #ef4444;
   /* Vercel: ink black primary — CTAs are pure near-black pill */
   --primary:      #171717;
   --primary-dark: #0a0a0a;
@@ -69,6 +70,7 @@ body.design-vercel.theme-dark {
   --border: #2a2a2a;
   --text:   #ededed;
   --muted:  #a1a1aa;
+  --danger: #ef4444;
   --primary:      #ededed;
   --primary-dark: #d4d4d4;
   --primary-l:    #1a1a1a;
@@ -91,6 +93,7 @@ body.design-apple {
   --border: rgba(0,0,0,.08);
   --text:   #1d1d1f;
   --muted:  #7a7a7a;
+  --danger: #ef4444;
   /* Apple: single action blue accent — every interactive element */
   --primary:      #0066cc;
   --primary-dark: #004499;
@@ -121,6 +124,7 @@ body.design-apple.theme-dark {
   --border: #2c2c2e;
   --text:   #f2f2f7;
   --muted:  #ababab;
+  --danger: #ef4444;
   /* Sky link blue for dark surfaces */
   --primary:      #2997ff;
   --primary-dark: #0071e3;
@@ -146,6 +150,7 @@ body.design-resend.theme-dark {
   --border: #1a1a1d;
   --text:   #fcfdff;
   --muted:  #888888;
+  --danger: #ef4444;
   /* Resend: white as primary — loudest pixel on the dark canvas */
   --primary:      #fcfdff;
   --primary-dark: #e4e5e8;

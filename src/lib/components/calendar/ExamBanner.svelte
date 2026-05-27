@@ -1,26 +1,21 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import type { Subject, StudySession } from '$lib/types';
 	import type { Settings } from '$lib/stores/settings';
 
 	export let subjects: Subject[] = [];
 	export let sessions: StudySession[] = [];
 	export let settings: Settings | null = null;
+	export let examDate: string | null = null;
 
-	let examDate: string | null = null;
-	let daysLeft = 0;
-	let show = false;
-
-	onMount(() => {
-		examDate = localStorage.getItem('pulse_exam_date');
-		if (!examDate) return;
+	$: daysLeft = (() => {
+		if (!examDate) return 0;
 		const today = new Date();
 		today.setHours(0, 0, 0, 0);
 		const exam = new Date(examDate);
 		exam.setHours(0, 0, 0, 0);
-		daysLeft = Math.round((exam.getTime() - today.getTime()) / 86400000);
-		show = daysLeft >= 0 && daysLeft <= 90;
-	});
+		return Math.round((exam.getTime() - today.getTime()) / 86400000);
+	})();
+	$: show = examDate !== null && daysLeft >= 0 && daysLeft <= 90;
 
 	$: urgentColor = daysLeft <= 14 ? '#f59e0b' : 'var(--primary)';
 

@@ -114,7 +114,7 @@
     const planned = plannedMinutesByDay.get(dayIdx) ?? 0;
     const goal = settings.dailyGoalHours * 60;
     const ratio = planned / goal;
-    if (ratio >= 1.0) return '#ef4444';
+    if (ratio >= 1.0) return 'var(--danger)';
     if (ratio >= 0.5) return 'var(--primary)';
     return 'var(--border)';
   }

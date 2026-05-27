@@ -60,17 +60,20 @@
     if (isScheduling) return;
     isScheduling = true;
     const { userId } = getAuthContext();
-    const examDate = localStorage.getItem('pulse_exam_date');
-    scheduleSlots.update(all => all.filter(s => !s.isAiSuggested));
+    let filteredSlots: ScheduleSlot[] = [];
+    scheduleSlots.update(all => {
+      filteredSlots = all.filter(s => !s.isAiSuggested);
+      return filteredSlots;
+    });
     const suggested = generateSchedule({
       weekStart: viewedWeekStart,
       subjects: $subjects,
       sessions: $sessions,
       srsCards: $srsCards,
       tasks: $tasks,
-      existingSlots: $scheduleSlots,
+      existingSlots: filteredSlots,
       settings: $settings,
-      examDate,
+      examDate: $settings.examDate,
     });
     scheduleSlots.update(all => [...all, ...suggested]);
     isScheduling = false;
@@ -200,7 +203,7 @@
 
   <!-- Main calendar area -->
   <div class="main-area">
-    <ExamBanner subjects={$subjects} sessions={$sessions} settings={$settings} />
+    <ExamBanner subjects={$subjects} sessions={$sessions} settings={$settings} examDate={$settings.examDate} />
 
     <header class="cal-header">
       <div class="week-nav">

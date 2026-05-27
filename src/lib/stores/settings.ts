@@ -20,6 +20,7 @@ export interface Settings {
   schoolEnd: string;           // "15:30"
   energyProfile: 'morning' | 'evening' | 'neutral';
   bufferMinutes: number;
+  examDate: string | null;
 }
 
 function defaults(): Settings {
@@ -35,6 +36,7 @@ function defaults(): Settings {
     schoolEnd: '15:30',
     energyProfile: 'neutral',
     bufferMinutes: 10,
+    examDate: null,
   };
 }
 
