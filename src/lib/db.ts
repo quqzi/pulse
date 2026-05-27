@@ -69,6 +69,7 @@ function mapCardFromDb(row: Record<string, unknown>): SrsCard {
     id: row.id as string,
     topicId: row.topic_id as string,
     userId: row.user_id as string,
+    subjectId: row.subject_id as string,
     ease: row.ease as number,
     intervalDays: row.interval_days as number,
     dueDate: (row.due_date as string).split('T')[0],
@@ -201,7 +202,7 @@ export const db = {
       const idx = all.findIndex(t => t.id === topic.id);
       if (idx >= 0) all[idx] = topic; else all.push(topic);
       lsSet('pulse_topics', all);
-      const card: SrsCard = { id: newId(), topicId: topic.id, userId, ...defaultCard() };
+      const card: SrsCard = { id: newId(), topicId: topic.id, userId, subjectId: topic.subjectId, ...defaultCard() };
       const cards = lsGet<SrsCard>('pulse_srs_cards');
       if (!cards.find(c => c.topicId === topic.id)) {
         cards.push(card);
@@ -215,10 +216,10 @@ export const db = {
     });
     const cardId = newId();
     await supabase.from('srs_cards').upsert({
-      id: cardId, topic_id: topic.id, user_id: userId,
+      id: cardId, topic_id: topic.id, user_id: userId, subject_id: topic.subjectId,
       ease: 2.5, interval_days: 1, due_date: today(), reps: 0,
     });
-    return { id: cardId, topicId: topic.id, userId, ...defaultCard() };
+    return { id: cardId, topicId: topic.id, userId, subjectId: topic.subjectId, ...defaultCard() };
   },
 
   async deleteTopic(topicId: string, mode: Mode): Promise<void> {

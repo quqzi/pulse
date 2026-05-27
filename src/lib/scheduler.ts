@@ -24,7 +24,7 @@ export function generateSchedule(input: SchedulerInput): ScheduleSlot[] {
   });
 
   // ── Step 1: Build blocked intervals per day ────────────────────
-  const blockedByDay: Array<Array<{ start: number; end: number }>> = weekDays.map((day, i) => {
+  const blockedByDay: Array<Array<{ start: number; end: number }>> = weekDays.map((day) => {
     const blocked: Array<{ start: number; end: number }> = [];
 
     if (settings.schoolHoursEnabled) {
@@ -66,10 +66,7 @@ export function generateSchedule(input: SchedulerInput): ScheduleSlot[] {
     : Infinity;
 
   const subjectScores = subjects.map(subject => {
-    const cards = srsCards.filter(c => {
-      const subId = (c as any).subjectId;
-      return subId === subject.id;
-    });
+    const cards = srsCards.filter(c => c.subjectId === subject.id);
     const overdueCount = cards.filter(c => c.dueDate < todayStr).length;
     const dueThisWeekCount = cards.filter(c => c.dueDate >= todayStr && c.dueDate < weekEndStr).length;
 
@@ -113,6 +110,7 @@ export function generateSchedule(input: SchedulerInput): ScheduleSlot[] {
   const SLOT_STEP = 30;
   const MIN_BLOCK = 30;
   const MAX_BLOCK = 90;
+  const TASK_BLOCK = 45;
   const START_HOUR = 6;
   const END_HOUR = 22;
 
@@ -179,7 +177,12 @@ export function generateSchedule(input: SchedulerInput): ScheduleSlot[] {
 
       if (bestStart < 0) continue;
 
-      const blockLen = Math.min(MAX_BLOCK, minutesLeft);
+      const blockLen = Math.min(
+        MAX_BLOCK,
+        minutesLeft,
+        Math.floor((END_HOUR * 60 - bestStart) / SLOT_STEP) * SLOT_STEP
+      );
+      if (blockLen < MIN_BLOCK) continue;
       const day = weekDays[dayIdx];
 
       results.push({
@@ -206,6 +209,8 @@ export function generateSchedule(input: SchedulerInput): ScheduleSlot[] {
   // ── Step 5: Task deadline injection ───────────────────────────
   for (const task of tasks) {
     if (!task.dueDate || task.completedAt) continue;
+    const subjectId = task.subjectId;
+    if (!subjectId) continue;
     const due = new Date(task.dueDate + 'T00:00:00');
     due.setHours(0, 0, 0, 0);
     const dayIdx = Math.round((due.getTime() - weekStart.getTime()) / 86400000);
@@ -214,18 +219,16 @@ export function generateSchedule(input: SchedulerInput): ScheduleSlot[] {
     for (const d of [dayIdx, dayIdx - 1]) {
       if (placed) break;
       if (d < 0 || d >= 7) continue;
-      const subjectId = task.subjectId;
-      if (!subjectId) break;
 
-      for (let m = START_HOUR * 60; m + 45 <= END_HOUR * 60; m += SLOT_STEP) {
-        if (!isAvailable(d, m, m + 45)) continue;
+      for (let m = START_HOUR * 60; m + TASK_BLOCK <= END_HOUR * 60; m += SLOT_STEP) {
+        if (!isAvailable(d, m, m + TASK_BLOCK)) continue;
         results.push({
           id: makeId(),
           userId: '',
           subjectId,
           topicId: undefined,
           startTime: toISO(weekDays[d], m),
-          endTime: toISO(weekDays[d], m + 45),
+          endTime: toISO(weekDays[d], m + TASK_BLOCK),
           isAiSuggested: true,
           isConfirmed: false,
           isFocusBlock: false,
@@ -233,7 +236,7 @@ export function generateSchedule(input: SchedulerInput): ScheduleSlot[] {
           recurrenceDays: [],
           createdAt: new Date().toISOString(),
         });
-        blockDay(d, m, m + 45);
+        blockDay(d, m, m + TASK_BLOCK);
         placed = true;
         break;
       }
