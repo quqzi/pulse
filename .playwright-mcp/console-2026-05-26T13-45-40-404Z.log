@@ -1,0 +1,301 @@
+[     175ms] [ERROR] Error: <path> attribute d: Expected path command, "…5a2 2 0 0 1-2-2z\" /\u003E\u003Cpolyline po…". @ http://localhost:5173/journey:516
+[     175ms] [ERROR] Error: <path> attribute d: Expected path command, "…0 10 0 0 0 12 2z\" /\u003E\u003Cpolyline po…". @ http://localhost:5173/journey:516
+[     175ms] [ERROR] Error: <path> attribute d: Expected path command, "… 0 0 1 6.5 17H20\" /\u003E\u003Cpath d=\"M6.…". @ http://localhost:5173/journey:516
+[     191ms] [WARNING] <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes"> @ http://localhost:5173/journey:0
+[   44845ms] [ERROR] Error: <path> attribute d: Expected path command, "…5a2 2 0 0 1-2-2z\" /\u003E\u003Cpolyline po…". @ http://localhost:5173/journey:516
+[   44845ms] [ERROR] Error: <path> attribute d: Expected path command, "…0 10 0 0 0 12 2z\" /\u003E\u003Cpolyline po…". @ http://localhost:5173/journey:516
+[   44845ms] [ERROR] Error: <path> attribute d: Expected path command, "… 0 0 1 6.5 17H20\" /\u003E\u003Cpath d=\"M6.…". @ http://localhost:5173/journey:516
+[   44880ms] [WARNING] <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes"> @ http://localhost:5173/journey:0
+[   49817ms] [ERROR] Error: <path> attribute d: Expected path command, "…5a2 2 0 0 1-2-2z\" /\u003E\u003Cpolyline po…". @ http://localhost:5173/journey:516
+[   49817ms] [ERROR] Error: <path> attribute d: Expected path command, "…0 10 0 0 0 12 2z\" /\u003E\u003Cpolyline po…". @ http://localhost:5173/journey:516
+[   49817ms] [ERROR] Error: <path> attribute d: Expected path command, "… 0 0 1 6.5 17H20\" /\u003E\u003Cpath d=\"M6.…". @ http://localhost:5173/journey:516
+[   49822ms] [WARNING] <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes"> @ http://localhost:5173/journey:0
+[  296557ms] [ERROR] Error: <path> attribute d: Expected path command, "…5a2 2 0 0 1-2-2z\" /\u003E\u003Cpolyline po…". @ http://localhost:5173/journey:518
+[  296557ms] [ERROR] Error: <path> attribute d: Expected path command, "…0 10 0 0 0 12 2z\" /\u003E\u003Cpolyline po…". @ http://localhost:5173/journey:518
+[  296557ms] [ERROR] Error: <path> attribute d: Expected path command, "… 0 0 1 6.5 17H20\" /\u003E\u003Cpath d=\"M6.…". @ http://localhost:5173/journey:518
+[  296573ms] [WARNING] <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes"> @ http://localhost:5173/journey:0
+[  448860ms] [ERROR] Error: <path> attribute d: Expected path command, "…5a2 2 0 0 1-2-2z\" /\u003E\u003Cpolyline po…". @ http://localhost:5173/journey:518
+[  448860ms] [ERROR] Error: <path> attribute d: Expected path command, "…0 10 0 0 0 12 2z\" /\u003E\u003Cpolyline po…". @ http://localhost:5173/journey:518
+[  448860ms] [ERROR] Error: <path> attribute d: Expected path command, "… 0 0 1 6.5 17H20\" /\u003E\u003Cpath d=\"M6.…". @ http://localhost:5173/journey:518
+[  448869ms] [WARNING] <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes"> @ http://localhost:5173/journey:0
+[  834294ms] [ERROR] Error: <path> attribute d: Expected path command, "…5a2 2 0 0 1-2-2z\" /\u003E\u003Cpolyline po…". @ http://localhost:5173/dashboard:729
+[  834294ms] [ERROR] Error: <path> attribute d: Expected path command, "…0 10 0 0 0 12 2z\" /\u003E\u003Cpolyline po…". @ http://localhost:5173/dashboard:729
+[  834294ms] [ERROR] Error: <path> attribute d: Expected path command, "… 0 0 1 6.5 17H20\" /\u003E\u003Cpath d=\"M6.…". @ http://localhost:5173/dashboard:729
+[  834306ms] [WARNING] <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes"> @ http://localhost:5173/dashboard:0
+[ 1662004ms] Svelte error: each_key_volatile
+Keyed each block has key that is not idempotent — the key for item at index 0 was `morning,🌅 Morning person,Peak 6am–12pm` but is now `morning,🌅 Morning person,Peak 6am–12pm`. Keys must be the same each time for a given item
+https://svelte.dev/e/each_key_volatile
+
+	in <unknown>
+	in +page.svelte
+	in +layout.svelte
+	in +layout.svelte
+	in root.svelte
+	in undefined
+
+    at each_key_volatile (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:343:33)
+    at http://localhost:5173/node_modules/.vite/deps/index-client-D_bbryow.js?v=84daf3b2:908:28
+    at update_reaction (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4885:16)
+    at update_effect (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4985:18)
+    at create_effect (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4310:4)
+    at block (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4500:15)
+    at Module.each (http://localhost:5173/node_modules/.vite/deps/index-client-D_bbryow.js?v=84daf3b2:883:11)
+    at http://localhost:5173/src/routes/(app)/settings/+page.svelte:405:11
+    at Module.add_svelte_meta (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:978:10)
+    at _page (http://localhost:5173/src/routes/(app)/settings/+page.svelte:404:4)
+[ 1662500ms] Svelte error: each_key_volatile
+Keyed each block has key that is not idempotent — the key for item at index 0 was `morning,🌅 Morning person,Peak 6am–12pm` but is now `morning,🌅 Morning person,Peak 6am–12pm`. Keys must be the same each time for a given item
+https://svelte.dev/e/each_key_volatile
+
+	in <unknown>
+	in +page.svelte
+	in +layout.svelte
+	in +layout.svelte
+	in root.svelte
+	in undefined
+
+    at each_key_volatile (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:343:33)
+    at http://localhost:5173/node_modules/.vite/deps/index-client-D_bbryow.js?v=84daf3b2:908:28
+    at update_reaction (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4885:16)
+    at update_effect (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4985:18)
+    at create_effect (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4310:4)
+    at block (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4500:15)
+    at Module.each (http://localhost:5173/node_modules/.vite/deps/index-client-D_bbryow.js?v=84daf3b2:883:11)
+    at http://localhost:5173/src/routes/(app)/settings/+page.svelte:405:11
+    at Module.add_svelte_meta (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:978:10)
+    at _page (http://localhost:5173/src/routes/(app)/settings/+page.svelte:404:4)
+[ 1663449ms] Svelte error: each_key_volatile
+Keyed each block has key that is not idempotent — the key for item at index 0 was `morning,🌅 Morning person,Peak 6am–12pm` but is now `morning,🌅 Morning person,Peak 6am–12pm`. Keys must be the same each time for a given item
+https://svelte.dev/e/each_key_volatile
+
+	in <unknown>
+	in +page.svelte
+	in +layout.svelte
+	in +layout.svelte
+	in root.svelte
+	in undefined
+
+    at each_key_volatile (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:343:33)
+    at http://localhost:5173/node_modules/.vite/deps/index-client-D_bbryow.js?v=84daf3b2:908:28
+    at update_reaction (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4885:16)
+    at update_effect (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4985:18)
+    at create_effect (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4310:4)
+    at block (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4500:15)
+    at Module.each (http://localhost:5173/node_modules/.vite/deps/index-client-D_bbryow.js?v=84daf3b2:883:11)
+    at http://localhost:5173/src/routes/(app)/settings/+page.svelte:405:11
+    at Module.add_svelte_meta (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:978:10)
+    at _page (http://localhost:5173/src/routes/(app)/settings/+page.svelte:404:4)
+[ 1664183ms] Svelte error: each_key_volatile
+Keyed each block has key that is not idempotent — the key for item at index 0 was `morning,🌅 Morning person,Peak 6am–12pm` but is now `morning,🌅 Morning person,Peak 6am–12pm`. Keys must be the same each time for a given item
+https://svelte.dev/e/each_key_volatile
+
+	in <unknown>
+	in +page.svelte
+	in +layout.svelte
+	in +layout.svelte
+	in root.svelte
+	in undefined
+
+    at each_key_volatile (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:343:33)
+    at http://localhost:5173/node_modules/.vite/deps/index-client-D_bbryow.js?v=84daf3b2:908:28
+    at update_reaction (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4885:16)
+    at update_effect (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4985:18)
+    at create_effect (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4310:4)
+    at block (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4500:15)
+    at Module.each (http://localhost:5173/node_modules/.vite/deps/index-client-D_bbryow.js?v=84daf3b2:883:11)
+    at http://localhost:5173/src/routes/(app)/settings/+page.svelte:405:11
+    at Module.add_svelte_meta (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:978:10)
+    at _page (http://localhost:5173/src/routes/(app)/settings/+page.svelte:404:4)
+[ 1664366ms] Svelte error: each_key_volatile
+Keyed each block has key that is not idempotent — the key for item at index 0 was `morning,🌅 Morning person,Peak 6am–12pm` but is now `morning,🌅 Morning person,Peak 6am–12pm`. Keys must be the same each time for a given item
+https://svelte.dev/e/each_key_volatile
+
+	in <unknown>
+	in +page.svelte
+	in +layout.svelte
+	in +layout.svelte
+	in root.svelte
+	in undefined
+
+    at each_key_volatile (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:343:33)
+    at http://localhost:5173/node_modules/.vite/deps/index-client-D_bbryow.js?v=84daf3b2:908:28
+    at update_reaction (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4885:16)
+    at update_effect (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4985:18)
+    at create_effect (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4310:4)
+    at block (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4500:15)
+    at Module.each (http://localhost:5173/node_modules/.vite/deps/index-client-D_bbryow.js?v=84daf3b2:883:11)
+    at http://localhost:5173/src/routes/(app)/settings/+page.svelte:405:11
+    at Module.add_svelte_meta (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:978:10)
+    at _page (http://localhost:5173/src/routes/(app)/settings/+page.svelte:404:4)
+[ 1664538ms] Svelte error: each_key_volatile
+Keyed each block has key that is not idempotent — the key for item at index 0 was `morning,🌅 Morning person,Peak 6am–12pm` but is now `morning,🌅 Morning person,Peak 6am–12pm`. Keys must be the same each time for a given item
+https://svelte.dev/e/each_key_volatile
+
+	in <unknown>
+	in +page.svelte
+	in +layout.svelte
+	in +layout.svelte
+	in root.svelte
+	in undefined
+
+    at each_key_volatile (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:343:33)
+    at http://localhost:5173/node_modules/.vite/deps/index-client-D_bbryow.js?v=84daf3b2:908:28
+    at update_reaction (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4885:16)
+    at update_effect (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4985:18)
+    at create_effect (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4310:4)
+    at block (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4500:15)
+    at Module.each (http://localhost:5173/node_modules/.vite/deps/index-client-D_bbryow.js?v=84daf3b2:883:11)
+    at http://localhost:5173/src/routes/(app)/settings/+page.svelte:405:11
+    at Module.add_svelte_meta (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:978:10)
+    at _page (http://localhost:5173/src/routes/(app)/settings/+page.svelte:404:4)
+[ 1819264ms] Svelte error: each_key_volatile
+Keyed each block has key that is not idempotent — the key for item at index 0 was `morning,🌅 Morning person,Peak 6am–12pm` but is now `morning,🌅 Morning person,Peak 6am–12pm`. Keys must be the same each time for a given item
+https://svelte.dev/e/each_key_volatile
+
+	in <unknown>
+	in +page.svelte
+	in +layout.svelte
+	in +layout.svelte
+	in root.svelte
+	in undefined
+
+    at each_key_volatile (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:343:33)
+    at http://localhost:5173/node_modules/.vite/deps/index-client-D_bbryow.js?v=84daf3b2:908:28
+    at update_reaction (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4885:16)
+    at update_effect (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4985:18)
+    at create_effect (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4310:4)
+    at block (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4500:15)
+    at Module.each (http://localhost:5173/node_modules/.vite/deps/index-client-D_bbryow.js?v=84daf3b2:883:11)
+    at http://localhost:5173/src/routes/(app)/settings/+page.svelte:405:11
+    at Module.add_svelte_meta (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:978:10)
+    at _page (http://localhost:5173/src/routes/(app)/settings/+page.svelte:404:4)
+[ 1820063ms] Svelte error: each_key_volatile
+Keyed each block has key that is not idempotent — the key for item at index 0 was `morning,🌅 Morning person,Peak 6am–12pm` but is now `morning,🌅 Morning person,Peak 6am–12pm`. Keys must be the same each time for a given item
+https://svelte.dev/e/each_key_volatile
+
+	in <unknown>
+	in +page.svelte
+	in +layout.svelte
+	in +layout.svelte
+	in root.svelte
+	in undefined
+
+    at each_key_volatile (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:343:33)
+    at http://localhost:5173/node_modules/.vite/deps/index-client-D_bbryow.js?v=84daf3b2:908:28
+    at update_reaction (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4885:16)
+    at update_effect (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4985:18)
+    at create_effect (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4310:4)
+    at block (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4500:15)
+    at Module.each (http://localhost:5173/node_modules/.vite/deps/index-client-D_bbryow.js?v=84daf3b2:883:11)
+    at http://localhost:5173/src/routes/(app)/settings/+page.svelte:405:11
+    at Module.add_svelte_meta (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:978:10)
+    at _page (http://localhost:5173/src/routes/(app)/settings/+page.svelte:404:4)
+[ 1820630ms] Svelte error: each_key_volatile
+Keyed each block has key that is not idempotent — the key for item at index 0 was `morning,🌅 Morning person,Peak 6am–12pm` but is now `morning,🌅 Morning person,Peak 6am–12pm`. Keys must be the same each time for a given item
+https://svelte.dev/e/each_key_volatile
+
+	in <unknown>
+	in +page.svelte
+	in +layout.svelte
+	in +layout.svelte
+	in root.svelte
+	in undefined
+
+    at each_key_volatile (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:343:33)
+    at http://localhost:5173/node_modules/.vite/deps/index-client-D_bbryow.js?v=84daf3b2:908:28
+    at update_reaction (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4885:16)
+    at update_effect (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4985:18)
+    at create_effect (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4310:4)
+    at block (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4500:15)
+    at Module.each (http://localhost:5173/node_modules/.vite/deps/index-client-D_bbryow.js?v=84daf3b2:883:11)
+    at http://localhost:5173/src/routes/(app)/settings/+page.svelte:405:11
+    at Module.add_svelte_meta (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:978:10)
+    at _page (http://localhost:5173/src/routes/(app)/settings/+page.svelte:404:4)
+[ 1821994ms] Svelte error: each_key_volatile
+Keyed each block has key that is not idempotent — the key for item at index 0 was `morning,🌅 Morning person,Peak 6am–12pm` but is now `morning,🌅 Morning person,Peak 6am–12pm`. Keys must be the same each time for a given item
+https://svelte.dev/e/each_key_volatile
+
+	in <unknown>
+	in +page.svelte
+	in +layout.svelte
+	in +layout.svelte
+	in root.svelte
+	in undefined
+
+    at each_key_volatile (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:343:33)
+    at http://localhost:5173/node_modules/.vite/deps/index-client-D_bbryow.js?v=84daf3b2:908:28
+    at update_reaction (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4885:16)
+    at update_effect (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4985:18)
+    at create_effect (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4310:4)
+    at block (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4500:15)
+    at Module.each (http://localhost:5173/node_modules/.vite/deps/index-client-D_bbryow.js?v=84daf3b2:883:11)
+    at http://localhost:5173/src/routes/(app)/settings/+page.svelte:405:11
+    at Module.add_svelte_meta (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:978:10)
+    at _page (http://localhost:5173/src/routes/(app)/settings/+page.svelte:404:4)
+[ 1822412ms] Svelte error: each_key_volatile
+Keyed each block has key that is not idempotent — the key for item at index 0 was `morning,🌅 Morning person,Peak 6am–12pm` but is now `morning,🌅 Morning person,Peak 6am–12pm`. Keys must be the same each time for a given item
+https://svelte.dev/e/each_key_volatile
+
+	in <unknown>
+	in +page.svelte
+	in +layout.svelte
+	in +layout.svelte
+	in root.svelte
+	in undefined
+
+    at each_key_volatile (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:343:33)
+    at http://localhost:5173/node_modules/.vite/deps/index-client-D_bbryow.js?v=84daf3b2:908:28
+    at update_reaction (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4885:16)
+    at update_effect (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4985:18)
+    at create_effect (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4310:4)
+    at block (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4500:15)
+    at Module.each (http://localhost:5173/node_modules/.vite/deps/index-client-D_bbryow.js?v=84daf3b2:883:11)
+    at http://localhost:5173/src/routes/(app)/settings/+page.svelte:405:11
+    at Module.add_svelte_meta (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:978:10)
+    at _page (http://localhost:5173/src/routes/(app)/settings/+page.svelte:404:4)
+[ 1822647ms] Svelte error: each_key_volatile
+Keyed each block has key that is not idempotent — the key for item at index 0 was `morning,🌅 Morning person,Peak 6am–12pm` but is now `morning,🌅 Morning person,Peak 6am–12pm`. Keys must be the same each time for a given item
+https://svelte.dev/e/each_key_volatile
+
+	in <unknown>
+	in +page.svelte
+	in +layout.svelte
+	in +layout.svelte
+	in root.svelte
+	in undefined
+
+    at each_key_volatile (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:343:33)
+    at http://localhost:5173/node_modules/.vite/deps/index-client-D_bbryow.js?v=84daf3b2:908:28
+    at update_reaction (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4885:16)
+    at update_effect (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4985:18)
+    at create_effect (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4310:4)
+    at block (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4500:15)
+    at Module.each (http://localhost:5173/node_modules/.vite/deps/index-client-D_bbryow.js?v=84daf3b2:883:11)
+    at http://localhost:5173/src/routes/(app)/settings/+page.svelte:405:11
+    at Module.add_svelte_meta (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:978:10)
+    at _page (http://localhost:5173/src/routes/(app)/settings/+page.svelte:404:4)
+[ 2093541ms] [ERROR] Error: <path> attribute d: Expected path command, "…5a2 2 0 0 1-2-2z\" /\u003E\u003Cpolyline po…". @ http://localhost:5173/settings:519
+[ 2093541ms] [ERROR] Error: <path> attribute d: Expected path command, "…0 10 0 0 0 12 2z\" /\u003E\u003Cpolyline po…". @ http://localhost:5173/settings:519
+[ 2093541ms] [ERROR] Error: <path> attribute d: Expected path command, "… 0 0 1 6.5 17H20\" /\u003E\u003Cpath d=\"M6.…". @ http://localhost:5173/settings:519
+[ 2093577ms] [WARNING] <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes"> @ http://localhost:5173/settings:0
+[ 2093607ms] Svelte error: each_key_volatile
+Keyed each block has key that is not idempotent — the key for item at index 0 was `morning,🌅 Morning person,Peak 6am–12pm` but is now `morning,🌅 Morning person,Peak 6am–12pm`. Keys must be the same each time for a given item
+https://svelte.dev/e/each_key_volatile
+
+	in <unknown>
+	in +page.svelte
+	in +layout.svelte
+	in +layout.svelte
+	in root.svelte
+	in undefined
+
+    at each_key_volatile (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:343:33)
+    at http://localhost:5173/node_modules/.vite/deps/index-client-D_bbryow.js?v=84daf3b2:908:28
+    at update_reaction (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4885:16)
+    at update_effect (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4985:18)
+    at create_effect (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4310:4)
+    at block (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:4500:15)
+    at Module.each (http://localhost:5173/node_modules/.vite/deps/index-client-D_bbryow.js?v=84daf3b2:883:11)
+    at http://localhost:5173/src/routes/(app)/settings/+page.svelte:405:11
+    at Module.add_svelte_meta (http://localhost:5173/node_modules/.vite/deps/runtime-DWowUlQj.js?v=84daf3b2:978:10)
+    at _page (http://localhost:5173/src/routes/(app)/settings/+page.svelte:404:4)

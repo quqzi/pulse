@@ -194,7 +194,7 @@
   .pop-btn.cancel { background: var(--bg3); color: var(--muted); }
   .pop-btn.save {
     background: var(--primary);
-    color: white;
+    color: var(--bg);
     border-color: var(--primary);
   }
   .pop-btn:hover { opacity: 0.85; }

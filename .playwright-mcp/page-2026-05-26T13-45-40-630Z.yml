@@ -1,0 +1,198 @@
+- generic [ref=e3]:
+  - complementary [ref=e5]:
+    - generic [ref=e6]:
+      - img [ref=e8]
+      - generic [ref=e10]: pulse
+    - generic [ref=e11]:
+      - generic [ref=e12]: Main
+      - link "Dashboard" [ref=e13] [cursor=pointer]:
+        - /url: /dashboard
+        - img [ref=e14]
+        - generic [ref=e16]: Dashboard
+      - link "Timer" [ref=e17] [cursor=pointer]:
+        - /url: /timer
+        - img [ref=e18]
+        - generic [ref=e20]: Timer
+      - link "Subjects" [ref=e21] [cursor=pointer]:
+        - /url: /subjects
+        - img [ref=e22]
+        - generic [ref=e24]: Subjects
+    - generic [ref=e25]:
+      - generic [ref=e26]: Track
+      - link "Analytics" [ref=e27] [cursor=pointer]:
+        - /url: /analytics
+        - img [ref=e28]
+        - generic [ref=e30]: Analytics
+      - link "Insights" [ref=e31] [cursor=pointer]:
+        - /url: /insights
+        - img [ref=e32]
+        - generic [ref=e34]: Insights
+      - link "Journey" [ref=e35] [cursor=pointer]:
+        - /url: /journey
+        - img [ref=e36]
+        - generic [ref=e38]: Journey
+      - link "Tasks" [ref=e39] [cursor=pointer]:
+        - /url: /tasks
+        - img [ref=e40]
+        - generic [ref=e42]: Tasks
+      - link "Schedule" [ref=e43] [cursor=pointer]:
+        - /url: /schedule
+        - img [ref=e44]
+        - generic [ref=e46]: Schedule
+      - link "Scores" [ref=e47] [cursor=pointer]:
+        - /url: /scores
+        - img [ref=e48]
+        - generic [ref=e50]: Scores
+    - generic [ref=e51]:
+      - generic [ref=e52]: Settings
+      - link "Settings" [ref=e53] [cursor=pointer]:
+        - /url: /settings
+        - img [ref=e54]
+        - generic [ref=e56]: Settings
+  - main [ref=e57]:
+    - generic [ref=e58]:
+      - heading "Journey" [level=1] [ref=e59]
+      - generic [ref=e60]:
+        - generic [ref=e61]:
+          - generic [ref=e62]: Total Time
+          - generic [ref=e63]: 0m
+          - generic [ref=e64]: all-time
+        - generic [ref=e65]:
+          - generic [ref=e66]: Streak
+          - generic [ref=e67]: 0d
+          - generic [ref=e68]: Study today to start
+        - generic [ref=e69]:
+          - generic [ref=e70]: Sessions
+          - generic [ref=e71]: "0"
+          - generic [ref=e72]: all-time
+      - generic [ref=e73]:
+        - generic [ref=e74]:
+          - generic [ref=e75]: ACTIVITY
+          - generic [ref=e76]: Last 16 weeks
+        - generic [ref=e78]:
+          - generic [ref=e79]:
+            - generic [ref=e83]: Mar
+            - generic [ref=e88]: Apr
+            - generic [ref=e92]: May
+            - generic "Mon, Feb 9 · No study" [ref=e96]
+            - generic "Tue, Feb 10 · No study" [ref=e97]
+            - generic "Wed, Feb 11 · No study" [ref=e98]
+            - generic "Thu, Feb 12 · No study" [ref=e99]
+            - generic "Fri, Feb 13 · No study" [ref=e100]
+            - generic "Sat, Feb 14 · No study" [ref=e101]
+            - generic "Sun, Feb 15 · No study" [ref=e102]
+            - generic "Mon, Feb 16 · No study" [ref=e103]
+            - generic "Tue, Feb 17 · No study" [ref=e104]
+            - generic "Wed, Feb 18 · No study" [ref=e105]
+            - generic "Thu, Feb 19 · No study" [ref=e106]
+            - generic "Fri, Feb 20 · No study" [ref=e107]
+            - generic "Sat, Feb 21 · No study" [ref=e108]
+            - generic "Sun, Feb 22 · No study" [ref=e109]
+            - generic "Mon, Feb 23 · No study" [ref=e110]
+            - generic "Tue, Feb 24 · No study" [ref=e111]
+            - generic "Wed, Feb 25 · No study" [ref=e112]
+            - generic "Thu, Feb 26 · No study" [ref=e113]
+            - generic "Fri, Feb 27 · No study" [ref=e114]
+            - generic "Sat, Feb 28 · No study" [ref=e115]
+            - generic "Sun, Mar 1 · No study" [ref=e116]
+            - generic "Mon, Mar 2 · No study" [ref=e117]
+            - generic "Tue, Mar 3 · No study" [ref=e118]
+            - generic "Wed, Mar 4 · No study" [ref=e119]
+            - generic "Thu, Mar 5 · No study" [ref=e120]
+            - generic "Fri, Mar 6 · No study" [ref=e121]
+            - generic "Sat, Mar 7 · No study" [ref=e122]
+            - generic "Sun, Mar 8 · No study" [ref=e123]
+            - generic "Mon, Mar 9 · No study" [ref=e124]
+            - generic "Tue, Mar 10 · No study" [ref=e125]
+            - generic "Wed, Mar 11 · No study" [ref=e126]
+            - generic "Thu, Mar 12 · No study" [ref=e127]
+            - generic "Fri, Mar 13 · No study" [ref=e128]
+            - generic "Sat, Mar 14 · No study" [ref=e129]
+            - generic "Sun, Mar 15 · No study" [ref=e130]
+            - generic "Mon, Mar 16 · No study" [ref=e131]
+            - generic "Tue, Mar 17 · No study" [ref=e132]
+            - generic "Wed, Mar 18 · No study" [ref=e133]
+            - generic "Thu, Mar 19 · No study" [ref=e134]
+            - generic "Fri, Mar 20 · No study" [ref=e135]
+            - generic "Sat, Mar 21 · No study" [ref=e136]
+            - generic "Sun, Mar 22 · No study" [ref=e137]
+            - generic "Mon, Mar 23 · No study" [ref=e138]
+            - generic "Tue, Mar 24 · No study" [ref=e139]
+            - generic "Wed, Mar 25 · No study" [ref=e140]
+            - generic "Thu, Mar 26 · No study" [ref=e141]
+            - generic "Fri, Mar 27 · No study" [ref=e142]
+            - generic "Sat, Mar 28 · No study" [ref=e143]
+            - generic "Sun, Mar 29 · No study" [ref=e144]
+            - generic "Mon, Mar 30 · No study" [ref=e145]
+            - generic "Tue, Mar 31 · No study" [ref=e146]
+            - generic "Wed, Apr 1 · No study" [ref=e147]
+            - generic "Thu, Apr 2 · No study" [ref=e148]
+            - generic "Fri, Apr 3 · No study" [ref=e149]
+            - generic "Sat, Apr 4 · No study" [ref=e150]
+            - generic "Sun, Apr 5 · No study" [ref=e151]
+            - generic "Mon, Apr 6 · No study" [ref=e152]
+            - generic "Tue, Apr 7 · No study" [ref=e153]
+            - generic "Wed, Apr 8 · No study" [ref=e154]
+            - generic "Thu, Apr 9 · No study" [ref=e155]
+            - generic "Fri, Apr 10 · No study" [ref=e156]
+            - generic "Sat, Apr 11 · No study" [ref=e157]
+            - generic "Sun, Apr 12 · No study" [ref=e158]
+            - generic "Mon, Apr 13 · No study" [ref=e159]
+            - generic "Tue, Apr 14 · No study" [ref=e160]
+            - generic "Wed, Apr 15 · No study" [ref=e161]
+            - generic "Thu, Apr 16 · No study" [ref=e162]
+            - generic "Fri, Apr 17 · No study" [ref=e163]
+            - generic "Sat, Apr 18 · No study" [ref=e164]
+            - generic "Sun, Apr 19 · No study" [ref=e165]
+            - generic "Mon, Apr 20 · No study" [ref=e166]
+            - generic "Tue, Apr 21 · No study" [ref=e167]
+            - generic "Wed, Apr 22 · No study" [ref=e168]
+            - generic "Thu, Apr 23 · No study" [ref=e169]
+            - generic "Fri, Apr 24 · No study" [ref=e170]
+            - generic "Sat, Apr 25 · No study" [ref=e171]
+            - generic "Sun, Apr 26 · No study" [ref=e172]
+            - generic "Mon, Apr 27 · No study" [ref=e173]
+            - generic "Tue, Apr 28 · No study" [ref=e174]
+            - generic "Wed, Apr 29 · No study" [ref=e175]
+            - generic "Thu, Apr 30 · No study" [ref=e176]
+            - generic "Fri, May 1 · No study" [ref=e177]
+            - generic "Sat, May 2 · No study" [ref=e178]
+            - generic "Sun, May 3 · No study" [ref=e179]
+            - generic "Mon, May 4 · No study" [ref=e180]
+            - generic "Tue, May 5 · No study" [ref=e181]
+            - generic "Wed, May 6 · No study" [ref=e182]
+            - generic "Thu, May 7 · No study" [ref=e183]
+            - generic "Fri, May 8 · No study" [ref=e184]
+            - generic "Sat, May 9 · No study" [ref=e185]
+            - generic "Sun, May 10 · No study" [ref=e186]
+            - generic "Mon, May 11 · No study" [ref=e187]
+            - generic "Tue, May 12 · No study" [ref=e188]
+            - generic "Wed, May 13 · No study" [ref=e189]
+            - generic "Thu, May 14 · No study" [ref=e190]
+            - generic "Fri, May 15 · No study" [ref=e191]
+            - generic "Sat, May 16 · No study" [ref=e192]
+            - generic "Sun, May 17 · No study" [ref=e193]
+            - generic "Mon, May 18 · No study" [ref=e194]
+            - generic "Tue, May 19 · No study" [ref=e195]
+            - generic "Wed, May 20 · No study" [ref=e196]
+            - generic "Thu, May 21 · No study" [ref=e197]
+            - generic "Fri, May 22 · No study" [ref=e198]
+            - generic "Sat, May 23 · No study" [ref=e199]
+            - generic "Sun, May 24 · No study" [ref=e200]
+            - generic "Mon, May 25 · No study" [ref=e201]
+            - generic "Tue, May 26 · No study" [ref=e202]
+            - generic "Wed, May 27 · No study" [ref=e203]
+            - generic "2026-05-27" [ref=e204]
+            - generic "2026-05-28" [ref=e205]
+            - generic "2026-05-29" [ref=e206]
+            - generic "2026-05-30" [ref=e207]
+          - generic [ref=e208]:
+            - generic [ref=e209]: Less
+            - generic [ref=e215]: More
+      - generic [ref=e216]:
+        - generic [ref=e217]:
+          - generic [ref=e218]: SESSIONS
+          - generic [ref=e219]: 0 total
+        - generic [ref=e220]:
+          - paragraph [ref=e221]: No study sessions yet.
+          - paragraph [ref=e222]: Start your first session!

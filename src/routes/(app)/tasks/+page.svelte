@@ -472,7 +472,7 @@
     border-radius: 6px;
     border: none;
     background: var(--primary);
-    color: white;
+    color: var(--bg);
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;

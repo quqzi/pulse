@@ -1,0 +1,97 @@
+<h2>Calendar feature set</h2>
+<p class="subtitle">Core features are always included. Pick any extras you want.</p>
+
+<div class="section">
+  <p class="label">Core — always included</p>
+  <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px;">
+    <div style="display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.3);border-radius:8px;">
+      <span style="color:#6366f1;font-size:16px;margin-top:1px;">✓</span>
+      <div><strong style="font-size:13px;">Week grid</strong> <span style="color:#888;font-size:12px;">— 7-day × hourly grid, subject-colored blocks, current time indicator</span></div>
+    </div>
+    <div style="display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.3);border-radius:8px;">
+      <span style="color:#6366f1;font-size:16px;margin-top:1px;">✓</span>
+      <div><strong style="font-size:13px;">Drag to create blocks</strong> <span style="color:#888;font-size:12px;">— drag on empty slot → popover to pick subject + topic</span></div>
+    </div>
+    <div style="display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.3);border-radius:8px;">
+      <span style="color:#6366f1;font-size:16px;margin-top:1px;">✓</span>
+      <div><strong style="font-size:13px;">Drag to move & resize</strong> <span style="color:#888;font-size:12px;">— drag block to reschedule, drag bottom edge to change duration</span></div>
+    </div>
+    <div style="display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.3);border-radius:8px;">
+      <span style="color:#6366f1;font-size:16px;margin-top:1px;">✓</span>
+      <div><strong style="font-size:13px;">AI auto-schedule</strong> <span style="color:#888;font-size:12px;">— generates ghosted suggestions based on SRS due dates, analytics weak spots, tasks with deadlines. Accept all or one-by-one.</span></div>
+    </div>
+    <div style="display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.3);border-radius:8px;">
+      <span style="color:#6366f1;font-size:16px;margin-top:1px;">✓</span>
+      <div><strong style="font-size:13px;">Tasks on calendar</strong> <span style="color:#888;font-size:12px;">— tasks with due dates appear as pills at the top of their due day (like Google Calendar all-day events)</span></div>
+    </div>
+  </div>
+
+  <p class="label">Extras — select what you want</p>
+  <div class="options" data-multiselect>
+
+    <div class="option" data-choice="load-bar" onclick="toggleSelect(this)">
+      <div class="letter">+</div>
+      <div class="content">
+        <h3>Daily load bar</h3>
+        <p>Colored progress bar above each day column — planned hours vs. daily goal. Green = on track, amber = over limit. Lets you spot overloaded days at a glance.</p>
+      </div>
+    </div>
+
+    <div class="option" data-choice="quick-start" onclick="toggleSelect(this)">
+      <div class="letter">+</div>
+      <div class="content">
+        <h3>Quick-start timer from block</h3>
+        <p>Tap a block → small popover with "Start session" button. Launches the timer pre-filled with subject + topic. Logs back to the same block when done.</p>
+      </div>
+    </div>
+
+    <div class="option" data-choice="past-log" onclick="toggleSelect(this)">
+      <div class="letter">+</div>
+      <div class="content">
+        <h3>Retroactive session logging</h3>
+        <p>Click a past empty time slot → log a session that already happened. Feeds study hours into Analytics without needing the timer. Good for study sessions away from the device.</p>
+      </div>
+    </div>
+
+    <div class="option" data-choice="recurring" onclick="toggleSelect(this)">
+      <div class="letter">+</div>
+      <div class="content">
+        <h3>Recurring blocks</h3>
+        <p>When creating a block, optionally set it to repeat — daily, weekdays, or specific days (Mon / Wed / Fri). Recurring blocks propagate forward and can be edited individually or all at once.</p>
+      </div>
+    </div>
+
+    <div class="option" data-choice="conflict" onclick="toggleSelect(this)">
+      <div class="letter">+</div>
+      <div class="content">
+        <h3>Overload warning</h3>
+        <p>Subtle red tint on the day load bar when planned hours exceed your daily goal. Also warns if the same subject is scheduled 3+ days in a row without a break.</p>
+      </div>
+    </div>
+
+    <div class="option" data-choice="filter" onclick="toggleSelect(this)">
+      <div class="letter">+</div>
+      <div class="content">
+        <h3>Subject filter chips</h3>
+        <p>Row of subject chips above the grid. Tap to hide/show specific subjects. Useful for focusing on one subject's schedule or hiding completed subjects from view.</p>
+      </div>
+    </div>
+
+    <div class="option" data-choice="exam-banner" onclick="toggleSelect(this)">
+      <div class="letter">+</div>
+      <div class="content">
+        <h3>Exam countdown banner</h3>
+        <p>Small persistent strip at the top of the calendar: "TCAS in 47 days". Pulses amber when &lt;14 days out. Links to the exam date set in onboarding.</p>
+      </div>
+    </div>
+
+    <div class="option" data-choice="week-summary" onclick="toggleSelect(this)">
+      <div class="letter">+</div>
+      <div class="content">
+        <h3>Weekly summary sidebar</h3>
+        <p>Collapsible right sidebar showing: planned vs. actual hours this week, SRS cards due count, and which subject is most behind based on analytics. Collapses to an icon on mobile.</p>
+      </div>
+    </div>
+
+  </div>
+</div>

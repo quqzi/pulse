@@ -310,9 +310,9 @@
     color: var(--text);
     cursor: pointer;
   }
-  .pop-btn.accept { background: var(--primary); color: white; border-color: var(--primary); }
-  .pop-btn.focus { background: var(--primary); color: white; border-color: var(--primary); }
-  .pop-btn.delete { color: #ef4444; border-color: #ef4444; }
+  .pop-btn.accept { background: var(--primary); color: var(--bg); border-color: var(--primary); }
+  .pop-btn.focus { background: var(--primary); color: var(--bg); border-color: var(--primary); }
+  .pop-btn.delete { color: var(--danger); border-color: var(--danger); }
   .pop-btn.dismiss { color: var(--muted); }
   .pop-btn:hover { opacity: 0.85; }
 </style>

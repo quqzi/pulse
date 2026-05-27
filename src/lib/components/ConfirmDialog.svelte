@@ -80,7 +80,7 @@
     border-radius: 8px;
     border: none;
     background: var(--primary);
-    color: white;
+    color: var(--bg);
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;

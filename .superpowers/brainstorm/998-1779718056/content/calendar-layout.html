@@ -1,0 +1,160 @@
+<h2>Calendar layout approach</h2>
+<p class="subtitle">Which structure fits how you'd want to view your study week?</p>
+
+<div class="cards">
+
+  <!-- Option A: Week Grid (Google Calendar) -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0a0a0a; padding:12px; font-family:monospace; font-size:11px; color:#aaa; border-radius:6px; height:200px; overflow:hidden; position:relative;">
+      <!-- Mini week grid mockup -->
+      <div style="display:grid; grid-template-columns:40px repeat(7,1fr); gap:1px; height:100%;">
+        <!-- Header row -->
+        <div style="color:#555; font-size:9px; padding-top:2px;">GMT+7</div>
+        <div style="color:#888; text-align:center; font-size:9px; padding-bottom:4px; border-bottom:1px solid #222;">MON<br><span style="color:#fff;font-size:12px;font-weight:600">19</span></div>
+        <div style="color:#888; text-align:center; font-size:9px; padding-bottom:4px; border-bottom:1px solid #222;">TUE<br><span style="font-size:12px;">20</span></div>
+        <div style="color:#888; text-align:center; font-size:9px; padding-bottom:4px; border-bottom:1px solid #222;">WED<br><span style="font-size:12px;">21</span></div>
+        <div style="color:#888; text-align:center; font-size:9px; padding-bottom:4px; border-bottom:1px solid #222;">THU<br><span style="font-size:12px;">22</span></div>
+        <div style="color:#888; text-align:center; font-size:9px; padding-bottom:4px; border-bottom:1px solid #222;">FRI<br><span style="font-size:12px;">23</span></div>
+        <div style="color:#888; text-align:center; font-size:9px; padding-bottom:4px; border-bottom:1px solid #222;">SAT<br><span style="font-size:12px;">24</span></div>
+        <div style="color:#888; text-align:center; font-size:9px; padding-bottom:4px; border-bottom:1px solid #222;">SUN<br><span style="font-size:12px;">25</span></div>
+
+        <!-- Time labels + event cells -->
+        <div style="color:#555;font-size:9px;padding-top:2px;">08:00</div>
+        <div style="background:#0d9488;border-radius:3px;padding:2px 4px;font-size:9px;color:#fff;margin:1px;">Physics · SRS</div>
+        <div></div><div></div><div style="background:#0d9488;border-radius:3px;padding:2px 4px;font-size:9px;color:#fff;margin:1px;">Physics</div><div></div><div></div><div></div>
+
+        <div style="color:#555;font-size:9px;padding-top:2px;">09:00</div>
+        <div></div>
+        <div style="background:#3b82f6;border-radius:3px;padding:2px 4px;font-size:9px;color:#fff;margin:1px;">Math · 2h</div>
+        <div></div><div></div><div style="background:#3b82f6;border-radius:3px;padding:2px 4px;font-size:9px;color:#fff;margin:1px;">Math</div><div></div><div></div>
+
+        <div style="color:#555;font-size:9px;padding-top:2px;">10:00</div>
+        <div></div><div></div>
+        <div style="background:#d97706;border-radius:3px;padding:2px 4px;font-size:9px;color:#fff;margin:1px;">Chem</div>
+        <div></div><div></div><div></div><div></div>
+
+        <div style="color:#555;font-size:9px;padding-top:2px;">14:00</div>
+        <div style="background:#8b5cf6;border-radius:3px;padding:2px 4px;font-size:9px;color:#fff;margin:1px;">TGAT</div>
+        <div></div><div></div>
+        <div style="background:#22c55e;border-radius:3px;padding:2px 4px;font-size:9px;color:#fff;margin:1px;">Bio</div>
+        <div></div><div></div><div></div>
+      </div>
+      <!-- Red line for current time -->
+      <div style="position:absolute;left:40px;right:0;top:72px;height:1px;background:#ef4444;"></div>
+      <div style="position:absolute;left:34px;top:68px;width:8px;height:8px;background:#ef4444;border-radius:50%;"></div>
+    </div>
+    <div class="card-body">
+      <h3>A — Week Grid</h3>
+      <p>Full 7-day time grid. Every hour is a row, every day a column. Study blocks placed at their scheduled time. See the whole week at once — good for spotting gaps and overlaps.</p>
+    </div>
+  </div>
+
+  <!-- Option B: Day Timeline (Rise Calendar style) -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0a0a0a; padding:12px; font-family:monospace; font-size:11px; color:#aaa; border-radius:6px; height:200px; overflow:hidden;">
+      <div style="display:flex; gap:10px; height:100%;">
+        <!-- Mini week strip on left -->
+        <div style="display:flex;flex-direction:column;gap:4px;align-items:center;">
+          <div style="color:#555;font-size:8px;">MON</div>
+          <div style="color:#555;font-size:8px;">TUE</div>
+          <div style="color:#fff;font-size:8px;background:#6366f1;border-radius:3px;padding:1px 3px;">WED</div>
+          <div style="color:#555;font-size:8px;">THU</div>
+          <div style="color:#555;font-size:8px;">FRI</div>
+          <div style="color:#555;font-size:8px;">SAT</div>
+          <div style="color:#555;font-size:8px;">SUN</div>
+        </div>
+        <!-- Day detail -->
+        <div style="flex:1;display:flex;flex-direction:column;gap:4px;">
+          <div style="color:#fff;font-size:10px;font-weight:600;margin-bottom:4px;">Wednesday, May 21</div>
+          <!-- Flowing blocks -->
+          <div style="background:#0d9488;border-radius:5px;padding:5px 8px;display:flex;align-items:center;gap:6px;">
+            <span style="color:#fff;font-size:9px;font-weight:600;">08:00</span>
+            <span style="color:#fff;font-size:9px;">Physics · SRS Review</span>
+            <span style="margin-left:auto;color:rgba(255,255,255,.5);font-size:8px;">45m</span>
+          </div>
+          <div style="background:#1e1e2e;border:1px solid #333;border-radius:5px;padding:4px 8px;font-size:9px;color:#666;">09:00 — free block</div>
+          <div style="background:#3b82f6;border-radius:5px;padding:5px 8px;display:flex;align-items:center;gap:6px;">
+            <span style="color:#fff;font-size:9px;font-weight:600;">10:00</span>
+            <span style="color:#fff;font-size:9px;">Math · Practice</span>
+            <span style="margin-left:auto;color:rgba(255,255,255,.5);font-size:8px;">90m</span>
+          </div>
+          <div style="background:#d97706;border-radius:5px;padding:5px 8px;display:flex;align-items:center;gap:6px;">
+            <span style="color:#fff;font-size:9px;font-weight:600;">13:00</span>
+            <span style="color:#fff;font-size:9px;">Chemistry · Auto-scheduled</span>
+            <span style="margin-left:auto;color:rgba(255,255,255,.5);font-size:8px;">60m ✦</span>
+          </div>
+          <div style="background:#1e1e2e;border:1px dashed #6366f1;border-radius:5px;padding:4px 8px;font-size:9px;color:#6366f1;">+ AI suggest · 3 SRS due</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Day Timeline (Rise-style)</h3>
+      <p>Week strip for navigation, day detail as the focus. Blocks flow chronologically — no strict grid. Auto-scheduled blocks are visually distinct. Cleaner, more decision-focused.</p>
+    </div>
+  </div>
+
+  <!-- Option C: Hybrid Split -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0a0a0a; padding:12px; font-family:monospace; font-size:11px; color:#aaa; border-radius:6px; height:200px; overflow:hidden;">
+      <div style="display:flex;flex-direction:column;gap:6px;height:100%;">
+        <!-- Mini week overview bar -->
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;">
+          <div style="text-align:center;">
+            <div style="font-size:8px;color:#555;">M</div>
+            <div style="background:#0d9488;border-radius:2px;height:18px;"></div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:8px;color:#555;">T</div>
+            <div style="background:#3b82f6;border-radius:2px;height:28px;"></div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:8px;color:#fff;font-weight:600;">W</div>
+            <div style="background:#6366f1;border-radius:2px;height:22px;border:1px solid #fff;"></div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:8px;color:#555;">T</div>
+            <div style="background:#d97706;border-radius:2px;height:14px;"></div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:8px;color:#555;">F</div>
+            <div style="background:#22c55e;border-radius:2px;height:32px;"></div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:8px;color:#555;">S</div>
+            <div style="background:#1e1e2e;border-radius:2px;height:8px;"></div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:8px;color:#555;">S</div>
+            <div style="background:#1e1e2e;border-radius:2px;height:6px;"></div>
+          </div>
+        </div>
+        <div style="height:1px;background:#222;"></div>
+        <!-- Day detail below -->
+        <div style="color:#fff;font-size:9px;font-weight:600;">Wednesday · 4h planned</div>
+        <div style="display:flex;flex-direction:column;gap:3px;flex:1;">
+          <div style="display:flex;gap:6px;align-items:center;">
+            <div style="width:28px;color:#555;font-size:8px;">08:00</div>
+            <div style="flex:1;background:#0d9488;border-radius:4px;padding:3px 6px;font-size:9px;color:#fff;">Physics · SRS</div>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <div style="width:28px;color:#555;font-size:8px;">10:00</div>
+            <div style="flex:1;background:#3b82f6;border-radius:4px;padding:3px 6px;font-size:9px;color:#fff;">Math · Practice sets</div>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <div style="width:28px;color:#555;font-size:8px;">13:00</div>
+            <div style="flex:1;background:#1e1e2e;border:1px dashed #6366f1;border-radius:4px;padding:3px 6px;font-size:9px;color:#6366f1;">✦ Auto: Chem due</div>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <div style="width:28px;color:#555;font-size:8px;">15:00</div>
+            <div style="flex:1;background:#8b5cf6;border-radius:4px;padding:3px 6px;font-size:9px;color:#fff;">TGAT · Task due today</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Hybrid: Week bar + Day detail</h3>
+      <p>Compact weekly load bar at the top (shows study hours as bar height) with full day timeline below. Click a day in the bar to jump to it. Best spatial overview without full-grid complexity.</p>
+    </div>
+  </div>
+
+</div>

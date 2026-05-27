@@ -1,0 +1,118 @@
+<h2>How do suggested vs. confirmed blocks look?</h2>
+<p class="subtitle">When AI proposes a study block, how does it appear before you accept it?</p>
+
+<div class="cards">
+
+  <!-- Option A: Ghosted inline -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0a0a0a; padding:14px; border-radius:6px; height:210px; overflow:hidden; font-family: system-ui, sans-serif;">
+      <div style="display:grid; grid-template-columns:36px repeat(5,1fr); gap:1px; height:100%; font-size:9px;">
+        <!-- Headers -->
+        <div></div>
+        <div style="color:#888;text-align:center;padding-bottom:4px;border-bottom:1px solid #222;">MON<br><span style="color:#fff;font-size:11px;font-weight:600;">19</span></div>
+        <div style="color:#888;text-align:center;padding-bottom:4px;border-bottom:1px solid #222;">TUE<br><span style="font-size:11px;">20</span></div>
+        <div style="color:#888;text-align:center;padding-bottom:4px;border-bottom:1px solid #222;">WED<br><span style="font-size:11px;">21</span></div>
+        <div style="color:#888;text-align:center;padding-bottom:4px;border-bottom:1px solid #222;">THU<br><span style="font-size:11px;">22</span></div>
+        <div style="color:#888;text-align:center;padding-bottom:4px;border-bottom:1px solid #222;">FRI<br><span style="font-size:11px;">23</span></div>
+
+        <!-- 08:00 row -->
+        <div style="color:#555;padding-top:2px;">08:00</div>
+        <!-- CONFIRMED block -->
+        <div style="background:#0d9488;border-radius:4px;padding:3px 5px;color:#fff;font-size:9px;font-weight:500;margin:1px;">
+          ✓ Physics<br><span style="opacity:.7">SRS · 45m</span>
+        </div>
+        <div></div>
+        <!-- SUGGESTED block - dashed, translucent -->
+        <div style="background:rgba(59,130,246,0.18);border:1.5px dashed #3b82f6;border-radius:4px;padding:3px 5px;color:#7db8ff;font-size:9px;margin:1px;">
+          ✦ Math<br><span style="opacity:.7">AI · 90m</span>
+        </div>
+        <div></div>
+        <div style="background:#0d9488;border-radius:4px;padding:3px 5px;color:#fff;font-size:9px;margin:1px;">✓ Physics<br><span style="opacity:.7">45m</span></div>
+
+        <!-- 10:00 row -->
+        <div style="color:#555;padding-top:2px;">10:00</div>
+        <div style="background:#3b82f6;border-radius:4px;padding:3px 5px;color:#fff;font-size:9px;margin:1px;">✓ Math<br><span style="opacity:.7">2h</span></div>
+        <!-- SUGGESTED -->
+        <div style="background:rgba(217,119,6,0.18);border:1.5px dashed #d97706;border-radius:4px;padding:3px 5px;color:#f59e0b;font-size:9px;margin:1px;">✦ Chem<br><span style="opacity:.7">AI · 60m</span></div>
+        <div></div>
+        <div style="background:rgba(139,92,246,0.18);border:1.5px dashed #8b5cf6;border-radius:4px;padding:3px 5px;color:#a78bfa;font-size:9px;margin:1px;">✦ TGAT<br><span style="opacity:.7">AI · 90m</span></div>
+        <div></div>
+
+        <!-- 13:00 row -->
+        <div style="color:#555;padding-top:2px;">13:00</div>
+        <div></div>
+        <div style="background:#22c55e;border-radius:4px;padding:3px 5px;color:#fff;font-size:9px;margin:1px;">✓ Biology<br><span style="opacity:.7">60m</span></div>
+        <div style="background:rgba(59,130,246,0.18);border:1.5px dashed #3b82f6;border-radius:4px;padding:3px 5px;color:#7db8ff;font-size:9px;margin:1px;">✦ Math<br><span style="opacity:.7">AI · 60m</span></div>
+        <div></div>
+        <div></div>
+      </div>
+      <!-- Accept bar at bottom -->
+      <div style="margin-top:6px;display:flex;gap:6px;align-items:center;">
+        <span style="color:#6366f1;font-size:9px;">✦ 5 suggestions</span>
+        <button style="background:#6366f1;color:#fff;border:none;border-radius:4px;padding:3px 8px;font-size:9px;cursor:pointer;">Accept all</button>
+        <button style="background:transparent;color:#555;border:1px solid #333;border-radius:4px;padding:3px 8px;font-size:9px;cursor:pointer;">Reject</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Ghosted inline</h3>
+      <p>Suggested blocks sit directly in the grid — translucent fill + dashed border + ✦ icon. Click any block to accept or dismiss. "Accept all" confirms everything at once. Confirmed blocks become solid.</p>
+    </div>
+  </div>
+
+  <!-- Option B: Side panel -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0a0a0a; padding:14px; border-radius:6px; height:210px; overflow:hidden; font-family: system-ui, sans-serif; display:flex; gap:8px;">
+      <!-- Calendar (clean) -->
+      <div style="flex:1;display:grid;grid-template-columns:36px repeat(5,1fr);gap:1px;font-size:9px;">
+        <div></div>
+        <div style="color:#888;text-align:center;padding-bottom:4px;border-bottom:1px solid #222;">MON<br><span style="color:#fff;font-size:11px;font-weight:600;">19</span></div>
+        <div style="color:#888;text-align:center;padding-bottom:4px;border-bottom:1px solid #222;">TUE<br><span style="font-size:11px;">20</span></div>
+        <div style="color:#888;text-align:center;padding-bottom:4px;border-bottom:1px solid #222;">WED<br><span style="font-size:11px;">21</span></div>
+        <div style="color:#888;text-align:center;padding-bottom:4px;border-bottom:1px solid #222;">THU<br><span style="font-size:11px;">22</span></div>
+        <div style="color:#888;text-align:center;padding-bottom:4px;border-bottom:1px solid #222;">FRI<br><span style="font-size:11px;">23</span></div>
+        <div style="color:#555;padding-top:2px;">08:00</div>
+        <div style="background:#0d9488;border-radius:4px;padding:3px 5px;color:#fff;font-size:9px;margin:1px;">Physics<br><span style="opacity:.7">45m</span></div>
+        <div></div><div></div><div></div>
+        <div style="background:#0d9488;border-radius:4px;padding:3px 5px;color:#fff;font-size:9px;margin:1px;">Physics</div>
+        <div style="color:#555;padding-top:2px;">10:00</div>
+        <div style="background:#3b82f6;border-radius:4px;padding:3px 5px;color:#fff;font-size:9px;margin:1px;">Math<br><span style="opacity:.7">2h</span></div>
+        <div></div><div></div><div></div><div></div>
+        <div style="color:#555;padding-top:2px;">13:00</div>
+        <div></div>
+        <div style="background:#22c55e;border-radius:4px;padding:3px 5px;color:#fff;font-size:9px;margin:1px;">Biology</div>
+        <div></div><div></div><div></div>
+      </div>
+      <!-- Side panel -->
+      <div style="width:100px;background:#111;border-radius:6px;padding:8px;display:flex;flex-direction:column;gap:4px;">
+        <div style="color:#6366f1;font-size:9px;font-weight:600;margin-bottom:2px;">✦ AI Plan</div>
+        <div style="background:rgba(59,130,246,0.2);border:1px solid #3b82f6;border-radius:4px;padding:4px 5px;font-size:8px;color:#7db8ff;">
+          Math · Tue<br>10:00 · 90m
+          <div style="display:flex;gap:3px;margin-top:3px;">
+            <button style="background:#3b82f6;color:#fff;border:none;border-radius:2px;padding:1px 4px;font-size:7px;cursor:pointer;">✓</button>
+            <button style="background:transparent;color:#555;border:1px solid #333;border-radius:2px;padding:1px 4px;font-size:7px;cursor:pointer;">✕</button>
+          </div>
+        </div>
+        <div style="background:rgba(217,119,6,0.2);border:1px solid #d97706;border-radius:4px;padding:4px 5px;font-size:8px;color:#f59e0b;">
+          Chem · Tue<br>13:00 · 60m
+          <div style="display:flex;gap:3px;margin-top:3px;">
+            <button style="background:#d97706;color:#fff;border:none;border-radius:2px;padding:1px 4px;font-size:7px;cursor:pointer;">✓</button>
+            <button style="background:transparent;color:#555;border:1px solid #333;border-radius:2px;padding:1px 4px;font-size:7px;cursor:pointer;">✕</button>
+          </div>
+        </div>
+        <div style="background:rgba(139,92,246,0.2);border:1px solid #8b5cf6;border-radius:4px;padding:4px 5px;font-size:8px;color:#a78bfa;">
+          TGAT · Thu<br>10:00 · 90m
+          <div style="display:flex;gap:3px;margin-top:3px;">
+            <button style="background:#8b5cf6;color:#fff;border:none;border-radius:2px;padding:1px 4px;font-size:7px;cursor:pointer;">✓</button>
+            <button style="background:transparent;color:#555;border:1px solid #333;border-radius:2px;padding:1px 4px;font-size:7px;cursor:pointer;">✕</button>
+          </div>
+        </div>
+        <button style="background:#6366f1;color:#fff;border:none;border-radius:4px;padding:4px;font-size:8px;cursor:pointer;margin-top:auto;">Accept all</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Side panel queue</h3>
+      <p>Calendar stays clean. Suggestions appear in a collapsible right panel as a queue — accept or reject each one. Accepted block drops into the calendar. Good for reviewing suggestions without cluttering the grid.</p>
+    </div>
+  </div>
+
+</div>

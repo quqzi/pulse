@@ -214,7 +214,7 @@
   }
   .day-cell.today .day-num {
     background: var(--primary);
-    color: white;
+    color: var(--bg);
     font-weight: 700;
   }
   .day-dots {

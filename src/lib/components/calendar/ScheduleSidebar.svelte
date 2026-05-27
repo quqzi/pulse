@@ -159,7 +159,7 @@
 .suggestion-count { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 10px; }
 .suggestion-actions { display: flex; flex-direction: column; gap: 6px; }
 .action-btn { width: 100%; padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); text-align: center; }
-.action-btn.accept-all { background: var(--primary); color: white; border-color: var(--primary); }
+.action-btn.accept-all { background: var(--primary); color: var(--bg); border-color: var(--primary); }
 .action-btn.reject-all { background: var(--bg3); color: var(--muted); }
 .action-btn:hover { opacity: 0.85; }
 </style>

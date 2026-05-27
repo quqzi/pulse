@@ -451,7 +451,7 @@
   .dur-label { font-size: 12px; color: var(--muted); }
   .btn-save-sm {
     padding: 4px 10px; border-radius: 6px; border: none;
-    background: var(--primary); color: white; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit;
+    background: var(--primary); color: var(--bg); font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit;
   }
   .btn-cancel-sm {
     padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border);
