@@ -197,12 +197,63 @@
 
   let gridScrollEl: HTMLElement | null = null;
 
-  function getGridY(e: MouseEvent, dayIdx: number): number {
+  function getGridYFromClientY(clientY: number, dayIdx: number): number {
     const dayCol = document.querySelector(`.day-col[data-day="${dayIdx}"]`) as HTMLElement | null;
     if (!dayCol) return 0;
     const rect = dayCol.getBoundingClientRect();
-    // rect.top already accounts for scroll — no need to add scrollTop
-    return e.clientY - rect.top;
+    return clientY - rect.top;
+  }
+
+  function getGridY(e: MouseEvent, dayIdx: number): number {
+    return getGridYFromClientY(e.clientY, dayIdx);
+  }
+
+  function onDayTouchstart(e: TouchEvent, dayIdx: number) {
+    if (e.touches.length !== 2) return;
+    if ((e.target as HTMLElement).closest('.cal-block')) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    const gridY = getGridYFromClientY(touch.clientY, dayIdx);
+    dragMode = 'create';
+    dragDayIdx = dayIdx;
+    dragStartAbsY = touch.clientY;
+    dragStartGridY = gridY;
+    ghostDayIdx = dayIdx;
+    ghostTop = snap(gridY);
+    ghostHeight = 15;
+    ghostVisible = true;
+    document.addEventListener('touchmove', onTouchmove, { passive: false });
+    document.addEventListener('touchend', onTouchend);
+  }
+
+  function onTouchmove(e: TouchEvent) {
+    if (!e.touches.length) return;
+    e.preventDefault();
+    const delta = e.touches[0].clientY - dragStartAbsY;
+    if (dragMode === 'create') {
+      const currentY = dragStartGridY + delta;
+      ghostTop = snap(Math.max(0, Math.min(dragStartGridY, currentY)));
+      ghostHeight = Math.max(15, snap(Math.abs(currentY - dragStartGridY)));
+    }
+  }
+
+  function onTouchend(_e: TouchEvent) {
+    document.removeEventListener('touchmove', onTouchmove);
+    document.removeEventListener('touchend', onTouchend);
+    ghostVisible = false;
+    if (dragMode === 'create' && ghostHeight >= 15) {
+      const day = weekDays[dragDayIdx];
+      const startMin = ghostTop + START_HOUR * 60;
+      const endMin = ghostTop + ghostHeight + START_HOUR * 60;
+      pendingBlock = {
+        startTime: toLocalISO(day, startMin),
+        endTime: toLocalISO(day, endMin),
+        dayIdx: dragDayIdx,
+        top: ghostTop,
+      };
+    }
+    dragMode = 'none';
+    dragSlot = null;
   }
 
   function onDayMousedown(e: MouseEvent, dayIdx: number) {
@@ -341,6 +392,8 @@
     clearInterval(nowInterval);
     document.removeEventListener('mousemove', onMousemove);
     document.removeEventListener('mouseup', onMouseup);
+    document.removeEventListener('touchmove', onTouchmove);
+    document.removeEventListener('touchend', onTouchend);
   });
 
   function formatHour(h: number): string {
@@ -416,6 +469,7 @@
           class="day-col"
           data-day={i}
           on:mousedown={(e) => onDayMousedown(e, i)}
+          on:touchstart={(e) => onDayTouchstart(e, i)}
         >
           <!-- Midnight gap shading -->
           <div class="gap-shade" style="top: 0; height: {GAP_HOURS * HOUR_HEIGHT}px;"></div>

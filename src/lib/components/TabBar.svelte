@@ -3,9 +3,9 @@
   export let onMore: () => void = () => {};
 
   const tabs = [
-    { label: 'Home',     href: '/dashboard', d: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9,22 9,12 15,12 15,22' },
-    { label: 'Timer',    href: '/timer',     d: 'M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z" /><polyline points="12 6 12 12 16 14' },
-    { label: 'Subjects', href: '/subjects',  d: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z' },
+    { label: 'Home',     href: '/dashboard', d: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22v-10h6v10' },
+    { label: 'Timer',    href: '/timer',     d: 'M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z M12 6v6l4 2' },
+    { label: 'Subjects', href: '/subjects',  d: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20 M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z' },
     { label: 'Stats',    href: '/analytics', d: 'M18 20V10M12 20V4M6 20v-6' },
     { label: 'More',     href: '#more',      d: 'M12 12m-1 0a1 1 0 1 0 2 0 1 1 0 1 0-2 0M19 12m-1 0a1 1 0 1 0 2 0 1 1 0 1 0-2 0M5 12m-1 0a1 1 0 1 0 2 0 1 1 0 1 0-2 0' },
   ];
