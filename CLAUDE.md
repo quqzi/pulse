@@ -260,8 +260,12 @@ Before declaring any task complete, all steps must pass in order:
 | New CSS token not working in some themes | All five theme blocks in `app.css` need the token — check all of them |
 | Supabase query returns empty | RLS — all tables require `auth.uid() = user_id`; guest mode never hits Supabase |
 | Type error in `db.ts` | DB returns `snake_case` — always add a mapper function, never use raw DB field names in components |
-| Chart.js color wrong in dark mode | Read via `getComputedStyle(document.documentElement).getPropertyValue('--primary').trim()` — never hardcode |
+| Chart.js color wrong in dark mode | Read via `getComputedStyle(document.body).getPropertyValue('--primary').trim()` — use `document.body`, NOT `document.documentElement`. Theme classes are on `<body>`, so `:root` vars don't reflect the active theme. |
 | Transition causes layout thrash | Never use `transition: width` or `transition: height` — use `transform: scaleX/scaleY` |
+| `loadScheduleSlots` gets stale `_userId` | Must call `loadData($auth)` reactive BEFORE `loadScheduleSlots` reactive in file declaration order — `_userId` is set inside `loadData`, so ordering matters |
+| CSS specificity beats `:global()` | Scoped Svelte styles `.class.svelte-xxx` (0,2,0) override `:global(.class)` (0,1,0) — use `!important` when a global rule must win |
+| SVG `d` attribute can't contain HTML | Never embed `" /><polyline points="..."` inside a `d` string — Svelte HTML-encodes it. Use proper multi-subpath syntax with `M` commands instead |
+| Text invisible on primary background in dark themes | Never use `color: white` or `color: #fff` on `background: var(--primary)` — use `color: var(--bg)` which is always the contrasting color regardless of theme |
 
 > If a gotcha isn't resolved in 2 attempts → `superpowers:systematic-debugging`
 
@@ -451,6 +455,7 @@ All tables have RLS enabled. Policy: `auth.uid() = user_id`.
 > **Rule:** When a plan is fully implemented and committed, move it from Open → Completed here, then commit this file. Never leave a finished plan in the Open list.
 
 ### Open (ready to implement)
+- `docs/superpowers/specs/2026-05-27-stronger-base-design.md` — **Start here next session.** Token system, linting, file decomposition, data layer, Playwright tests. Spec is written; needs a plan file before execution.
 - `docs/superpowers/plans/2026-05-26-google-oauth.md` — Google OAuth login
 - `docs/superpowers/plans/2026-05-26-templates-with-topics.md` — Templates with topic presets
 
