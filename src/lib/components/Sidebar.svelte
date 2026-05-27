@@ -28,7 +28,7 @@
     <div class="logo-mark">
       <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
         <polyline points="0,6 3,6 5.5,1 8,11 10.5,3.5 13,7.5 15,6 18,6"
-          stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
       </svg>
     </div>
     <span class="logo-word">pulse</span>
@@ -58,7 +58,7 @@
     display: flex; flex-direction: column; gap: 24px;
   }
   .logo { display: flex; align-items: center; gap: 10px; padding: 4px 8px 12px; }
-  .logo-mark { width: 32px; height: 32px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .logo-mark { width: 32px; height: 32px; background: var(--primary); color: var(--bg); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .logo-word { font-size: 20px; font-weight: 800; letter-spacing: -0.03em; }
   .nav-group { display: flex; flex-direction: column; gap: 2px; }
   .nav-group-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding: 0 8px 4px; }
