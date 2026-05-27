@@ -48,6 +48,11 @@ body, body.design-vercel {
   /* Sidebar group label colors */
   --nav-main:  #0070f3;
   --nav-track: #4d4d4d;
+  /* SRS rating colors */
+  --srs-again: #ef4444;
+  --srs-hard:  #f97316;
+  --srs-good:  #22c55e;
+  --srs-easy:  #3b82f6;
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
@@ -77,6 +82,11 @@ body.design-vercel.theme-dark {
   --primary-rgb:  237,237,237;
   --nav-main:  #3291ff;
   --nav-track: #a1a1aa;
+  /* SRS rating colors */
+  --srs-again: #ef4444;
+  --srs-hard:  #f97316;
+  --srs-good:  #22c55e;
+  --srs-easy:  #3b82f6;
   --shadow-sm: 0 0 0 1px rgba(255,255,255,.06), 0 1px 2px rgba(0,0,0,.40);
   --shadow-md: 0 0 0 1px rgba(255,255,255,.06), 0 4px 8px rgba(0,0,0,.50);
   --shadow-lg: 0 0 0 1px rgba(255,255,255,.06), 0 8px 24px rgba(0,0,0,.60);
@@ -102,6 +112,11 @@ body.design-apple {
   /* Sidebar group label colors */
   --nav-main:  #0066cc;
   --nav-track: #7a7a7a;
+  /* SRS rating colors */
+  --srs-again: #ef4444;
+  --srs-hard:  #f97316;
+  --srs-good:  #22c55e;
+  --srs-easy:  #3b82f6;
   --radius-sm: 8px;
   --radius-md: 18px;
   --radius-lg: 22px;
@@ -132,6 +147,11 @@ body.design-apple.theme-dark {
   --primary-rgb:  41,151,255;
   --nav-main:  #2997ff;
   --nav-track: #ababab;
+  /* SRS rating colors */
+  --srs-again: #ef4444;
+  --srs-hard:  #f97316;
+  --srs-good:  #22c55e;
+  --srs-easy:  #3b82f6;
   --shadow-sm: 0 1px 3px rgba(0,0,0,.40), 0 0 0 1px rgba(255,255,255,.06);
   --shadow-md: 0 4px 12px rgba(0,0,0,.50), 0 0 0 1px rgba(255,255,255,.06);
   --shadow-lg: 0 8px 24px rgba(0,0,0,.60), 0 0 0 1px rgba(255,255,255,.06);
@@ -159,6 +179,11 @@ body.design-resend.theme-dark {
   /* Sidebar: accent blue from Resend DESIGN.md for Main */
   --nav-main:  #3b9eff;
   --nav-track: #888888;
+  /* SRS rating colors */
+  --srs-again: #ef4444;
+  --srs-hard:  #f97316;
+  --srs-good:  #22c55e;
+  --srs-easy:  #3b82f6;
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;

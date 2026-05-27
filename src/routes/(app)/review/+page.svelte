@@ -14,10 +14,10 @@
   }
 
   const RATINGS: RatingOption[] = [
-    { rating: 1, label: 'Again', color: '#ef4444' },
-    { rating: 2, label: 'Hard',  color: '#f97316' },
-    { rating: 3, label: 'Good',  color: '#22c55e' },
-    { rating: 4, label: 'Easy',  color: '#3b82f6' },
+    { rating: 1, label: 'Again', color: 'var(--srs-again)' },
+    { rating: 2, label: 'Hard',  color: 'var(--srs-hard)' },
+    { rating: 3, label: 'Good',  color: 'var(--srs-good)' },
+    { rating: 4, label: 'Easy',  color: 'var(--srs-easy)' },
   ];
 
   interface QueueItem {
