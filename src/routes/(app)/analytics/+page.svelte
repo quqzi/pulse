@@ -85,7 +85,7 @@
     Chart.register(...registerables);
     if (chart) { chart.destroy(); chart = null; }
 
-    const cs = getComputedStyle(document.documentElement);
+    const cs = getComputedStyle(document.body);
     const primaryRgb = cs.getPropertyValue('--primary-rgb').trim() || '23,23,23';
     const mutedColor = cs.getPropertyValue('--muted').trim();
     const borderColor = cs.getPropertyValue('--border').trim();
@@ -144,7 +144,7 @@
     if (key !== prevKey) {
       prevKey = key;
       if (chart) {
-        const cs = getComputedStyle(document.documentElement);
+        const cs = getComputedStyle(document.body);
         const primaryRgb = cs.getPropertyValue('--primary-rgb').trim() || '23,23,23';
         chart.data.datasets[0].data = dailyData.map(d => +d.hours.toFixed(2));
         chart.data.datasets[0].backgroundColor = dailyData.map(d =>
