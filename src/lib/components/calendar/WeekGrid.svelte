@@ -208,22 +208,56 @@
     return getGridYFromClientY(e.clientY, dayIdx);
   }
 
+  // ── Long-press-to-create (mobile) ────────────────────────────
+  let holdTimer: ReturnType<typeof setTimeout> | null = null;
+  let holdStartClientX = 0;
+  let holdStartClientY = 0;
+
   function onDayTouchstart(e: TouchEvent, dayIdx: number) {
-    if (e.touches.length !== 2) return;
+    if (e.touches.length !== 1) return;
     if ((e.target as HTMLElement).closest('.cal-block')) return;
-    e.preventDefault();
+
     const touch = e.touches[0];
-    const gridY = getGridYFromClientY(touch.clientY, dayIdx);
-    dragMode = 'create';
-    dragDayIdx = dayIdx;
-    dragStartAbsY = touch.clientY;
-    dragStartGridY = gridY;
-    ghostDayIdx = dayIdx;
-    ghostTop = snap(gridY);
-    ghostHeight = 15;
-    ghostVisible = true;
-    document.addEventListener('touchmove', onTouchmove, { passive: false });
-    document.addEventListener('touchend', onTouchend);
+    holdStartClientX = touch.clientX;
+    holdStartClientY = touch.clientY;
+
+    holdTimer = setTimeout(() => {
+      holdTimer = null;
+      const gridY = getGridYFromClientY(holdStartClientY, dayIdx);
+      dragMode = 'create';
+      dragDayIdx = dayIdx;
+      dragStartAbsY = holdStartClientY;
+      dragStartGridY = gridY;
+      ghostDayIdx = dayIdx;
+      ghostTop = snap(gridY);
+      ghostHeight = 60; // default 1 hour
+      ghostVisible = true;
+      document.removeEventListener('touchmove', onHoldMoveCancel);
+      document.removeEventListener('touchend', onHoldEndCancel);
+      document.addEventListener('touchmove', onTouchmove, { passive: false });
+      document.addEventListener('touchend', onTouchend);
+    }, 400);
+
+    document.addEventListener('touchmove', onHoldMoveCancel, { passive: true });
+    document.addEventListener('touchend', onHoldEndCancel);
+  }
+
+  function onHoldMoveCancel(e: TouchEvent) {
+    if (!e.touches.length) return;
+    const t = e.touches[0];
+    if (Math.abs(t.clientX - holdStartClientX) > 10 || Math.abs(t.clientY - holdStartClientY) > 10) {
+      clearHoldTimer();
+    }
+  }
+
+  function onHoldEndCancel() {
+    clearHoldTimer();
+  }
+
+  function clearHoldTimer() {
+    if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
+    document.removeEventListener('touchmove', onHoldMoveCancel);
+    document.removeEventListener('touchend', onHoldEndCancel);
   }
 
   function onTouchmove(e: TouchEvent) {
@@ -231,9 +265,7 @@
     e.preventDefault();
     const delta = e.touches[0].clientY - dragStartAbsY;
     if (dragMode === 'create') {
-      const currentY = dragStartGridY + delta;
-      ghostTop = snap(Math.max(0, Math.min(dragStartGridY, currentY)));
-      ghostHeight = Math.max(15, snap(Math.abs(currentY - dragStartGridY)));
+      ghostHeight = Math.max(15, snap(60 + delta));
     }
   }
 
@@ -390,6 +422,7 @@
 
   onDestroy(() => {
     clearInterval(nowInterval);
+    clearHoldTimer();
     document.removeEventListener('mousemove', onMousemove);
     document.removeEventListener('mouseup', onMouseup);
     document.removeEventListener('touchmove', onTouchmove);
