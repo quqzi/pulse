@@ -133,6 +133,8 @@
 
   $: if ($auth.mode !== 'loading') loadData($auth);
 
+  $: $settings.theme, canvas && buildChart();
+
   onDestroy(() => { chart?.destroy(); });
 
   let prevKey = '';
