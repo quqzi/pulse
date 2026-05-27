@@ -204,6 +204,17 @@
     return clientY - rect.top;
   }
 
+  function getDayIdxFromClientX(clientX: number): number {
+    const cols = document.querySelectorAll<HTMLElement>('.day-col[data-day]');
+    for (const col of cols) {
+      const rect = col.getBoundingClientRect();
+      if (clientX >= rect.left && clientX <= rect.right) {
+        return Number(col.dataset.day);
+      }
+    }
+    return dragDayIdx;
+  }
+
   function getGridY(e: MouseEvent, dayIdx: number): number {
     return getGridYFromClientY(e.clientY, dayIdx);
   }
@@ -263,9 +274,15 @@
   function onTouchmove(e: TouchEvent) {
     if (!e.touches.length) return;
     e.preventDefault();
-    const delta = e.touches[0].clientY - dragStartAbsY;
+    const touch = e.touches[0];
+    const deltaY = touch.clientY - dragStartAbsY;
     if (dragMode === 'create') {
-      ghostHeight = Math.max(15, snap(60 + delta));
+      ghostHeight = Math.max(15, snap(60 + deltaY));
+      const newDay = getDayIdxFromClientX(touch.clientX);
+      if (newDay !== ghostDayIdx) {
+        ghostDayIdx = newDay;
+        dragDayIdx = newDay;
+      }
     }
   }
 
