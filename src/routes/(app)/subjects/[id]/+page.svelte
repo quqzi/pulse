@@ -353,7 +353,7 @@
     padding: 10px 18px;
     border-radius: 10px;
     background: var(--primary);
-    color: #fff;
+    color: var(--bg);
     font-size: 14px;
     font-weight: 600;
     border: none;

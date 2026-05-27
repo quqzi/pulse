@@ -37,7 +37,7 @@
     background: linear-gradient(140deg, var(--primary) 0%, var(--primary-dark) 100%);
     border-radius: 18px;
     padding: 20px 20px 16px;
-    color: #fff;
+    color: var(--bg);
     position: relative;
     overflow: hidden;
     box-shadow: 0 4px 16px rgba(var(--primary-rgb, 244,63,94), .35);

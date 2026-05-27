@@ -134,7 +134,7 @@
     padding: 9px 22px;
     border-radius: 10px;
     background: var(--primary);
-    color: #fff;
+    color: var(--bg);
     font-size: 14px;
     font-weight: 600;
     border: none;

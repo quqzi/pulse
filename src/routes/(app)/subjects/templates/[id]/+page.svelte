@@ -90,7 +90,7 @@
                 {#if checked.has(preset.name)}
                   <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
                     <circle cx="8" cy="8" r="7" fill="var(--primary)" stroke="var(--primary)" stroke-width="1.5"/>
-                    <path d="M4.5 8l2.5 2.5 4.5-4.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M4.5 8l2.5 2.5 4.5-4.5" stroke="var(--bg)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
                 {:else}
                   <svg width="14" height="14" viewBox="0 0 16 16" fill="none">

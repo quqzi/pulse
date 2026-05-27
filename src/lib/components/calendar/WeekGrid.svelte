@@ -679,7 +679,7 @@
     left: 0;
     right: 0;
     height: 2px;
-    background: #ef4444;
+    background: var(--danger);
     pointer-events: none;
     z-index: 10;
   }
@@ -690,7 +690,7 @@
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: #ef4444;
+    background: var(--danger);
   }
 
   /* Slot wrapper — absolutely positioned per slotStyle() */

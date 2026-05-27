@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount, onDestroy, tick } from 'svelte';
   import { auth } from '$lib/stores/auth';
   import { subjects, topics, srsCards, sessions, todayHours, streak, dueCards, loadData, getAuthContext } from '$lib/stores/data';
   import { settings } from '$lib/stores/settings';
@@ -80,6 +80,7 @@
 
   async function buildChart() {
     if (!canvas) return;
+    await tick(); // ensure theme CSS has been applied before reading computed styles
     const { Chart, registerables } = await import('chart.js');
     Chart.register(...registerables);
     if (chart) { chart.destroy(); chart = null; }

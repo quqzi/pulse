@@ -259,7 +259,7 @@
     padding: 14px 48px;
     border-radius: 14px;
     background: var(--primary);
-    color: #fff;
+    color: var(--bg);
     font-size: 17px;
     font-weight: 700;
     border: none;
@@ -328,7 +328,7 @@
     padding: 11px 36px;
     border-radius: 12px;
     background: var(--primary);
-    color: #fff;
+    color: var(--bg);
     font-size: 15px;
     font-weight: 600;
     border: none;
