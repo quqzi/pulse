@@ -451,8 +451,6 @@ All tables have RLS enabled. Policy: `auth.uid() = user_id`.
 > **Rule:** When a plan is fully implemented and committed, move it from Open → Completed here, then commit this file. Never leave a finished plan in the Open list.
 
 ### Open (ready to implement)
-
-- `docs/superpowers/plans/2026-05-26-srs-review.md` — SRS flashcard review page
 - `docs/superpowers/plans/2026-05-26-google-oauth.md` — Google OAuth login
 - `docs/superpowers/plans/2026-05-26-templates-with-topics.md` — Templates with topic presets
 
@@ -461,6 +459,7 @@ All tables have RLS enabled. Policy: `auth.uid() = user_id`.
 - `docs/superpowers/plans/2026-05-26-journey.md` — Journey page: stat cards, 16-week heatmap, session timeline
 - `docs/superpowers/plans/2026-05-26-scores.md` — Scores tracking page
 - `docs/superpowers/plans/2026-05-26-quick-fixes.md` — Sidebar gap, delete confirms, scroll fix, dark mode contrast
+- `docs/superpowers/plans/2026-05-26-srs-review.md` — SRS flashcard review page (queue, ratings, summary, keyboard shortcuts)
 - `docs/superpowers/plans/2026-05-26-calendar-phase2.md` — Auto-schedule algorithm, load bars, school-hours shading, right sidebar, exam countdown
 - `docs/superpowers/plans/2026-05-25-calendar-phase1.md` — Calendar Phase 1 (drag/drop week grid)
 - `docs/superpowers/plans/2026-05-25-auth-onboarding.md` — Auth + onboarding fix
