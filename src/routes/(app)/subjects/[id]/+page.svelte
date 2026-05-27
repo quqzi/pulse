@@ -14,22 +14,52 @@
 
   let newTopicName = '';
   let adding = false;
+  let submitting = false;
+  let editingTopicId: string | null = null;
+  let editTopicName = '';
   let reviewingCard: { topicId: string; topicName: string } | null = null;
 
   async function addTopic() {
-    if (!newTopicName.trim() || !subjectId) return;
+    if (submitting || !newTopicName.trim() || !subjectId) return;
+    submitting = true;
+    try {
+      const { userId, mode } = getAuthContext();
+      const topic = {
+        id: db.newId(),
+        subjectId,
+        name: newTopicName.trim(),
+        orderIndex: subjectTopics.length,
+      };
+      const card = await db.saveTopic(topic, userId, mode);
+      topics.update(ts => [...ts, topic]);
+      srsCards.update(cs => [...cs, card]);
+      newTopicName = '';
+      adding = false;
+    } finally {
+      submitting = false;
+    }
+  }
+
+  function startEditTopic(topic: import('$lib/types').Topic) {
+    editingTopicId = topic.id;
+    editTopicName = topic.name;
+  }
+
+  async function saveEditTopic(topic: import('$lib/types').Topic) {
+    const trimmed = editTopicName.trim();
+    if (!trimmed || trimmed === topic.name) {
+      editingTopicId = null;
+      return;
+    }
     const { userId, mode } = getAuthContext();
-    const topic = {
-      id: db.newId(),
-      subjectId,
-      name: newTopicName.trim(),
-      orderIndex: subjectTopics.length,
-    };
-    const card = await db.saveTopic(topic, userId, mode);
-    topics.update(ts => [...ts, topic]);
-    srsCards.update(cs => [...cs, card]);
-    newTopicName = '';
-    adding = false;
+    const updated = { ...topic, name: trimmed };
+    topics.update(all => all.map(t => t.id === topic.id ? updated : t));
+    await db.saveTopic(updated, userId, mode);
+    editingTopicId = null;
+  }
+
+  function cancelEditTopic() {
+    editingTopicId = null;
   }
 
   async function deleteTopic(topicId: string) {
@@ -106,8 +136,20 @@
           {@const card = cardForTopic(topic.id)}
           <div class="topic-row" class:divider={i > 0}>
             <div class="topic-info">
-              <span class="topic-name">{topic.name}</span>
-              {#if card}
+              {#if editingTopicId === topic.id}
+                <input
+                  class="edit-input"
+                  bind:value={editTopicName}
+                  on:keydown={e => {
+                    if (e.key === 'Enter') saveEditTopic(topic);
+                    if (e.key === 'Escape') cancelEditTopic();
+                  }}
+                  on:blur={() => saveEditTopic(topic)}
+                />
+              {:else}
+                <span class="topic-name topic-name-text">{topic.name}</span>
+              {/if}
+              {#if card && editingTopicId !== topic.id}
                 <span class="srs-status" class:due={isDue(card.dueDate)} class:reviewed={card.reps > 0}>
                   {#if isDue(card.dueDate)}
                     Due today
@@ -120,12 +162,20 @@
               {/if}
             </div>
             <div class="topic-actions">
-              {#if card && isDue(card.dueDate)}
+              {#if card && isDue(card.dueDate) && editingTopicId !== topic.id}
                 <button
                   class="review-btn"
                   style="background: color-mix(in srgb, {subject.color} 12%, transparent); color: {subject.color};"
                   on:click={() => reviewingCard = { topicId: topic.id, topicName: topic.name }}
                 >Review</button>
+              {/if}
+              {#if editingTopicId !== topic.id}
+                <button class="icon-btn edit-icon" on:click={() => startEditTopic(topic)} aria-label="Edit topic">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </button>
               {/if}
               <button class="del-btn" on:click={() => deleteTopic(topic.id)}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -148,7 +198,7 @@
           autofocus
           on:keydown={e => e.key === 'Enter' && addTopic()}
         />
-        <button class="btn-primary add-btn" on:click={addTopic} disabled={!newTopicName.trim()}>Add</button>
+        <button class="btn-primary add-btn" on:click={addTopic} disabled={!newTopicName.trim() || submitting}>Add</button>
         <button class="cancel-btn" on:click={() => { adding = false; newTopicName = ''; }}>Cancel</button>
       </div>
     {:else}
@@ -238,6 +288,36 @@
     justify-content: center;
   }
   .del-btn:hover { background: var(--bg3); color: #ef4444; }
+  .icon-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .edit-icon {
+    opacity: 0;
+    transition: opacity 140ms ease;
+  }
+  .topic-row:hover .edit-icon { opacity: 1; }
+  .edit-input {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--primary);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 14px;
+    color: var(--text);
+    font-family: inherit;
+    outline: none;
+  }
   .add-row {
     display: flex;
     gap: 8px;

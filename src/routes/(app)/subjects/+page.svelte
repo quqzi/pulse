@@ -22,6 +22,7 @@
   let sheetName = '';
   let sheetSymbol = '';
   let sheetColor = SUBJECT_COLOR_PALETTE[0];
+  let savingSubject = false;
 
   function openAdd() {
     editingSubject = null;
@@ -46,33 +47,38 @@
   }
 
   async function saveSubject() {
-    if (!sheetName.trim()) return;
-    const { userId, mode } = getAuthContext();
-    if (editingSubject) {
-      const updated: Subject = {
-        ...editingSubject,
-        name: sheetName.trim(),
-        symbol: (sheetSymbol || sheetName.slice(0, 2)).slice(0, 2),
-        color: sheetColor.hex,
-        colorRgb: sheetColor.rgb,
-      };
-      subjects.update(all => all.map(s => s.id === updated.id ? updated : s));
-      await db.saveSubject(updated, mode);
-    } else {
-      const maxOrder = $subjects.reduce((m, s) => Math.max(m, s.orderIndex), -1);
-      const subject: Subject = {
-        id: db.newId(),
-        userId,
-        name: sheetName.trim(),
-        symbol: (sheetSymbol || sheetName.slice(0, 2)).slice(0, 2),
-        color: sheetColor.hex,
-        colorRgb: sheetColor.rgb,
-        orderIndex: maxOrder + 1,
-      };
-      subjects.update(all => [...all, subject]);
-      await db.saveSubject(subject, mode);
+    if (savingSubject || !sheetName.trim()) return;
+    savingSubject = true;
+    try {
+      const { userId, mode } = getAuthContext();
+      if (editingSubject) {
+        const updated: Subject = {
+          ...editingSubject,
+          name: sheetName.trim(),
+          symbol: (sheetSymbol || sheetName.slice(0, 2)).slice(0, 2),
+          color: sheetColor.hex,
+          colorRgb: sheetColor.rgb,
+        };
+        subjects.update(all => all.map(s => s.id === updated.id ? updated : s));
+        await db.saveSubject(updated, mode);
+      } else {
+        const maxOrder = $subjects.reduce((m, s) => Math.max(m, s.orderIndex), -1);
+        const subject: Subject = {
+          id: db.newId(),
+          userId,
+          name: sheetName.trim(),
+          symbol: (sheetSymbol || sheetName.slice(0, 2)).slice(0, 2),
+          color: sheetColor.hex,
+          colorRgb: sheetColor.rgb,
+          orderIndex: maxOrder + 1,
+        };
+        subjects.update(all => [...all, subject]);
+        await db.saveSubject(subject, mode);
+      }
+      closeSheet();
+    } finally {
+      savingSubject = false;
     }
-    closeSheet();
   }
 
   async function deleteSubject() {
@@ -167,7 +173,7 @@
         <button class="btn-delete" on:click={deleteSubject}>Delete</button>
       {/if}
       <button class="btn-cancel" on:click={closeSheet}>Cancel</button>
-      <button class="btn-save" on:click={saveSubject} disabled={!sheetName.trim()}>Save</button>
+      <button class="btn-save" on:click={saveSubject} disabled={!sheetName.trim() || savingSubject}>Save</button>
     </div>
   </div>
 {/if}
