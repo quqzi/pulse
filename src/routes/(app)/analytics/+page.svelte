@@ -128,6 +128,8 @@
     buildChart();
   });
 
+  $: if ($auth.mode !== 'loading') loadData($auth);
+
   onDestroy(() => { chart?.destroy(); });
 
   let prevKey = '';

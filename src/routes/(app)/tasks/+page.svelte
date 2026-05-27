@@ -38,6 +38,8 @@
 
   onMount(() => loadData($auth));
 
+  $: if ($auth.mode !== 'loading') loadData($auth);
+
   async function addTask() {
     if (!titleInput.trim()) { titleError = true; setTimeout(() => titleError = false, 600); return; }
     const { userId, mode } = getAuthContext();

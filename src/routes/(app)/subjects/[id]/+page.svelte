@@ -55,6 +55,8 @@
   }
 
   onMount(() => loadData($auth));
+
+  $: if ($auth.mode !== 'loading') loadData($auth);
 </script>
 
 {#if reviewingCard}

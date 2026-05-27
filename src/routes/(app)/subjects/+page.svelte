@@ -10,6 +10,8 @@
 
   onMount(() => loadData($auth));
 
+  $: if ($auth.mode !== 'loading') loadData($auth);
+
   $: dueBySubject = (subjectId: string) => {
     const subjectTopicIds = new Set($topics.filter(t => t.subjectId === subjectId).map(t => t.id));
     return $dueCards.filter(c => subjectTopicIds.has(c.topicId)).length;

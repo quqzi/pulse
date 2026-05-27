@@ -113,6 +113,8 @@
     }
     loading = false;
   });
+
+  $: if ($auth.mode !== 'loading') loadData($auth);
 </script>
 
 <svelte:window on:keydown={handleKey} />

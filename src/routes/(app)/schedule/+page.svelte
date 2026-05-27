@@ -187,6 +187,8 @@
     await loadData($auth);
     loadScheduleSlots(viewedWeekStart, weekEnd);
   });
+
+  $: if ($auth.mode !== 'loading') loadData($auth);
 </script>
 
 <div class="schedule-wrap">

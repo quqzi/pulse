@@ -8,6 +8,8 @@
 
   onMount(() => loadData($auth));
 
+  $: if ($auth.mode !== 'loading') loadData($auth);
+
   let adding = false;
   let editingScore: MockScore | null = null;
   let activeSubjectId = 'all';
