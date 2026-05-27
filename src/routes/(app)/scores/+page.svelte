@@ -4,6 +4,7 @@
   import { scores, subjects, loadData, getAuthContext } from '$lib/stores/data';
   import { db } from '$lib/db';
   import ScoreForm from '$lib/components/scores/ScoreForm.svelte';
+  import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
   import type { MockScore } from '$lib/types';
 
   onMount(() => loadData($auth));
@@ -79,13 +80,30 @@
     editingScore = null;
   }
 
-  async function deleteScore(score: MockScore) {
-    if (!window.confirm(`Delete this score (${formatScore(score.score, score.maxScore)}) for ${subjectName(score.subjectId)}?`)) return;
+  let scoreConfirmOpen = false;
+  let pendingDeleteScore: MockScore | null = null;
+
+  function promptDeleteScore(score: MockScore) {
+    pendingDeleteScore = score;
+    scoreConfirmOpen = true;
+  }
+
+  async function doDeleteScore() {
+    if (!pendingDeleteScore) return;
+    const score = pendingDeleteScore;
+    pendingDeleteScore = null;
     const { mode } = getAuthContext();
     scores.update(all => all.filter(s => s.id !== score.id));
     await db.deleteScore(score.id, mode);
   }
 </script>
+
+<ConfirmDialog
+  bind:open={scoreConfirmOpen}
+  title="Delete score?"
+  message="This cannot be undone."
+  on:confirm={doDeleteScore}
+/>
 
 <div class="page">
   <div class="header-row">
@@ -173,7 +191,7 @@
                 <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
               </svg>
             </button>
-            <button class="action-btn danger" on:click={() => deleteScore(score)} aria-label="Delete score">
+            <button class="action-btn danger" on:click={() => promptDeleteScore(score)} aria-label="Delete score">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M18 6L6 18M6 6l12 12"/>
               </svg>

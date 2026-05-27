@@ -7,6 +7,7 @@
   import { db } from '$lib/db';
   import { SUBJECT_COLOR_PALETTE } from '$lib/constants';
   import type { Subject } from '$lib/types';
+  import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 
   onMount(() => loadData($auth));
 
@@ -81,9 +82,15 @@
     }
   }
 
-  async function deleteSubject() {
+  let subjectConfirmOpen = false;
+
+  function promptDeleteSubject() {
     if (!editingSubject) return;
-    if (!confirm(`Delete "${editingSubject.name}" and all its topics and SRS cards? This cannot be undone.`)) return;
+    subjectConfirmOpen = true;
+  }
+
+  async function doDeleteSubject() {
+    if (!editingSubject) return;
     const { mode } = getAuthContext();
     const id = editingSubject.id;
     const removedTopicIds = new Set($topics.filter(t => t.subjectId === id).map(t => t.id));
@@ -136,6 +143,13 @@
   {/if}
 </div>
 
+<ConfirmDialog
+  bind:open={subjectConfirmOpen}
+  title="Delete subject?"
+  message="All its topics and SRS cards will also be deleted. This cannot be undone."
+  on:confirm={doDeleteSubject}
+/>
+
 {#if sheetOpen}
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <div class="sheet-overlay" on:click={closeSheet} role="presentation"></div>
@@ -170,7 +184,7 @@
 
     <div class="sheet-actions">
       {#if editingSubject}
-        <button class="btn-delete" on:click={deleteSubject}>Delete</button>
+        <button class="btn-delete" on:click={promptDeleteSubject}>Delete</button>
       {/if}
       <button class="btn-cancel" on:click={closeSheet}>Cancel</button>
       <button class="btn-save" on:click={saveSubject} disabled={!sheetName.trim() || savingSubject}>Save</button>

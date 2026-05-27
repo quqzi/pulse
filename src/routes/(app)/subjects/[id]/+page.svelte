@@ -6,6 +6,7 @@
   import { subjects, topics, srsCards, loadData, getAuthContext } from '$lib/stores/data';
   import { db } from '$lib/db';
   import { reviewCard, isDue } from '$lib/srs';
+  import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 
   $: subjectId = $page.params.id;
   $: subject = $subjects.find(s => s.id === subjectId);
@@ -62,10 +63,18 @@
     editingTopicId = null;
   }
 
-  async function deleteTopic(topicId: string) {
-    const topic = $topics.find(t => t.id === topicId);
-    if (!topic) return;
-    if (!confirm(`Delete topic "${topic.name}"? Its SRS cards will also be deleted.`)) return;
+  let topicConfirmOpen = false;
+  let pendingDeleteTopicId: string | null = null;
+
+  function promptDeleteTopic(topicId: string) {
+    pendingDeleteTopicId = topicId;
+    topicConfirmOpen = true;
+  }
+
+  async function doDeleteTopic() {
+    if (!pendingDeleteTopicId) return;
+    const topicId = pendingDeleteTopicId;
+    pendingDeleteTopicId = null;
     const { mode } = getAuthContext();
     await db.deleteTopic(topicId, mode);
     topics.update(ts => ts.filter(t => t.id !== topicId));
@@ -88,6 +97,13 @@
 
   $: if ($auth.mode !== 'loading') loadData($auth);
 </script>
+
+<ConfirmDialog
+  bind:open={topicConfirmOpen}
+  title="Delete topic?"
+  message="Its SRS cards will also be deleted. This cannot be undone."
+  on:confirm={doDeleteTopic}
+/>
 
 {#if reviewingCard}
   <div class="overlay" on:click|self={() => reviewingCard = null}>
@@ -177,7 +193,7 @@
                   </svg>
                 </button>
               {/if}
-              <button class="del-btn" on:click={() => deleteTopic(topic.id)}>
+              <button class="del-btn" on:click={() => promptDeleteTopic(topic.id)}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M18 6L6 18M6 6l12 12"/>
                 </svg>

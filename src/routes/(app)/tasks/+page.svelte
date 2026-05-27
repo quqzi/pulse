@@ -4,6 +4,7 @@
   import { tasks, subjects, loadData, getAuthContext } from '$lib/stores/data';
   import { db } from '$lib/db';
   import type { Task, Priority } from '$lib/types';
+  import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 
   type Filter = 'active' | 'all' | 'done';
 
@@ -79,8 +80,18 @@
     await db.saveTask(updated, mode);
   }
 
-  function deleteTask(task: Task) {
-    if (!confirm(`Delete "${task.title}"?`)) return;
+  let taskConfirmOpen = false;
+  let pendingDeleteTask: Task | null = null;
+
+  function promptDeleteTask(task: Task) {
+    pendingDeleteTask = task;
+    taskConfirmOpen = true;
+  }
+
+  function doDeleteTask() {
+    if (!pendingDeleteTask) return;
+    const task = pendingDeleteTask;
+    pendingDeleteTask = null;
     if (undoTimer) clearTimeout(undoTimer);
     tasks.update(all => all.filter(t => t.id !== task.id));
     undoTask = task;
@@ -151,6 +162,13 @@
     if (e.key === 'Escape') { adding = false; titleInput = ''; }
   }
 </script>
+
+<ConfirmDialog
+  bind:open={taskConfirmOpen}
+  title="Delete task?"
+  message="This cannot be undone."
+  on:confirm={doDeleteTask}
+/>
 
 <div class="page-enter page">
   <div class="header-row">
@@ -287,7 +305,7 @@
               </svg>
             </button>
 
-            <button class="delete-btn" on:click={() => deleteTask(task)} aria-label="Delete task">
+            <button class="delete-btn" on:click={() => promptDeleteTask(task)} aria-label="Delete task">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M18 6L6 18M6 6l12 12"/>
               </svg>

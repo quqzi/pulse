@@ -6,6 +6,7 @@
   import { BUILTIN_TEMPLATES, SUBJECT_COLOR_PALETTE } from '$lib/constants';
   import { db } from '$lib/db';
   import type { Template, SubjectPreset } from '$lib/types';
+  import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 
   onMount(() => loadData($auth));
 
@@ -47,8 +48,18 @@
     newPresets = [];
   }
 
-  async function deleteTemplate(template: Template) {
-    if (!confirm(`Delete template "${template.name}"? This cannot be undone.`)) return;
+  let templateConfirmOpen = false;
+  let pendingDeleteTemplate: Template | null = null;
+
+  function promptDeleteTemplate(template: Template) {
+    pendingDeleteTemplate = template;
+    templateConfirmOpen = true;
+  }
+
+  async function doDeleteTemplate() {
+    if (!pendingDeleteTemplate) return;
+    const template = pendingDeleteTemplate;
+    pendingDeleteTemplate = null;
     const { mode } = getAuthContext();
     templates.update(all => all.filter(t => t.id !== template.id));
     await db.deleteTemplate(template.id, mode);
@@ -99,7 +110,7 @@
               <span class="template-count">{t.presets.length} subjects</span>
             </div>
           </a>
-          <button class="delete-tpl-btn" on:click={() => deleteTemplate(t)} aria-label="Delete template">
+          <button class="delete-tpl-btn" on:click={() => promptDeleteTemplate(t)} aria-label="Delete template">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M18 6L6 18M6 6l12 12"/>
             </svg>
@@ -108,6 +119,13 @@
       {/each}
     </div>
   {/if}
+
+  <ConfirmDialog
+    bind:open={templateConfirmOpen}
+    title="Delete template?"
+    message="This cannot be undone."
+    on:confirm={doDeleteTemplate}
+  />
 
   {#if creating}
     <div class="create-form card" style="margin-top:20px">
