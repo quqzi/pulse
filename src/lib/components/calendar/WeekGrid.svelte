@@ -496,6 +496,10 @@
     min-height: 0;
   }
 
+  @media (max-width: 768px) {
+    .week-grid-wrap { min-width: 560px; }
+  }
+
   /* Header */
   .grid-header {
     display: grid;
@@ -536,7 +540,8 @@
     grid-template-columns: 44px repeat(7, 1fr);
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
-    min-height: 24px;
+    height: 24px;
+    overflow: hidden;
   }
   .allday-cell {
     border-left: 1px solid var(--border);

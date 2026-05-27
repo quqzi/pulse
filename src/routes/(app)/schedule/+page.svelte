@@ -350,5 +350,7 @@
 
   @media (max-width: 768px) {
     .left-panel { display: none; }
+    :global(.schedule-sidebar) { display: none; }
+    .main-area { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   }
 </style>

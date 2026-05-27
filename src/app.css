@@ -169,7 +169,7 @@ body.design-resend.theme-dark {
   --bg3:    #101012;
   --border: #1a1a1d;
   --text:   #fcfdff;
-  --muted:  #888888;
+  --muted:  #a0a0a0;
   --danger: #ef4444;
   /* Resend: white as primary — loudest pixel on the dark canvas */
   --primary:      #fcfdff;
@@ -208,7 +208,7 @@ body.theme-dark:not([class*="design-"]) {
   --bg3:    #3a3a3c;
   --border: #3a3a3c;
   --text:   #f2f2f7;
-  --muted:  #8e8e93;
+  --muted:  #a0a0a5;
   --shadow-sm: 0 1px 3px rgba(0,0,0,.25);
   --shadow-md: 0 4px 12px rgba(0,0,0,.30);
   --shadow-lg: 0 8px 24px rgba(0,0,0,.35);

@@ -278,6 +278,29 @@ export const db = {
     });
   },
 
+  async saveSession(session: StudySession, mode: Mode): Promise<void> {
+    if (mode === 'guest') {
+      const all = lsGet<StudySession>('pulse_sessions');
+      const idx = all.findIndex(s => s.id === session.id);
+      if (idx >= 0) all[idx] = session; else all.push(session);
+      lsSet('pulse_sessions', all);
+      return;
+    }
+    await supabase.from('study_sessions').upsert({
+      id: session.id, user_id: session.userId, subject_id: session.subjectId,
+      topic_id: session.topicId ?? null, started_at: session.startedAt,
+      ended_at: session.endedAt, duration_sec: session.durationSec, mode: session.mode,
+    });
+  },
+
+  async deleteSession(id: string, mode: Mode): Promise<void> {
+    if (mode === 'guest') {
+      lsSet('pulse_sessions', lsGet<StudySession>('pulse_sessions').filter(s => s.id !== id));
+      return;
+    }
+    await supabase.from('study_sessions').delete().eq('id', id);
+  },
+
   // ── TASKS ─────────────────────────────────────────────────
   async getTasks(userId: string, mode: Mode): Promise<Task[]> {
     if (mode === 'guest') return lsGet<Task>('pulse_tasks');
