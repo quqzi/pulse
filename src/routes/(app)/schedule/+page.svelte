@@ -48,11 +48,6 @@
     viewedWeekStart = getWeekStart(new Date());
   }
 
-  // Reload slots whenever the week changes and auth is ready
-  $: if ($auth.mode !== 'loading') {
-    loadScheduleSlots(viewedWeekStart, weekEnd);
-  }
-
   // ── Auto-schedule ─────────────────────────────────────────────
   let isScheduling = false;
 
@@ -189,6 +184,8 @@
   });
 
   $: if ($auth.mode !== 'loading') loadData($auth);
+  // loadScheduleSlots must come after loadData so _userId/_mode are initialized
+  $: if ($auth.mode !== 'loading') loadScheduleSlots(viewedWeekStart, weekEnd);
 </script>
 
 <div class="schedule-wrap">
