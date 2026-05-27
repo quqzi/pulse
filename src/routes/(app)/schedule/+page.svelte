@@ -68,11 +68,9 @@
       sessions: $sessions,
       srsCards: $srsCards,
       tasks: $tasks,
-      topics: $topics,
       existingSlots: $scheduleSlots,
       settings: $settings,
       examDate,
-      userId,
     });
     scheduleSlots.update(all => [...all, ...suggested]);
     isScheduling = false;

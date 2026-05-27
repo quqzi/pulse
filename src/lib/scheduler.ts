@@ -1,5 +1,4 @@
-import type { Subject, Topic, SrsCard, StudySession, Task, ScheduleSlot } from '$lib/types';
-import type { Settings } from '$lib/stores/settings';
+import type { Subject, SrsCard, StudySession, Task, ScheduleSlot, Settings } from '$lib/types';
 
 export interface SchedulerInput {
   weekStart: Date;
@@ -7,11 +6,9 @@ export interface SchedulerInput {
   sessions: StudySession[];       // past 14 days (for deficit calc)
   srsCards: SrsCard[];
   tasks: Task[];
-  topics: Topic[];
   existingSlots: ScheduleSlot[];  // confirmed slots already on calendar
   settings: Settings;
   examDate: string | null;        // ISO date "YYYY-MM-DD" or null
-  userId?: string;
 }
 
 export function generateSchedule(input: SchedulerInput): ScheduleSlot[] {
@@ -213,10 +210,12 @@ export function generateSchedule(input: SchedulerInput): ScheduleSlot[] {
     due.setHours(0, 0, 0, 0);
     const dayIdx = Math.round((due.getTime() - weekStart.getTime()) / 86400000);
 
+    let placed = false;
     for (const d of [dayIdx, dayIdx - 1]) {
+      if (placed) break;
       if (d < 0 || d >= 7) continue;
       const subjectId = task.subjectId;
-      if (!subjectId) continue;
+      if (!subjectId) break;
 
       for (let m = START_HOUR * 60; m + 45 <= END_HOUR * 60; m += SLOT_STEP) {
         if (!isAvailable(d, m, m + 45)) continue;
@@ -235,9 +234,9 @@ export function generateSchedule(input: SchedulerInput): ScheduleSlot[] {
           createdAt: new Date().toISOString(),
         });
         blockDay(d, m, m + 45);
+        placed = true;
         break;
       }
-      break;
     }
   }
 

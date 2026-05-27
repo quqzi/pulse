@@ -1,3 +1,24 @@
+export type Theme =
+  | 'vercel-light'
+  | 'vercel-dark'
+  | 'apple-light'
+  | 'apple-dark'
+  | 'resend';
+
+export interface Settings {
+  theme: Theme;
+  lang: 'en'|'th';
+  dailyGoalHours: number;
+  pomodoroWork: number;
+  pomodoroBreak: number;
+  schoolHoursEnabled: boolean;
+  schoolDays: number[];        // [1,2,3,4,5] = Mon–Fri
+  schoolStart: string;         // "08:00"
+  schoolEnd: string;           // "15:30"
+  energyProfile: 'morning' | 'evening' | 'neutral';
+  bufferMinutes: number;
+}
+
 export interface Subject {
   id: string;
   userId: string;
