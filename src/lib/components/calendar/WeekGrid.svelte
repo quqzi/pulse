@@ -382,7 +382,8 @@
     {/each}
   </div>
 
-  <!-- All-day task pills -->
+  <!-- All-day task pills (hidden when no tasks due this week) -->
+  {#if [...tasksByDay.values()].some(arr => arr.length > 0)}
   <div class="allday-row">
     <div class="time-gutter"></div>
     {#each weekDays as _day, i}
@@ -395,6 +396,7 @@
       </div>
     {/each}
   </div>
+  {/if}
 
   <!-- Scrollable grid -->
   <div class="grid-scroll" bind:this={gridScrollEl}>

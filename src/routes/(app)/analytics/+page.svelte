@@ -138,10 +138,19 @@
   let prevKey = '';
   $: {
     const key = dailyData.map(d => d.hours.toFixed(2)).join(',');
-    if (key !== prevKey && chart) {
+    if (key !== prevKey) {
       prevKey = key;
-      chart.data.datasets[0].data = dailyData.map(d => +d.hours.toFixed(2));
-      chart.update('none');
+      if (chart) {
+        const cs = getComputedStyle(document.documentElement);
+        const primaryRgb = cs.getPropertyValue('--primary-rgb').trim() || '23,23,23';
+        chart.data.datasets[0].data = dailyData.map(d => +d.hours.toFixed(2));
+        chart.data.datasets[0].backgroundColor = dailyData.map(d =>
+          d.isToday ? `rgba(${primaryRgb},0.9)` : `rgba(${primaryRgb},0.35)`
+        );
+        chart.update();
+      } else if (canvas) {
+        buildChart();
+      }
     }
   }
 

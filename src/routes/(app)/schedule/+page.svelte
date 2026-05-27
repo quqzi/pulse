@@ -340,7 +340,7 @@
     border-radius: 6px;
     border: 1.5px solid var(--primary);
     background: var(--primary);
-    color: white;
+    color: var(--bg);
     cursor: pointer;
     letter-spacing: 0.01em;
   }

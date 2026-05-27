@@ -253,7 +253,7 @@
     color:var(--text); font-size:11px; font-weight:600;
     cursor:pointer; display:flex; align-items:center; justify-content:center;
   }
-  .day-chip.active { background:var(--primary); border-color:var(--primary); color:white; }
+  .day-chip.active { background:var(--primary); border-color:var(--primary); color:var(--bg); }
   .time-row { display:flex; gap:12px; }
   .time-field { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text); }
   .time-field input {
