@@ -19,6 +19,19 @@ npm run preview      # Preview production build locally
 
 ---
 
+## Environment
+
+Create `.env.local` in the project root (never commit this file):
+
+```
+PUBLIC_SUPABASE_URL=...       # Supabase → Project Settings → API → Project URL
+PUBLIC_SUPABASE_ANON_KEY=...  # Supabase → Project Settings → API → anon/public key
+```
+
+Guest mode works without env vars — Supabase is only contacted when authenticated.
+
+---
+
 ## Session Start — Always Do This First
 
 Before doing anything in a new conversation:
@@ -54,6 +67,18 @@ Claude is the primary full-stack developer on this project. Every feature goes t
 > If something isn't resolved after 2 attempts, stop and invoke the skill.
 
 → `superpowers:systematic-debugging`
+
+### When in Doubt — Ask First
+
+Before making any non-obvious implementation call, stop and ask the user:
+
+- Should this be a component or inline code?
+- Should this string go in i18n (`en.ts`/`th.ts`) or be hardcoded?
+- Should this logic live in `db.ts`, a store, or the page?
+- Is this a new writable store or a derived from an existing one?
+- Which nav group does this page belong to (Main / Track)?
+
+One clarifying question is cheaper than a wrong implementation.
 
 ---
 
@@ -144,6 +169,73 @@ Claude is the primary full-stack developer on this project. Every feature goes t
 | Commit only | `commit-commands:commit` |
 | Commit + push + open PR | `commit-commands:commit-push-pr` |
 | Clean stale local branches | `commit-commands:clean_gone` |
+
+---
+
+## Recipes
+
+Exact patterns for the four most repeated tasks. Follow these precisely — don't invent variations.
+
+### New Page
+
+1. Create `src/routes/(app)/pagename/+page.svelte`
+   - Import `onMount` from `'svelte'`
+   - Import `auth` from `'$lib/stores/auth'`
+   - Import `loadData` (+ any stores needed) from `'$lib/stores/data'`
+   - Call `loadData($auth)` inside `onMount`
+2. Add nav entry to `src/lib/components/Sidebar.svelte` groups array:
+   ```ts
+   { label: 'PageName', href: '/pagename', d: '<SVG path d string>' }
+   ```
+   - **Main group:** dashboard, timer, subjects
+   - **Track group:** analytics, journey, tasks, schedule, scores
+3. Add i18n key to **both** `src/lib/i18n/en.ts` and `src/lib/i18n/th.ts`
+
+### New DB Feature
+
+1. **`src/lib/types.ts`** — add `interface MyThing { ... }` and any mapper types
+2. **`src/lib/db.ts`** — add dual-mode methods (guest → `lsGet`, auth → supabase query + mapper)
+3. **`src/lib/stores/data.ts`** — add `export const myThings = writable<MyThing[]>([])`, populate in `loadData()`
+4. **Supabase migration** — invoke `supabase:supabase` skill, create table + RLS policy (`auth.uid() = user_id`)
+5. **Page/component** — build the UI
+
+### New Component
+
+- Shared across features → `src/lib/components/ComponentName.svelte`
+- Feature-specific (2+ components for same feature) → `src/lib/components/featurename/`
+- Props: `export let propName: Type`
+- Events: `createEventDispatcher<{ eventName: PayloadType }>()`
+- No barrel `index.ts` files, no default exports
+
+### New Setting
+
+1. **`src/lib/stores/settings.ts`** — add field to `Settings` interface
+2. **`src/lib/stores/settings.ts`** — add default value in `defaults()` function
+   *(auto-persists to `localStorage` via the existing `subscribe` — no extra work needed)*
+3. **`src/routes/(app)/settings/+page.svelte`** — add UI control in the relevant section
+
+### Standard Empty State
+
+Use this exact markup and CSS on every page that can have no data:
+
+```svelte
+{#if $items.length === 0}
+  <div class="empty-state">
+    <p class="empty-title">No X yet.</p>
+    <p class="empty-sub">Hint for what to do next.</p>
+  </div>
+{:else}
+  <!-- content -->
+{/if}
+```
+
+```css
+.empty-state { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 32px 16px; text-align: center; }
+.empty-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.empty-sub   { font-size: 13px; color: var(--muted); }
+```
+
+No loading spinners needed — stores start empty and fill fast from localStorage or Supabase. No explicit error states — db errors are caught silently in `db.ts`.
 
 ---
 
@@ -298,8 +390,8 @@ DB column names are `snake_case`; TypeScript fields are `camelCase`. Always add 
 ## Stores (`src/lib/stores/data.ts`)
 
 ```ts
-subjects, topics, srsCards, sessions, tasks  // writables
-todaysSessions, dueCards, todayHours, streak, tasksDueToday  // derived
+subjects, topics, srsCards, sessions, tasks, scores, scheduleSlots  // writables
+todaysSessions, dueCards, todayHours, streak, tasksDueToday          // derived
 loadData(authState)   // call on page mount to populate all stores
 getAuthContext()      // returns { userId, mode } for db calls
 ```
@@ -361,15 +453,14 @@ All tables have RLS enabled. Policy: `auth.uid() = user_id`.
 ### Open (ready to implement)
 
 - `docs/superpowers/plans/2026-05-26-calendar-phase2.md` — Auto-schedule algorithm, load bars, school-hours shading, right sidebar, exam countdown
-- `docs/superpowers/plans/2026-05-26-journey.md` — Journey page: stat cards, 16-week heatmap, session timeline
 - `docs/superpowers/plans/2026-05-26-srs-review.md` — SRS flashcard review page
 - `docs/superpowers/plans/2026-05-26-google-oauth.md` — Google OAuth login
 - `docs/superpowers/plans/2026-05-26-templates-with-topics.md` — Templates with topic presets
 
 ### Completed
 
+- `docs/superpowers/plans/2026-05-26-journey.md` — Journey page: stat cards, 16-week heatmap, session timeline
 - `docs/superpowers/plans/2026-05-26-scores.md` — Scores tracking page
-- `docs/superpowers/plans/2026-05-26-journey.md` — Journey page with heatmap
 - `docs/superpowers/plans/2026-05-26-quick-fixes.md` — Sidebar gap, delete confirms, scroll fix, dark mode contrast
 - `docs/superpowers/plans/2026-05-25-calendar-phase1.md` — Calendar Phase 1 (drag/drop week grid)
 - `docs/superpowers/plans/2026-05-25-auth-onboarding.md` — Auth + onboarding fix
