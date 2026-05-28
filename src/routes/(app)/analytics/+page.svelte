@@ -1,9 +1,10 @@
 <script lang="ts">
-  import { onMount, onDestroy, tick } from 'svelte';
+  import { onMount } from 'svelte';
   import { auth } from '$lib/stores/auth';
   import { subjects, topics, srsCards, sessions, todayHours, streak, dueCards, loadData, getAuthContext } from '$lib/stores/data';
   import { settings } from '$lib/stores/settings';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
+  import StudyTrendChart from '$lib/components/analytics/StudyTrendChart.svelte';
   import { db } from '$lib/db';
   import type { StudySession } from '$lib/types';
 
@@ -22,23 +23,6 @@
   $: weekHours = weekSessions.reduce((sum, s) => sum + s.durationSec / 3600, 0);
   $: dueCount = $dueCards.length;
   $: totalCards = $srsCards.length;
-
-  $: dailyData = (() => {
-    const days: { label: string; hours: number; isToday: boolean }[] = [];
-    for (let i = 13; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const dateStr = d.toISOString().split('T')[0];
-      const hours = $sessions
-        .filter(s => s.startedAt.startsWith(dateStr))
-        .reduce((sum, s) => sum + s.durationSec / 3600, 0);
-      const label = i === 0
-        ? 'Today'
-        : d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' });
-      days.push({ label, hours, isToday: i === 0 });
-    }
-    return days;
-  })();
 
   $: subjectBreakdown = (() => {
     const map: Record<string, number> = {};
@@ -75,87 +59,9 @@
     return mm ? `${hh}h ${mm}m` : `${hh}h`;
   }
 
-  let canvas: HTMLCanvasElement;
-  let chart: any = null;
-
-  async function buildChart() {
-    if (!canvas) return;
-    await tick(); // ensure theme CSS has been applied before reading computed styles
-    const { Chart, registerables } = await import('chart.js');
-    Chart.register(...registerables);
-    if (chart) { chart.destroy(); chart = null; }
-
-    const cs = getComputedStyle(document.body);
-    const primaryRgb = cs.getPropertyValue('--primary-rgb').trim() || '23,23,23';
-    const mutedColor = cs.getPropertyValue('--muted').trim();
-    const borderColor = cs.getPropertyValue('--border').trim();
-
-    chart = new Chart(canvas, {
-      type: 'bar',
-      data: {
-        labels: dailyData.map(d => d.label),
-        datasets: [{
-          data: dailyData.map(d => +d.hours.toFixed(2)),
-          backgroundColor: dailyData.map(d =>
-            d.isToday ? `rgba(${primaryRgb},0.9)` : `rgba(${primaryRgb},0.35)`
-          ),
-          borderRadius: 4,
-          borderSkipped: false,
-        }],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: (ctx: any) => fmtH(ctx.parsed.y) } },
-        },
-        scales: {
-          x: {
-            grid: { display: false },
-            border: { display: false },
-            ticks: { color: mutedColor, font: { size: 10 }, maxRotation: 0 },
-          },
-          y: {
-            beginAtZero: true,
-            grid: { color: borderColor },
-            border: { display: false },
-            ticks: { color: mutedColor, font: { size: 10 }, callback: (v: any) => `${v}h` },
-          },
-        },
-      },
-    });
-  }
-
-  onMount(async () => {
-    await loadData($auth);
-    buildChart();
-  });
+  onMount(() => loadData($auth));
 
   $: if ($auth.mode !== 'loading') loadData($auth);
-
-  $: $settings.theme, canvas && buildChart();
-
-  onDestroy(() => { chart?.destroy(); });
-
-  let prevKey = '';
-  $: {
-    const key = dailyData.map(d => d.hours.toFixed(2)).join(',');
-    if (key !== prevKey) {
-      prevKey = key; // eslint-disable-line no-useless-assignment
-      if (chart) {
-        const cs = getComputedStyle(document.body);
-        const primaryRgb = cs.getPropertyValue('--primary-rgb').trim() || '23,23,23';
-        chart.data.datasets[0].data = dailyData.map(d => +d.hours.toFixed(2));
-        chart.data.datasets[0].backgroundColor = dailyData.map(d =>
-          d.isToday ? `rgba(${primaryRgb},0.9)` : `rgba(${primaryRgb},0.35)`
-        );
-        chart.update();
-      } else if (canvas) {
-        buildChart();
-      }
-    }
-  }
 
   let editingSessionId: string | null = null;
   let editSessionSubjectId = '';
@@ -240,9 +146,7 @@
       <span class="section-label">STUDY TREND</span>
       <span class="section-sub">Last 14 days</span>
     </div>
-    <div class="card chart-card">
-      <canvas bind:this={canvas}></canvas>
-    </div>
+    <StudyTrendChart />
   </section>
 
   {#if subjectBreakdown.length > 0}
@@ -394,8 +298,6 @@
   .section-sub { font-size: 11px; color: var(--muted); }
 
   .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); }
-  .chart-card { padding: 16px; height: 200px; }
-  .chart-card canvas { width: 100% !important; height: 100% !important; }
 
   .subject-row { padding: 11px 16px; }
   .subject-row.not-first { border-top: 1px solid var(--border); }
