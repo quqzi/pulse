@@ -114,7 +114,7 @@
       <div class="rating-row">
         {#each ([1,2,3,4] as const) as r}
           {@const labels = {1:'Again',2:'Hard',3:'Good',4:'Easy'}}
-          {@const colors = {1:'#ef4444',2:'#f97316',3:'#22c55e',4:'#3b82f6'}}
+          {@const colors = {1:'var(--srs-again)',2:'var(--srs-hard)',3:'var(--srs-good)',4:'var(--srs-easy)'}}
           <button
             class="rating-btn"
             style="background: {colors[r]};"
@@ -278,8 +278,8 @@
     margin-top: 2px;
     display: block;
   }
-  .srs-status.due { color: #ef4444; }
-  .srs-status.reviewed { color: #22c55e; }
+  .srs-status.due { color: var(--danger); }
+  .srs-status.reviewed { color: var(--success); }
   .topic-actions { display: flex; align-items: center; gap: 6px; }
   .review-btn {
     padding: 5px 12px;
@@ -303,7 +303,7 @@
     align-items: center;
     justify-content: center;
   }
-  .del-btn:hover { background: var(--bg3); color: #ef4444; }
+  .del-btn:hover { background: var(--bg3); color: var(--danger); }
   .icon-btn {
     width: 28px;
     height: 28px;

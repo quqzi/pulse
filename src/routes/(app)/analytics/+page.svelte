@@ -372,7 +372,7 @@
     color: var(--text);
   }
   .stat-unit { font-size: 16px; font-weight: 500; }
-  .stat-value.urgent { color: #f59e0b; }
+  .stat-value.urgent { color: var(--warning); }
   .stat-sub { font-size: 11px; color: var(--muted); }
   .stat-bar { height: 3px; background: var(--border); border-radius: 2px; margin-top: 8px; overflow: hidden; }
   .stat-bar-fill { height: 100%; border-radius: 2px; background: var(--primary); transition: width 0.4s ease; }
@@ -419,7 +419,7 @@
   .srs-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
   .srs-name { font-size: 11px; font-weight: 600; color: var(--text); }
   .srs-due { font-size: 22px; font-weight: 700; color: var(--muted); line-height: 1; margin-bottom: 3px; }
-  .srs-due.has-due { color: #f59e0b; }
+  .srs-due.has-due { color: var(--warning); }
   .srs-sub { font-size: 10px; color: var(--muted); }
 
   .bottom-spacer { height: 40px; }
@@ -443,7 +443,7 @@
     padding: 3px; border-radius: 4px; line-height: 0; flex-shrink: 0;
   }
   .icon-btn-sm:hover { color: var(--text); background: var(--bg3); }
-  .danger-btn:hover { color: var(--danger, #ef4444) !important; }
+  .danger-btn:hover { color: var(--danger) !important; }
   .sess-edit-input {
     background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
     padding: 4px 8px; font-size: 13px; color: var(--text); font-family: inherit;

@@ -209,5 +209,5 @@
 
   .actions { display:flex; gap:10px; margin-top:8px; }
   .skip-btn { background:none; border:none; color:var(--muted); font-size:13px; cursor:pointer; font-family:inherit; text-align:center; }
-  .save-error { color: #dc2626; font-size: 13px; text-align: center; }
+  .save-error { color: var(--danger); font-size: 13px; text-align: center; }
 </style>

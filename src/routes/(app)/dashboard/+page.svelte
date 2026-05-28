@@ -188,7 +188,7 @@
   .dash-check { background: none; border: none; cursor: pointer; padding: 0; flex-shrink: 0; line-height: 0; }
   .dash-task-title { flex: 1; font-size: 14px; font-weight: 500; color: var(--text); }
   .dash-due { font-size: 12px; color: var(--muted); flex-shrink: 0; }
-  .dash-due.overdue { color: #ef4444; font-weight: 600; }
+  .dash-due.overdue { color: var(--danger); font-weight: 600; }
   .task-divider { height: 1px; background: var(--border); margin: 0 14px; }
   .see-more { display: block; text-align: center; padding: 8px; font-size: 13px; color: var(--primary); text-decoration: none; font-weight: 500; }
   .bottom-spacer { height: 32px; }

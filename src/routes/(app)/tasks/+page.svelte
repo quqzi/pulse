@@ -383,8 +383,8 @@
     background: var(--primary); color: var(--bg); font-family: inherit; font-size: 13px;
     font-weight: 600; cursor: pointer;
   }
-  .title-input.error { color: #ef4444; }
-  .title-input.error::placeholder { color: #ef4444; }
+  .title-input.error { color: var(--danger); }
+  .title-input.error::placeholder { color: var(--danger); }
   @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
   .title-input.error { animation: shake 200ms ease; }
 
@@ -405,7 +405,7 @@
   }
   .task-item:hover { background: var(--bg3); }
   .task-item.done .task-title { text-decoration: line-through; color: var(--muted); }
-  .task-item.overdue { border-color: #ef444433; }
+  .task-item.overdue { border-color: rgba(239,68,68,0.2); }
 
   .check-btn { background: none; border: none; cursor: pointer; padding: 0; flex-shrink: 0; line-height: 0; }
   .task-body { flex: 1; min-width: 0; }
@@ -413,7 +413,7 @@
   .task-meta { display: flex; align-items: center; gap: 6px; margin-top: 3px; }
   .priority-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
   .due-label { font-size: 11px; color: var(--muted); }
-  .due-label.overdue-label { color: #ef4444; font-weight: 600; }
+  .due-label.overdue-label { color: var(--danger); font-weight: 600; }
   .subject-chip {
     font-size: 10px; font-weight: 700; padding: 1px 6px;
     border-radius: 999px; flex-shrink: 0;
@@ -509,9 +509,9 @@
   }
   .undo-btn:hover { opacity: 1; }
 
-  :global(:root) {
-    --priority-high: #ef4444;
-    --priority-med:  #f59e0b;
+  :global(body) {
+    --priority-high: var(--danger);
+    --priority-med:  var(--warning);
     --priority-low:  #6b7280;
   }
 

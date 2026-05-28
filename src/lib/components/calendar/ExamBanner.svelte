@@ -17,7 +17,7 @@
 	})();
 	$: show = examDate !== null && daysLeft >= 0 && daysLeft <= 90;
 
-	$: urgentColor = daysLeft <= 14 ? '#f59e0b' : 'var(--primary)';
+	$: urgentColor = daysLeft <= 14 ? 'var(--warning)' : 'var(--primary)';
 
 	$: behindSubjects = (() => {
 		if (!settings || subjects.length === 0) return [];

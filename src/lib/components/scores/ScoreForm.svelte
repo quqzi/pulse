@@ -133,7 +133,7 @@
   .field-select:focus { border-color: var(--primary); }
 
   .score-inputs { display: flex; align-items: center; gap: 6px; }
-  .score-inputs.error .field-input { border-color: #ef4444; }
+  .score-inputs.error .field-input { border-color: var(--danger); }
   @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
   .score-inputs.error { animation: shake 200ms ease; }
   .score-num { width: 64px; text-align: right; }
