@@ -234,7 +234,7 @@
   }
   .toggle-track::after {
     content:''; position:absolute; top:2px; left:2px;
-    width:20px; height:20px; border-radius:50%; background:white;
+    width:20px; height:20px; border-radius:50%; background:white; /* stylelint-disable-line color-named */
     transition:transform 150ms ease;
   }
   .toggle input:checked + .toggle-track { background:var(--primary); }

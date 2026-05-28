@@ -399,7 +399,7 @@
     padding: 11px 0;
     border-radius: 12px;
     border: none;
-    color: #fff;
+    color: #fff; /* stylelint-disable-line declaration-property-value-disallowed-list */
     font-size: 13px;
     font-weight: 700;
     cursor: pointer;

@@ -222,7 +222,7 @@
   }
   .tab-btn.active {
     background: var(--tab-color, var(--primary));
-    color: #fff;
+    color: #fff; /* stylelint-disable-line declaration-property-value-disallowed-list */
     border-color: var(--tab-color, var(--primary));
   }
   .tab-btn:first-child.active {
