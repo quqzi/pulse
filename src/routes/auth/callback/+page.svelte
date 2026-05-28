@@ -1,15 +1,17 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { page } from '$app/stores';
   import { supabase } from '$lib/supabase';
 
+  let errorMsg = '';
+
   onMount(async () => {
-    const code = $page.url.searchParams.get('code');
+    const code = new URLSearchParams(window.location.search).get('code');
     if (code) {
       const { error } = await supabase.auth.exchangeCodeForSession(code);
       if (error) {
-        goto('/auth/login?error=oauth');
+        errorMsg = error.message;
+        setTimeout(() => goto('/auth/login'), 3000);
         return;
       }
     }
@@ -18,7 +20,11 @@
 </script>
 
 <div class="callback-wrap">
-  <p>Signing in…</p>
+  {#if errorMsg}
+    <p class="error">OAuth error: {errorMsg}</p>
+  {:else}
+    <p>Signing in…</p>
+  {/if}
 </div>
 
 <style>
@@ -30,4 +36,5 @@
     color: var(--muted);
     font-size: 14px;
   }
+  .error { color: var(--danger); }
 </style>
