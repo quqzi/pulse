@@ -1,7 +1,8 @@
-import { writable, derived } from 'svelte/store';
+import { writable, derived, get } from 'svelte/store';
 import { db } from '$lib/db';
 import type { Subject, Topic, SrsCard, StudySession, Task, Template, ScheduleSlot, MockScore } from '$lib/types';
 import type { AuthState } from '$lib/stores/auth';
+import { auth } from '$lib/stores/auth';
 
 export const subjects = writable<Subject[]>([]);
 export const topics = writable<Topic[]>([]);
@@ -50,22 +51,27 @@ export const tasksDueToday = derived(tasks, ($tasks) => {
   return $tasks.filter(t => !t.completedAt && t.dueDate && t.dueDate <= today);
 });
 
-let _mode: 'guest' | 'authenticated' = 'guest';
-let _userId = 'guest';
+export const authCtx = derived(auth, ($auth: AuthState) => {
+  if ($auth.mode === 'loading') return { userId: 'guest', mode: 'guest' as const };
+  return {
+    userId: $auth.mode === 'guest' ? 'guest' : ($auth.user?.id ?? ''),
+    mode: $auth.mode as 'guest' | 'authenticated',
+  };
+});
 
 export async function loadData(authState: AuthState): Promise<void> {
   if (authState.mode === 'loading') return;
-  _mode = authState.mode;
-  _userId = authState.mode === 'guest' ? 'guest' : (authState.user?.id ?? '');
+  const userId = authState.mode === 'guest' ? 'guest' : (authState.user?.id ?? '');
+  const mode = authState.mode;
 
   const [s, t, c, sess, tsk, tmpl, sc] = await Promise.all([
-    db.getSubjects(_userId, _mode),
-    db.getTopics(_userId, _mode),
-    db.getSrsCards(_userId, _mode),
-    db.getSessions(_userId, _mode),
-    db.getTasks(_userId, _mode),
-    db.getTemplates(_userId, _mode),
-    db.getScores(_userId, _mode),
+    db.getSubjects(userId, mode),
+    db.getTopics(userId, mode),
+    db.getSrsCards(userId, mode),
+    db.getSessions(userId, mode),
+    db.getTasks(userId, mode),
+    db.getTemplates(userId, mode),
+    db.getScores(userId, mode),
   ]);
   subjects.set(s);
   topics.set(t);
@@ -77,8 +83,9 @@ export async function loadData(authState: AuthState): Promise<void> {
 }
 
 export async function loadScheduleSlots(weekStart: Date, weekEnd: Date): Promise<void> {
+  const { userId, mode } = get(authCtx);
   const slots = await db.getScheduleSlots(
-    _userId, _mode,
+    userId, mode,
     weekStart.toISOString().substring(0, 19),
     weekEnd.toISOString().substring(0, 19)
   );
@@ -86,5 +93,5 @@ export async function loadScheduleSlots(weekStart: Date, weekEnd: Date): Promise
 }
 
 export function getAuthContext(): { userId: string; mode: 'guest' | 'authenticated' } {
-  return { userId: _userId, mode: _mode };
+  return get(authCtx);
 }

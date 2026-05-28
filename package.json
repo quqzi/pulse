@@ -13,10 +13,12 @@
 		"lint:js": "eslint \"src/**/*.{ts,svelte}\"",
 		"lint:css": "stylelint \"src/**/*.svelte\"",
 		"lint": "npm run lint:css && npm run lint:js",
-		"check:all": "npm run check && npm run lint"
+		"check:all": "npm run check && npm run lint",
+		"test:e2e": "playwright test"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
+		"@playwright/test": "^1.60.0",
 		"@sveltejs/adapter-auto": "^7.0.1",
 		"@sveltejs/adapter-vercel": "^6.3.3",
 		"@sveltejs/kit": "^2.57.0",
