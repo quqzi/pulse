@@ -79,6 +79,7 @@ export interface SubjectPreset {
   symbol: string;
   color: string;
   colorRgb: string;
+  topics?: string[];
 }
 
 export interface Template {

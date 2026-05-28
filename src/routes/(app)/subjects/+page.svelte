@@ -2,11 +2,11 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { auth } from '$lib/stores/auth';
-  import { subjects, topics, srsCards, dueCards, loadData, getAuthContext } from '$lib/stores/data';
+  import { subjects, topics, srsCards, dueCards, templates, loadData, getAuthContext } from '$lib/stores/data';
   import SubjectTile from '$lib/components/SubjectTile.svelte';
   import { db } from '$lib/db';
   import { SUBJECT_COLOR_PALETTE } from '$lib/constants';
-  import type { Subject } from '$lib/types';
+  import type { Subject, Template, SubjectPreset } from '$lib/types';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 
   onMount(() => loadData($auth));
@@ -89,6 +89,28 @@
     subjectConfirmOpen = true;
   }
 
+  async function saveCurrentAsTemplate() {
+    const name = prompt('Template name:');
+    if (!name?.trim()) return;
+    const { userId, mode } = getAuthContext();
+    const presets: SubjectPreset[] = $subjects.map(sub => ({
+      name: sub.name,
+      symbol: sub.symbol,
+      color: sub.color,
+      colorRgb: sub.colorRgb,
+      topics: $topics.filter(t => t.subjectId === sub.id).map(t => t.name),
+    }));
+    const template: Template = {
+      id: db.newId(),
+      userId,
+      name: name.trim(),
+      presets,
+      createdAt: new Date().toISOString(),
+    };
+    templates.update(all => [...all, template]);
+    await db.saveTemplate(template, mode);
+  }
+
   async function doDeleteSubject() {
     if (!editingSubject) return;
     const { mode } = getAuthContext();
@@ -107,6 +129,9 @@
     <h1 class="text-large-title">Subjects</h1>
     <div class="header-actions">
       <a href="/subjects/templates" class="templates-link">Templates</a>
+      {#if $subjects.length > 0}
+        <button class="save-template-btn" on:click={saveCurrentAsTemplate}>Save as template</button>
+      {/if}
       <button class="add-btn" on:click={openAdd} aria-label="Add subject">+</button>
     </div>
   </div>
@@ -197,6 +222,8 @@
   .header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
   .header-actions { display: flex; align-items: center; gap: 12px; }
   .templates-link { font-size: 14px; font-weight: 600; color: var(--primary); text-decoration: none; }
+  .save-template-btn { font-size: 12px; font-weight: 500; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg2); color: var(--muted); cursor: pointer; }
+  .save-template-btn:hover { background: var(--bg3); color: var(--text); }
   .add-btn {
     width: 32px; height: 32px; border-radius: 50%; border: none;
     background: var(--primary); color: var(--bg);

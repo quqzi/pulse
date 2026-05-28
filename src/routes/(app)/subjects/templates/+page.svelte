@@ -31,6 +31,24 @@
     if (e.key === 'Enter') { e.preventDefault(); addPresetRow(); }
   }
 
+  let topicInputs: string[] = [];
+  $: if (topicInputs.length !== newPresets.length) {
+    topicInputs = newPresets.map((_, i) => topicInputs[i] ?? '');
+  }
+
+  function addTopic(presetIdx: number, name: string) {
+    if (!name.trim()) return;
+    newPresets = newPresets.map((p, i) =>
+      i !== presetIdx ? p : { ...p, topics: [...(p.topics ?? []), name.trim()] }
+    );
+  }
+
+  function removeTopic(presetIdx: number, topicIdx: number) {
+    newPresets = newPresets.map((p, i) =>
+      i !== presetIdx ? p : { ...p, topics: (p.topics ?? []).filter((_, ti) => ti !== topicIdx) }
+    );
+  }
+
   async function saveTemplate() {
     if (!newName.trim() || newPresets.length === 0) return;
     const { userId, mode } = getAuthContext();
@@ -143,6 +161,25 @@
               <span class="preset-name">{preset.name}</span>
               <button class="remove-preset" on:click={() => removePreset(i)} aria-label="Remove">×</button>
             </div>
+            {#if preset.topics && preset.topics.length > 0}
+              <div class="topic-chips">
+                {#each preset.topics as topic, ti}
+                  <span class="topic-chip">
+                    {topic}
+                    <button class="chip-remove" on:click={() => removeTopic(i, ti)}>×</button>
+                  </span>
+                {/each}
+              </div>
+            {/if}
+            <div class="topic-input-row">
+              <input
+                class="topic-input"
+                placeholder="Add topic…"
+                bind:value={topicInputs[i]}
+                on:keydown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTopic(i, topicInputs[i]); topicInputs[i] = ''; } }}
+              />
+              <button class="add-topic-btn" on:click={() => { addTopic(i, topicInputs[i]); topicInputs[i] = ''; }}>+</button>
+            </div>
           {/each}
         </div>
         <div class="add-preset-row">
@@ -227,4 +264,13 @@
     cursor: pointer; transition: border-color 120ms ease, color 120ms ease;
   }
   .new-tpl-btn:hover { border-color: var(--primary); color: var(--text); }
+  .topic-chips { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 2px 16px; }
+  .topic-chip { display: flex; align-items: center; gap: 4px; font-size: 11px; background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; padding: 2px 6px; color: var(--text); }
+  .chip-remove { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 13px; line-height: 1; padding: 0; }
+  .chip-remove:hover { color: var(--text); }
+  .topic-input-row { display: flex; align-items: center; gap: 6px; padding: 4px 8px 6px 16px; }
+  .topic-input { flex: 1; font-size: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; color: var(--text); font-family: inherit; outline: none; }
+  .topic-input:focus { border-color: var(--primary); }
+  .add-topic-btn { font-size: 16px; background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); cursor: pointer; padding: 2px 8px; }
+  .add-topic-btn:hover { color: var(--text); background: var(--bg3); }
 </style>
