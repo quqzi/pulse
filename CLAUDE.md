@@ -455,10 +455,10 @@ All tables have RLS enabled. Policy: `auth.uid() = user_id`.
 > **Rule:** When a plan is fully implemented and committed, move it from Open → Completed here, then commit this file. Never leave a finished plan in the Open list.
 
 ### Open (ready to implement)
-- `docs/superpowers/plans/2026-05-26-templates-with-topics.md` — Templates with topic presets
 
 ### Completed
 
+- `docs/superpowers/plans/2026-05-26-templates-with-topics.md` — Templates with topic presets
 - `docs/superpowers/plans/2026-05-26-google-oauth.md` — Google OAuth login (implicit flow; PKCE upgrade pending @supabase/ssr migration)
 - `docs/superpowers/plans/2026-05-28-stronger-base-design.md` — Token system, ESLint/Stylelint, component decomposition, authCtx derived store, Playwright smoke tests
 - `docs/superpowers/plans/2026-05-26-journey.md` — Journey page: stat cards, 16-week heatmap, session timeline
