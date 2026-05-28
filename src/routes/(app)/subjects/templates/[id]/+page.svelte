@@ -19,7 +19,7 @@
   let initializedFor = '';
 
   $: if (template && template.id !== initializedFor) {
-    initializedFor = template.id;
+    initializedFor = template.id; // eslint-disable-line no-useless-assignment
     checked = new Set(
       template.presets
         .filter(p => !existingNames.has(p.name.toLowerCase()))

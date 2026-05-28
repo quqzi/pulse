@@ -15,10 +15,6 @@
   let editingScore: MockScore | null = null;
   let activeSubjectId = 'all';
 
-  function formatScore(score: number, maxScore: number): string {
-    const pct = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
-    return `${score} / ${maxScore}  (${pct}%)`;
-  }
 
   function formatDate(d: string): string {
     const date = new Date(d + 'T00:00:00');

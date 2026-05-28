@@ -19,7 +19,6 @@
   $: name = $auth.name;
   $: greeting = getGreeting();
   $: daysToExam = getDaysToExam();
-  $: goalHours = $settings.dailyGoalHours;
 
   function getGreeting(): string {
     const h = new Date().getHours();

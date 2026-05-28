@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount } from 'svelte';
   import { auth } from '$lib/stores/auth';
   import { settings } from '$lib/stores/settings';
   import { subjects, topics, sessions, loadData, getAuthContext } from '$lib/stores/data';
   import {
     timerStore, remaining, startTimer, pauseTimer, stopTimer, resetTimer,
-    setTimerSubject, type TimerMode
+    type TimerMode
   } from '$lib/stores/timer';
   import { db } from '$lib/db';
 

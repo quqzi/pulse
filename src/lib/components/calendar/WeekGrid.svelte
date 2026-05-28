@@ -513,7 +513,7 @@
       </div>
 
       <!-- Day columns -->
-      {#each weekDays as day, i}
+      {#each weekDays as _day, i}
         <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
         <div
           class="day-col"

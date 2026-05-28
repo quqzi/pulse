@@ -54,7 +54,6 @@
   function handleAutoSchedule() {
     if (isScheduling) return;
     isScheduling = true;
-    const { userId } = getAuthContext();
     let filteredSlots: ScheduleSlot[] = [];
     scheduleSlots.update(all => {
       filteredSlots = all.filter(s => !s.isAiSuggested);

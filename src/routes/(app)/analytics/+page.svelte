@@ -142,7 +142,7 @@
   $: {
     const key = dailyData.map(d => d.hours.toFixed(2)).join(',');
     if (key !== prevKey) {
-      prevKey = key;
+      prevKey = key; // eslint-disable-line no-useless-assignment
       if (chart) {
         const cs = getComputedStyle(document.body);
         const primaryRgb = cs.getPropertyValue('--primary-rgb').trim() || '23,23,23';

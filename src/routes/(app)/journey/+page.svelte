@@ -17,12 +17,6 @@
     return mm ? `${hh}h ${mm}m` : `${hh}h`;
   }
 
-  type DayGroup = {
-    dateStr: string;
-    label: string;
-    totalSec: number;
-    sessions: typeof $sessions;
-  };
 
   $: subjectMap = Object.fromEntries($subjects.map(s => [s.id, s]));
   $: topicMap = Object.fromEntries($topics.map(t => [t.id, t]));
