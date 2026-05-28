@@ -6,16 +6,20 @@
   let errorMsg = '';
 
   onMount(async () => {
-    const code = new URLSearchParams(window.location.search).get('code');
-    if (code) {
-      const { error } = await supabase.auth.exchangeCodeForSession(code);
-      if (error) {
-        errorMsg = error.message;
-        setTimeout(() => goto('/auth/login'), 3000);
-        return;
-      }
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error) {
+      errorMsg = error.message;
+      setTimeout(() => goto('/auth/login'), 3000);
+      return;
     }
-    goto('/dashboard');
+    if (session) {
+      goto('/dashboard');
+    } else {
+      // Wait for onAuthStateChange to fire with the token from the hash
+      supabase.auth.onAuthStateChange((event, s) => {
+        if (s) goto('/dashboard');
+      });
+    }
   });
 </script>
 
