@@ -51,17 +51,24 @@ Claude is the primary full-stack developer on this project. Every feature goes t
 1. `superpowers:brainstorming` — design + spec
 2. `superpowers:writing-plans` — write plan to `docs/superpowers/plans/`
 3. `superpowers:subagent-driven-development` — execute plan task-by-task
-4. `verify` or `run` — confirm it works in browser
-5. `superpowers:verification-before-completion` — self-review checklist
-6. `commit-commands:commit-push-pr` — commit, push, open PR
+4. `ui-ux-pro-max:ui-ux-pro-max` — validate UI decisions before building (any feature with a new page or component)
+5. `verify` or `run` — confirm it works in browser
+6. `superpowers:verification-before-completion` — self-review checklist
+7. `code-review:code-review` — review the diff for bugs before pushing
+8. `superpowers:finishing-a-development-branch` — pre-PR checklist
+9. `commit-commands:commit-push-pr` — commit, push, open PR
 
 ### Small Fix / Tweak — Skip Design
 > Single-file changes, CSS fixes, copy edits, bug patches.
 
-1. Implement directly
-2. `npm run check` — zero type errors
-3. `verify` — confirm fix in browser
-4. `commit-commands:commit` — commit
+1. Route by fix type before touching code:
+   - CSS / visual fix → invoke `chrome-devtools-mcp:chrome-devtools` to inspect first
+   - Adding user-facing text → invoke `better-i18n` to add to both `en.ts` and `th.ts`
+   - Touching auth or RLS → invoke `security-review` first
+2. Implement the fix
+3. `npm run check` — zero type errors
+4. `verify` — confirm fix in browser
+5. `commit-commands:commit` — commit
 
 ### Bug Fix Workflow
 > Any bug, regression, or broken behaviour. Always diagnose before touching code.
@@ -115,7 +122,7 @@ One clarifying question is cheaper than a wrong implementation.
 
 ## Skill Routing
 
-### SvelteKit — Use These First
+### SvelteKit — REQUIRED before writing code in these areas
 
 | Situation | Skill |
 |---|---|
@@ -209,6 +216,7 @@ Exact patterns for the four most repeated tasks. Follow these precisely — don'
 
 ### New Page
 
+0. Invoke `svelte-skills:sveltekit-structure` before creating the file
 1. Create `src/routes/(app)/pagename/+page.svelte`
    - Import `onMount` from `'svelte'`
    - Import `auth` from `'$lib/stores/auth'`
@@ -224,6 +232,7 @@ Exact patterns for the four most repeated tasks. Follow these precisely — don'
 
 ### New DB Feature
 
+0. Invoke `supabase:supabase-postgres-best-practices` before touching any schema
 1. **`src/lib/types.ts`** — add `interface MyThing { ... }` and any mapper types
 2. **`src/lib/db.ts`** — add dual-mode methods (guest → `lsGet`, auth → supabase query + mapper)
 3. **`src/lib/stores/data.ts`** — add `export const myThings = writable<MyThing[]>([])`, populate in `loadData()`
@@ -277,8 +286,9 @@ Before declaring any task complete, all steps must pass in order:
 1. **`npm run check`** — zero type errors
 2. **`verify` skill** (or `run` + manual browser check) — feature works visually in browser
 3. **`superpowers:verification-before-completion`** — self-review checklist passes
-4. **`commit-commands:commit`** (or `commit-push-pr` if ready to push)
-5. **If completing a plan:** move it from **Open → Completed** in the Active Plans section of this file and commit the change
+4. **`code-review:code-review`** — review the diff, fix any findings
+5. **`commit-commands:commit`** (or `commit-push-pr` if ready to push)
+6. **If completing a plan:** move it from **Open → Completed** in the Active Plans section of this file and commit the change
 
 ---
 
