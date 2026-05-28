@@ -63,6 +63,37 @@ Claude is the primary full-stack developer on this project. Every feature goes t
 3. `verify` — confirm fix in browser
 4. `commit-commands:commit` — commit
 
+### Bug Fix Workflow
+> Any bug, regression, or broken behaviour. Always diagnose before touching code.
+
+**Step 1 — Reproduce it**
+Confirm you can see the bug yourself before changing anything. Open the browser, trigger the exact scenario, note what happens vs. what should happen.
+
+**Step 2 — Check the Gotchas table first**
+Scan the Pulse-Specific Gotchas section below. Most recurring bugs have a known cause already documented there.
+
+**Step 3 — Route by symptom**
+
+| Symptom | Where to look first |
+|---|---|
+| TypeScript error / red squiggles | `npm run check` — read the full error, find the file:line |
+| Visual / layout wrong | `chrome-devtools-mcp:chrome-devtools` — inspect element, check computed styles |
+| White screen / page crash | `chrome-devtools-mcp:troubleshooting` — check console for errors |
+| Data not showing / stale | Store not reactive? `loadData($auth)` missing in `onMount`? Check `data.ts` |
+| Supabase returns empty | RLS policy — run `execute_sql` to check rows exist; confirm `auth.uid() = user_id` |
+| Works in guest, broken when logged in | Auth mode difference — check `getAuthContext()` returns correct `mode` |
+| Works on first load, breaks on nav | `onMount` not re-running — add `$: if ($auth.mode !== 'loading') loadData($auth)` |
+| CSS token not applying | Missing token in one of the 5 theme blocks in `app.css` |
+
+**Step 4 — Fix and verify**
+1. Make the minimal change
+2. `npm run check` — zero type errors
+3. `verify` — confirm fix in browser, test the exact scenario from Step 1
+4. `commit-commands:commit`
+
+**Escalate after 2 real attempts**
+A real attempt = you diagnosed the root cause, made a targeted fix, and tested it. If still broken after two of those → `superpowers:systematic-debugging`
+
 ### Stuck / Not Working — Escalate
 > If something isn't resolved after 2 attempts, stop and invoke the skill.
 
