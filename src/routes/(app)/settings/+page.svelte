@@ -170,7 +170,7 @@
       </div>
       <div class="divider"></div>
       <button class="setting-row sign-out" on:click={signOut}>
-        <span style="color:#dc2626;font-size:15px">Sign out</span>
+        <span style="color:var(--danger);font-size:15px">Sign out</span>
       </button>
     </div>
   {:else}

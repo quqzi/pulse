@@ -20,7 +20,7 @@
     <div class="logo-row">
       <div class="logo-mark">
         <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
-          <polyline points="0,6 3,6 5.5,1 8,11 10.5,3.5 13,7.5 15,6 18,6" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <polyline points="0,6 3,6 5.5,1 8,11 10.5,3.5 13,7.5 15,6 18,6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
       <span class="logo-word">pulse</span>
@@ -58,7 +58,7 @@
   .field-label { font-size:13px; font-weight:600; color:var(--muted); }
   .auth-form input { padding:11px 14px; border-radius:var(--radius-sm); border:1.5px solid var(--border); background:var(--bg); color:var(--text); font-family:inherit; font-size:15px; outline:none; transition:border-color 140ms ease; }
   .auth-form input:focus { border-color:var(--primary); }
-  .error-msg { background:#fef2f2; color:#dc2626; border-radius:8px; padding:10px 12px; font-size:13px; margin-bottom:14px; }
+  .error-msg { background:var(--danger-soft); color:var(--danger); border-radius:8px; padding:10px 12px; font-size:13px; margin-bottom:14px; }
   .auth-footer { text-align:center; font-size:13px; color:var(--muted); margin-top:16px; }
   .auth-footer a { color:var(--primary); text-decoration:none; font-weight:600; }
   .confirm-msg { background:var(--bg3); border:1.5px solid var(--border); border-radius:var(--radius-md); padding:16px; margin-bottom:16px; }

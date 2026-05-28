@@ -86,7 +86,7 @@
     cursor: pointer;
     font-family: inherit;
   }
-  .btn-confirm.danger { background: var(--danger, #ef4444); }
+  .btn-confirm.danger { background: var(--danger); }
   .btn-cancel:hover { background: var(--bg); }
   .btn-confirm:hover { opacity: 0.88; }
 </style>

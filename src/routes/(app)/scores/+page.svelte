@@ -270,7 +270,7 @@
     transition: color 100ms ease, background 100ms ease;
   }
   .action-btn:hover { color: var(--text); background: var(--bg3); }
-  .action-btn.danger:hover { color: #ef4444; }
+  .action-btn.danger:hover { color: var(--danger); }
 
   .empty { text-align: center; color: var(--muted); font-size: 14px; padding: 48px 0; }
 

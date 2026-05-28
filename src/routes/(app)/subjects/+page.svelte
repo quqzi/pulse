@@ -218,7 +218,7 @@
   .due-badge {
     position: absolute; top: -4px; right: -4px;
     min-width: 18px; height: 18px; border-radius: 9px;
-    color: #ffffff; font-size: 11px; font-weight: 700;
+    color: var(--bg); font-size: 11px; font-weight: 700;
     display: flex; align-items: center; justify-content: center;
     padding: 0 4px; pointer-events: none;
   }
@@ -261,7 +261,7 @@
   .sheet-actions { display: flex; gap: 8px; margin-top: 24px; }
   .btn-delete {
     padding: 10px 16px; border-radius: var(--radius-md); border: none;
-    background: #fee2e2; color: #dc2626; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+    background: var(--danger-soft); color: var(--danger); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
   }
   .btn-cancel {
     flex: 1; padding: 10px; border-radius: var(--radius-md); border: 1.5px solid var(--border);

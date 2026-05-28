@@ -280,7 +280,7 @@
     cursor: pointer;
     transition: transform 400ms cubic-bezier(0.34,1.56,0.64,1);
   }
-  .btn-ctrl { background: var(--primary); color: #fff; }
+  .btn-ctrl { background: var(--primary); color: var(--bg); }
   .btn-stop { background: var(--bg3); color: var(--text); }
   .btn-ctrl:active, .btn-stop:active { transform: scale(0.94); transition: transform 80ms ease-in; }
   .focus-toggle {
