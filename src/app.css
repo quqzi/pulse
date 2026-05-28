@@ -53,6 +53,10 @@ body, body.design-vercel {
   --srs-hard:  #f97316;
   --srs-good:  #22c55e;
   --srs-easy:  #3b82f6;
+  --warning:      #f59e0b;
+  --success:      #22c55e;
+  --danger-soft:  #fef2f2;
+  --success-soft: #f0fdf4;
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
@@ -87,6 +91,10 @@ body.design-vercel.theme-dark {
   --srs-hard:  #f97316;
   --srs-good:  #22c55e;
   --srs-easy:  #3b82f6;
+  --warning:      #fbbf24;
+  --success:      #4ade80;
+  --danger-soft:  #2d1515;
+  --success-soft: #0f2d1a;
   --shadow-sm: 0 0 0 1px rgba(255,255,255,.06), 0 1px 2px rgba(0,0,0,.40);
   --shadow-md: 0 0 0 1px rgba(255,255,255,.06), 0 4px 8px rgba(0,0,0,.50);
   --shadow-lg: 0 0 0 1px rgba(255,255,255,.06), 0 8px 24px rgba(0,0,0,.60);
@@ -117,6 +125,10 @@ body.design-apple {
   --srs-hard:  #f97316;
   --srs-good:  #22c55e;
   --srs-easy:  #3b82f6;
+  --warning:      #f59e0b;
+  --success:      #22c55e;
+  --danger-soft:  #fef2f2;
+  --success-soft: #f0fdf4;
   --radius-sm: 8px;
   --radius-md: 18px;
   --radius-lg: 22px;
@@ -152,6 +164,10 @@ body.design-apple.theme-dark {
   --srs-hard:  #f97316;
   --srs-good:  #22c55e;
   --srs-easy:  #3b82f6;
+  --warning:      #fbbf24;
+  --success:      #4ade80;
+  --danger-soft:  #2d1515;
+  --success-soft: #0f2d1a;
   --shadow-sm: 0 1px 3px rgba(0,0,0,.40), 0 0 0 1px rgba(255,255,255,.06);
   --shadow-md: 0 4px 12px rgba(0,0,0,.50), 0 0 0 1px rgba(255,255,255,.06);
   --shadow-lg: 0 8px 24px rgba(0,0,0,.60), 0 0 0 1px rgba(255,255,255,.06);
@@ -184,6 +200,10 @@ body.design-resend.theme-dark {
   --srs-hard:  #f97316;
   --srs-good:  #22c55e;
   --srs-easy:  #3b82f6;
+  --warning:      #fbbf24;
+  --success:      #4ade80;
+  --danger-soft:  #1a0808;
+  --success-soft: #081a0e;
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
