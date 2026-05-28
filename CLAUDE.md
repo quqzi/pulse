@@ -456,6 +456,8 @@ All tables have RLS enabled. Policy: `auth.uid() = user_id`.
 
 ### Open (ready to implement)
 
+- `docs/superpowers/plans/2026-05-28-exam-simulation.md` — Exam Simulation (readiness score card, question bank, mock exam with timer modes)
+
 ### Completed
 
 - `docs/superpowers/plans/2026-05-26-templates-with-topics.md` — Templates with topic presets
