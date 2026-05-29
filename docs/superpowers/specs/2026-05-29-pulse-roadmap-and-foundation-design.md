@@ -1,7 +1,7 @@
 # Pulse — Roadmap & Foundation Design
 
 **Date:** 2026-05-29
-**Status:** Approved shape, pending final spec review
+**Status:** Revised after codebase readiness review (2026-05-29) — plan-ready
 **Author:** Claude (brainstorming session with @quqzi)
 
 ---
@@ -164,6 +164,40 @@ export const subjectsRepo = repository<Subject>({
 > Schema/query specifics (e.g. the sessions window) follow
 > `supabase:supabase-postgres-best-practices` when the plan is written.
 
+### 4.1a Reconciliation with the real `db.ts` (from the 2026-05-29 readiness review)
+
+The generic engine above is the **common-case** path (list / upsert-save / remove).
+A readiness review found ~9 of the 28 `db` methods do **not** fit it. The plan keeps
+these as **explicit typed methods that extend each entity's repo** — it must NOT force
+them through generic `save`/`remove`. The repository approach stands; it just isn't uniform.
+
+**Engine contract additions**
+- `Adapter.list(opts?)` — reads may take options (window/range); `load(opts?)` forwards them.
+- **Read-error contract (G13):** `list()` resolves **empty-on-error, never rejects**
+  (mirrors today's `(data ?? [])`), so `loadData`'s `Promise.all` and the reactive
+  `loadScheduleSlots` can't become unhandled rejections at mount.
+- **Write-failure contract / rollback (G8):** `save`/`remove` **snapshot the store**,
+  apply the optimistic update, and on failure **revert to the snapshot + toast**. The repo
+  **owns** the failure (no re-throw by default) so the 30 uncaught / 4 fire-and-forget
+  write call sites can't throw unhandled rejections.
+- `newId()` stays exported (data module or `src/lib/id.ts`) — 11 call sites use it (G9).
+
+**Methods that extend the generic repo**
+
+| Method | Why it's special | Design |
+|---|---|---|
+| `topicsRepo.create(topic): SrsCard` | `saveTopic` creates+returns an `srs_card`; 2 call sites use the return (G3) | Upsert topic, ensure exactly one card (derive card id deterministically to kill the rename-duplicate bug at `db.ts:217`), write-through **topics + srsCards**, return card. Reads `userId` from `authCtx`. Topic *edits* use generic `save`. |
+| `subjectsRepo.removeCascade(id)`, `topicsRepo.removeCascade(id)` | guest cascade-deletes related topics/cards (G2) | Guest: purge dependent localStorage + refresh **subjects/topics/srsCards** stores. Auth: rely on FK `on delete cascade` — **migrations must declare** cascades on `topics.subject_id`, `srs_cards.topic_id` (+ `srs_cards.subject_id`). |
+| `sessionsRepo.log(s)` vs `sessionsRepo.save(s)` | two writers: prepend-INSERT (timer/dashboard) vs UPSERT (analytics edit) (G5) | Distinct methods, newest-first ordering. |
+| `srsRepo.update(card)` | update-only, never insert; sets `updated_at` (G5) | Column-subset update, distinct from generic upsert so SM-2 writes don't insert. |
+| `scheduleRepo.loadWeek(start,end)` | windowed; loaded per viewed week, **outside** `loadData` (G4/G6) | Stays out of the `loadData` `Promise.all`; called reactively per week (preserve `schedule/+page.svelte:187`). |
+| `scheduleRepo.confirmAll(slots)` | bulk flag-flip + persist (G6) | Transform `isConfirmed`/`isAiSuggested`, persist all, one store update. |
+| `sessionsRepo.load({ sinceDays: HISTORY_DAYS })` | 90-day window, auth-only today; guest uncapped (G4) | Apply the window in **both** modes for parity; `HISTORY_DAYS` shared with the heatmap (§4.3). |
+| `getSubjects` onboarding seed | guest synthesizes `Subject[]` from onboarding names + writes back (G7) | **Move the names→`Subject[]` transform into onboarding** so it writes proper `Subject[]` under `pulse.subjects`; repo `list()` stays pure. Requires editing `onboarding/+page.svelte`. |
+
+**Dropped (YAGNI):** `idealWeekSlots` CRUD (`db.ts:444-475`) has **zero callers and no store** —
+remove from WS1 scope; re-add with a store + loader only if a feature needs it (G6).
+
 ### 4.2 Settings sync → `user_settings` table
 
 ```sql
@@ -183,11 +217,28 @@ create policy "own settings" on user_settings
   and tolerates the evolving `Settings` interface without migrations.
 - Gives **exam date one home** (see §4.3).
 
+**Reconciliations the plan must handle (G10):**
+- **Not a `repository<T>` entity** — settings is a single per-user object with no `id`;
+  it gets its own single-row sync module, never the array repo.
+- **Reconcile the divergent interface FIRST:** `types.ts:8-20 Settings` lacks `examDate`
+  while `settings.ts` has it — delete the stale `types.ts` copy and unify on the
+  `settings.ts` shape *before* wiring sync.
+- **Auth hydration without echo:** on login `SELECT … maybeSingle()` (absent row = new
+  user → `defaults()`), merge over defaults, then apply via a **guarded path that does NOT
+  re-fire the debounced upsert**. Replace the blanket per-change `subscribe`
+  (`settings.ts:63-65`): guest → localStorage; auth → debounced upsert on `user_id` conflict.
+
 ### 4.3 Single sources of truth (greenfield cleanup)
-- **Exam date** lives only in `settings.examDate`. Delete the `pulse_exam_date`
-  key and the direct read in `dashboard/+page.svelte`; dashboard reads `$settings`.
-- **History window:** one shared `HISTORY_DAYS` constant used by both the sessions
-  query and the Journey heatmap so they can't drift.
+- **Exam date — three touch points, not one (G11):** `onboarding/+page.svelte:35`
+  *writes* a raw `pulse_exam_date`, `dashboard/+page.svelte:32` *reads* it, and `schedule`
+  reads `$settings.examDate` — so the onboarding value never reaches the scheduler today.
+  Fix: onboarding sets `settings.examDate`; **delete `pulse_exam_date` everywhere**; all
+  readers use `$settings.examDate`.
+- **History window — reconcile 90 vs 112 (G11):** `db.ts:259` caps auth sessions at 90 days
+  but `HeatmapGrid.svelte:7` `WEEKS=16` (112 days) and `journey/+page.svelte:89` hardcodes
+  "Last 16 weeks" → ~3 weeks of heatmap permanently blank for auth users. Set
+  `HISTORY_DAYS=112`, derive the heatmap `WEEKS` + label from it, and apply the window to
+  **both** guest and auth (today guest is uncapped).
 - **localStorage namespace:** `pulse.<entity>` keys + a `pulse.schemaVersion` key,
   set cleanly now.
 
@@ -205,11 +256,40 @@ create policy "own settings" on user_settings
   - `repository.ts` — `MockAdapter`: save → store updates; correct mode routing.
 - Keep Playwright for smoke flows.
 
+**Setup specifics the plan must pin (G12):**
+- **Config:** add `vitest` (no jsdom needed); a standalone `vitest.config.ts` with
+  `resolve.alias` `$lib → ./src/lib`, `test.environment: 'node'`, and `test.include`
+  scoped to `src/**/*.{test,spec}.ts` so the Playwright `./tests` dir isn't picked up;
+  add a `test:unit` script separate from `test:e2e`.
+- **Determinism:** `srs.ts` and `scheduler.ts` are headless but **not pure** — both call
+  `new Date()` and `scheduler` uses `Math.random()` in `makeId()`. Tests must
+  `vi.useFakeTimers()` / `vi.setSystemTime()` and `vi.spyOn(Math, 'random')`.
+- **Repository test:** `repository.ts` reads `get(authCtx)`, so the `MockAdapter` test
+  must mock `authCtx`/stores to exercise both mode routes.
+
 ### 4.6 WS1 acceptance
-- `npm run check`, `npm run lint`, Vitest, Playwright all green.
-- No page calls `db.*` directly; all reads/writes go through repositories.
-- Exam date and history window each have exactly one source.
-- A forced save failure shows a toast (does not fail silently).
+- `npm run check`, `npm run lint`, `npm run test:unit`, Playwright all green.
+- **No page imports `db.ts`** — all data access goes through the `data/` module
+  (windowed/extended repo methods are not violations).
+- Exam date has one home (`settings.examDate`); `HISTORY_DAYS` drives both the sessions
+  window and the heatmap.
+- A forced **write** failure reverts the optimistic store update **and** toasts — no
+  unhandled rejection, including at the fire-and-forget schedule call sites.
+- A forced **read** failure leaves stores at their prior value (no unhandled rejection at mount).
+- Deleting a subject leaves **no orphaned topics/cards** in either guest or auth mode.
+
+### 4.7 Call-site migration inventory (G9)
+**50 `db.*` call sites across 14 files** (`stores/data.ts` + 12 routes + onboarding):
+**8 reads, 11 `newId()` (no I/O), 31 writes.** Migration rules:
+- Each write today pairs a manual `store.update` with the `db` call — some optimistic
+  (before `await`), some post-await. Write-through removes the manual update **except**
+  where the repo now owns related-store updates (cascades, `topicsRepo.create`) — those
+  move *into* the repo, not deleted blindly from pages.
+- `db.newId()` stays exported (data module or `src/lib/id.ts`).
+- `onboarding` `saveSubject` (the only call site with `try/catch` + a `saveError` UX) must
+  be reconciled with the toast/rollback path, not dropped.
+- The 4 fire-and-forget schedule writes (`schedule/+page.svelte:105,118,138,161`) become
+  safe under the repo-owns-failure contract (§4.1a).
 
 ---
 
