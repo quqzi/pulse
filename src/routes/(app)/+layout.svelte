@@ -2,6 +2,7 @@
   import TabBar from '$lib/components/TabBar.svelte';
   import Sidebar from '$lib/components/Sidebar.svelte';
   import MoreDrawer from '$lib/components/MoreDrawer.svelte';
+  import Toaster from '$lib/components/Toaster.svelte';
 
   let drawerOpen = false;
 </script>
@@ -13,6 +14,7 @@
     <TabBar onMore={() => (drawerOpen = true)} />
     <MoreDrawer open={drawerOpen} onClose={() => (drawerOpen = false)} />
   </div>
+  <Toaster />
 </div>
 
 <style>
