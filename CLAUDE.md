@@ -51,17 +51,55 @@ Claude is the primary full-stack developer on this project. Every feature goes t
 1. `superpowers:brainstorming` — design + spec
 2. `superpowers:writing-plans` — write plan to `docs/superpowers/plans/`
 3. `superpowers:subagent-driven-development` — execute plan task-by-task
-4. `verify` or `run` — confirm it works in browser
-5. `superpowers:verification-before-completion` — self-review checklist
-6. `commit-commands:commit-push-pr` — commit, push, open PR
+4. `ui-ux-pro-max:ui-ux-pro-max` — validate UI decisions before building (any feature with a new page or component)
+5. `verify` or `run` — confirm it works in browser
+6. `superpowers:verification-before-completion` — self-review checklist
+7. `code-review:code-review` — review the diff for bugs before pushing
+8. `superpowers:finishing-a-development-branch` — pre-PR checklist
+9. `commit-commands:commit-push-pr` — commit, push, open PR
 
 ### Small Fix / Tweak — Skip Design
 > Single-file changes, CSS fixes, copy edits, bug patches.
 
-1. Implement directly
+1. Route by fix type before touching code:
+   - CSS / visual fix → invoke `chrome-devtools-mcp:chrome-devtools` to inspect first
+   - Adding user-facing text → invoke `better-i18n` to add to both `en.ts` and `th.ts`
+   - Touching auth or RLS → invoke `security-review` first
+2. Implement the fix
+3. `npm run check` — zero type errors
+4. `verify` — confirm fix in browser
+5. `commit-commands:commit` — commit
+
+### Bug Fix Workflow
+> Any bug, regression, or broken behaviour. Always diagnose before touching code.
+
+**Step 1 — Reproduce it**
+Confirm you can see the bug yourself before changing anything. Open the browser, trigger the exact scenario, note what happens vs. what should happen.
+
+**Step 2 — Check the Gotchas table first**
+Scan the Pulse-Specific Gotchas section below. Most recurring bugs have a known cause already documented there.
+
+**Step 3 — Route by symptom**
+
+| Symptom | Where to look first |
+|---|---|
+| TypeScript error / red squiggles | `npm run check` — read the full error, find the file:line |
+| Visual / layout wrong | `chrome-devtools-mcp:chrome-devtools` — inspect element, check computed styles |
+| White screen / page crash | `chrome-devtools-mcp:troubleshooting` — check console for errors |
+| Data not showing / stale | Store not reactive? `loadData($auth)` missing in `onMount`? Check `data.ts` |
+| Supabase returns empty | RLS policy — run `execute_sql` to check rows exist; confirm `auth.uid() = user_id` |
+| Works in guest, broken when logged in | Auth mode difference — check `getAuthContext()` returns correct `mode` |
+| Works on first load, breaks on nav | `onMount` not re-running — add `$: if ($auth.mode !== 'loading') loadData($auth)` |
+| CSS token not applying | Missing token in one of the 5 theme blocks in `app.css` |
+
+**Step 4 — Fix and verify**
+1. Make the minimal change
 2. `npm run check` — zero type errors
-3. `verify` — confirm fix in browser
-4. `commit-commands:commit` — commit
+3. `verify` — confirm fix in browser, test the exact scenario from Step 1
+4. `commit-commands:commit`
+
+**Escalate after 2 real attempts**
+A real attempt = you diagnosed the root cause, made a targeted fix, and tested it. If still broken after two of those → `superpowers:systematic-debugging`
 
 ### Stuck / Not Working — Escalate
 > If something isn't resolved after 2 attempts, stop and invoke the skill.
@@ -84,7 +122,7 @@ One clarifying question is cheaper than a wrong implementation.
 
 ## Skill Routing
 
-### SvelteKit — Use These First
+### SvelteKit — REQUIRED before writing code in these areas
 
 | Situation | Skill |
 |---|---|
@@ -178,6 +216,7 @@ Exact patterns for the four most repeated tasks. Follow these precisely — don'
 
 ### New Page
 
+0. Invoke `svelte-skills:sveltekit-structure` before creating the file
 1. Create `src/routes/(app)/pagename/+page.svelte`
    - Import `onMount` from `'svelte'`
    - Import `auth` from `'$lib/stores/auth'`
@@ -193,6 +232,7 @@ Exact patterns for the four most repeated tasks. Follow these precisely — don'
 
 ### New DB Feature
 
+0. Invoke `supabase:supabase-postgres-best-practices` before touching any schema
 1. **`src/lib/types.ts`** — add `interface MyThing { ... }` and any mapper types
 2. **`src/lib/db.ts`** — add dual-mode methods (guest → `lsGet`, auth → supabase query + mapper)
 3. **`src/lib/stores/data.ts`** — add `export const myThings = writable<MyThing[]>([])`, populate in `loadData()`
@@ -246,8 +286,9 @@ Before declaring any task complete, all steps must pass in order:
 1. **`npm run check`** — zero type errors
 2. **`verify` skill** (or `run` + manual browser check) — feature works visually in browser
 3. **`superpowers:verification-before-completion`** — self-review checklist passes
-4. **`commit-commands:commit`** (or `commit-push-pr` if ready to push)
-5. **If completing a plan:** move it from **Open → Completed** in the Active Plans section of this file and commit the change
+4. **`code-review:code-review`** — review the diff, fix any findings
+5. **`commit-commands:commit`** (or `commit-push-pr` if ready to push)
+6. **If completing a plan:** move it from **Open → Completed** in the Active Plans section of this file and commit the change
 
 ---
 
@@ -455,6 +496,8 @@ All tables have RLS enabled. Policy: `auth.uid() = user_id`.
 > **Rule:** When a plan is fully implemented and committed, move it from Open → Completed here, then commit this file. Never leave a finished plan in the Open list.
 
 ### Open (ready to implement)
+
+- `docs/superpowers/plans/2026-05-28-exam-simulation.md` — Exam Simulation (readiness score card, question bank, mock exam with timer modes)
 
 ### Completed
 
