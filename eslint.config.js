@@ -12,6 +12,10 @@ export default [
     plugins: { '@typescript-eslint': ts },
     languageOptions: { parser: tsParser },
     rules: {
+      // Disable the base rule: it false-positives on TS type constructs (e.g. named
+      // params in interface method signatures). @typescript-eslint/no-unused-vars
+      // is the TS-aware replacement and still catches genuinely unused vars/args.
+      'no-unused-vars': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       'no-console': 'error',
