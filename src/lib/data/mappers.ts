@@ -1,4 +1,4 @@
-import type { Task, MockScore } from '$lib/types';
+import type { Task, MockScore, Template, SubjectPreset } from '$lib/types';
 
 export const taskFromRow = (r: Record<string, unknown>): Task => ({
   id: r.id as string,
@@ -42,4 +42,20 @@ export const scoreToRow = (s: MockScore): Record<string, unknown> => ({
   taken_at: s.takenAt,
   notes: s.notes ?? null,
   created_at: s.createdAt,
+});
+
+export const templateFromRow = (r: Record<string, unknown>): Template => ({
+  id: r.id as string,
+  userId: r.user_id as string,
+  name: r.name as string,
+  presets: r.presets as SubjectPreset[],
+  createdAt: r.created_at as string,
+});
+
+export const templateToRow = (t: Template): Record<string, unknown> => ({
+  id: t.id,
+  user_id: t.userId,
+  name: t.name,
+  presets: t.presets,
+  created_at: t.createdAt,
 });

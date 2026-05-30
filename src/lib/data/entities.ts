@@ -1,10 +1,7 @@
-import type { Task } from '$lib/types';
-import type { MockScore } from '$lib/types';
-import { tasks } from '$lib/data/stores';
-import { scores } from '$lib/data/stores';
+import type { Task, MockScore, Template } from '$lib/types';
+import { tasks, scores, templates } from '$lib/data/stores';
 import { repo } from '$lib/data/repository';
-import { taskFromRow, taskToRow } from '$lib/data/mappers';
-import { scoreFromRow, scoreToRow } from '$lib/data/mappers';
+import { taskFromRow, taskToRow, scoreFromRow, scoreToRow, templateFromRow, templateToRow } from '$lib/data/mappers';
 
 export const tasksRepo = repo<Task>({
   store: tasks,
@@ -26,4 +23,15 @@ export const scoresRepo = repo<MockScore>({
   orderColumn: 'taken_at',
   ascending: false,
   order: (a, b) => b.takenAt.localeCompare(a.takenAt),
+});
+
+export const templatesRepo = repo<Template>({
+  store: templates,
+  lsKey: 'pulse.templates',
+  table: 'templates',
+  toRow: templateToRow,
+  fromRow: templateFromRow,
+  orderColumn: 'created_at',
+  ascending: false,
+  order: (a, b) => b.createdAt.localeCompare(a.createdAt),
 });

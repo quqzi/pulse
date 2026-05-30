@@ -4,7 +4,8 @@
   import { auth } from '$lib/stores/auth';
   import { templates, loadData, getAuthContext } from '$lib/stores/data';
   import { BUILTIN_TEMPLATES, SUBJECT_COLOR_PALETTE } from '$lib/constants';
-  import { db } from '$lib/db';
+  import { templatesRepo } from '$lib/data/entities';
+  import { newId } from '$lib/id';
   import type { Template, SubjectPreset } from '$lib/types';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 
@@ -51,16 +52,15 @@
 
   async function saveTemplate() {
     if (!newName.trim() || newPresets.length === 0) return;
-    const { userId, mode } = getAuthContext();
+    const { userId } = getAuthContext();
     const template: Template = {
-      id: db.newId(),
+      id: newId(),
       userId,
       name: newName.trim(),
       presets: newPresets,
       createdAt: new Date().toISOString(),
     };
-    templates.update(all => [...all, template]);
-    await db.saveTemplate(template, mode);
+    await templatesRepo.save(template);
     creating = false;
     newName = '';
     newPresets = [];
@@ -78,9 +78,7 @@
     if (!pendingDeleteTemplate) return;
     const template = pendingDeleteTemplate;
     pendingDeleteTemplate = null;
-    const { mode } = getAuthContext();
-    templates.update(all => all.filter(t => t.id !== template.id));
-    await db.deleteTemplate(template.id, mode);
+    await templatesRepo.remove(template.id);
   }
 </script>
 

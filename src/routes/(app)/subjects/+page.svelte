@@ -2,9 +2,11 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { auth } from '$lib/stores/auth';
-  import { subjects, topics, srsCards, dueCards, templates, loadData, getAuthContext } from '$lib/stores/data';
+  import { subjects, topics, srsCards, dueCards, loadData, getAuthContext } from '$lib/stores/data';
   import SubjectTile from '$lib/components/SubjectTile.svelte';
   import { db } from '$lib/db';
+  import { templatesRepo } from '$lib/data/entities';
+  import { newId } from '$lib/id';
   import { SUBJECT_COLOR_PALETTE } from '$lib/constants';
   import type { Subject, Template, SubjectPreset } from '$lib/types';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
@@ -92,7 +94,7 @@
   async function saveCurrentAsTemplate() {
     const name = prompt('Template name:');
     if (!name?.trim()) return;
-    const { userId, mode } = getAuthContext();
+    const { userId } = getAuthContext();
     const presets: SubjectPreset[] = $subjects.map(sub => ({
       name: sub.name,
       symbol: sub.symbol,
@@ -101,14 +103,13 @@
       topics: $topics.filter(t => t.subjectId === sub.id).map(t => t.name),
     }));
     const template: Template = {
-      id: db.newId(),
+      id: newId(),
       userId,
       name: name.trim(),
       presets,
       createdAt: new Date().toISOString(),
     };
-    templates.update(all => [...all, template]);
-    await db.saveTemplate(template, mode);
+    await templatesRepo.save(template);
   }
 
   async function doDeleteSubject() {
