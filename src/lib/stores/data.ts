@@ -1,13 +1,14 @@
-import { writable, derived, get } from 'svelte/store';
+import { derived, get } from 'svelte/store';
 import { db } from '$lib/db';
 import type { AuthState } from '$lib/stores/auth';
-import { auth } from '$lib/stores/auth';
 import {
   subjects, topics, srsCards, sessions, tasks, templates, scheduleSlots, scores,
 } from '$lib/data/stores';
+import { authCtx } from '$lib/data/authctx';
 
 // Re-export so existing `import { tasks } from '$lib/stores/data'` keeps working.
 export { subjects, topics, srsCards, sessions, tasks, templates, scheduleSlots, scores };
+export { authCtx, getAuthContext } from '$lib/data/authctx';
 
 export const todaysSessions = derived(sessions, ($s) => {
   const today = new Date().toISOString().split('T')[0];
@@ -47,14 +48,6 @@ export const tasksDueToday = derived(tasks, ($tasks) => {
   return $tasks.filter(t => !t.completedAt && t.dueDate && t.dueDate <= today);
 });
 
-export const authCtx = derived(auth, ($auth: AuthState) => {
-  if ($auth.mode === 'loading') return { userId: 'guest', mode: 'guest' as const };
-  return {
-    userId: $auth.mode === 'guest' ? 'guest' : ($auth.user?.id ?? ''),
-    mode: $auth.mode as 'guest' | 'authenticated',
-  };
-});
-
 export async function loadData(authState: AuthState): Promise<void> {
   if (authState.mode === 'loading') return;
   const userId = authState.mode === 'guest' ? 'guest' : (authState.user?.id ?? '');
@@ -86,8 +79,4 @@ export async function loadScheduleSlots(weekStart: Date, weekEnd: Date): Promise
     weekEnd.toISOString().substring(0, 19)
   );
   scheduleSlots.set(slots);
-}
-
-export function getAuthContext(): { userId: string; mode: 'guest' | 'authenticated' } {
-  return get(authCtx);
 }
