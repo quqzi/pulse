@@ -1,12 +1,12 @@
 import { get } from 'svelte/store';
-import type { Task, MockScore, Template, Subject, Topic, SrsCard } from '$lib/types';
-import { tasks, scores, templates, subjects, topics, srsCards } from '$lib/data/stores';
+import type { Task, MockScore, Template, Subject, Topic, SrsCard, StudySession } from '$lib/types';
+import { tasks, scores, templates, subjects, topics, srsCards, sessions } from '$lib/data/stores';
 import { repo } from '$lib/data/repository';
-import { writeThrough } from '$lib/data/engine';
-import { taskFromRow, taskToRow, scoreFromRow, scoreToRow, templateFromRow, templateToRow, subjectFromRow, subjectToRow, topicFromRow, topicToRow, cardFromRow, cardToRow } from '$lib/data/mappers';
+import { writeThrough, loadInto } from '$lib/data/engine';
+import { taskFromRow, taskToRow, scoreFromRow, scoreToRow, templateFromRow, templateToRow, subjectFromRow, subjectToRow, topicFromRow, topicToRow, cardFromRow, cardToRow, sessionFromRow, sessionToRow } from '$lib/data/mappers';
 import { getAuthContext } from '$lib/data/authctx';
 import { toast } from '$lib/stores/toast';
-import { lsWrite } from '$lib/data/ls';
+import { lsWrite, lsRead } from '$lib/data/ls';
 import { supabase } from '$lib/supabase';
 import { newId } from '$lib/id';
 import { defaultCard } from '$lib/srs';
@@ -213,6 +213,60 @@ export const srsRepo = {
         }
       },
       { onError: toast.error },
+    );
+  },
+};
+
+const sessionOrder = (a: StudySession, b: StudySession) => b.startedAt.localeCompare(a.startedAt);
+
+/** WS1.4 will raise this to 112 and share it with the heatmap. Behavior-preserving for now. */
+const SESSION_WINDOW_DAYS = 90;
+
+const sessionsBase = repo<StudySession>({
+  store: sessions,
+  lsKey: 'pulse.sessions',
+  table: 'study_sessions',
+  toRow: sessionToRow,
+  fromRow: sessionFromRow,
+  orderColumn: 'started_at',
+  ascending: false,
+  order: sessionOrder,
+});
+
+export const sessionsRepo = {
+  save: sessionsBase.save,     // UPSERT (analytics edit)
+  remove: sessionsBase.remove,
+
+  /** Windowed read: auth = last 90 days; guest = uncapped (preserves today's behavior). */
+  async load(): Promise<StudySession[]> {
+    const { userId, mode } = getAuthContext();
+    return loadInto(sessions, async () => {
+      if (mode === 'guest') return lsRead<StudySession>('pulse.sessions');
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - SESSION_WINDOW_DAYS);
+      const { data, error } = await supabase.from('study_sessions').select('*')
+        .eq('user_id', userId)
+        .gte('started_at', cutoff.toISOString())
+        .order('started_at', { ascending: false });
+      if (error) throw error;
+      return (data ?? []).map(sessionFromRow);
+    }, sessionOrder);
+  },
+
+  /** Newest-first INSERT (timer / dashboard quick-log). Distinct from save so a new row never UPSERTs over an edit. */
+  async log(s: StudySession): Promise<void> {
+    const { mode } = getAuthContext();
+    await writeThrough(
+      sessions,
+      (arr) => [s, ...arr],
+      async () => {
+        if (mode === 'guest') lsWrite('pulse.sessions', get(sessions));
+        else {
+          const { error } = await supabase.from('study_sessions').insert(sessionToRow(s));
+          if (error) throw error;
+        }
+      },
+      { order: sessionOrder, onError: toast.error },
     );
   },
 };

@@ -1,4 +1,4 @@
-import type { Task, MockScore, Template, SubjectPreset, Subject, Topic, SrsCard } from '$lib/types';
+import type { Task, MockScore, Template, SubjectPreset, Subject, Topic, SrsCard, StudySession } from '$lib/types';
 
 export const taskFromRow = (r: Record<string, unknown>): Task => ({
   id: r.id as string,
@@ -115,4 +115,26 @@ export const cardToRow = (c: SrsCard): Record<string, unknown> => ({
   interval_days: c.intervalDays,
   due_date: c.dueDate,
   reps: c.reps,
+});
+
+export const sessionFromRow = (r: Record<string, unknown>): StudySession => ({
+  id: r.id as string,
+  userId: r.user_id as string,
+  subjectId: r.subject_id as string,
+  topicId: (r.topic_id as string | null) ?? undefined,
+  startedAt: r.started_at as string,
+  endedAt: r.ended_at as string,
+  durationSec: r.duration_sec as number,
+  mode: r.mode as StudySession['mode'],
+});
+
+export const sessionToRow = (s: StudySession): Record<string, unknown> => ({
+  id: s.id,
+  user_id: s.userId,
+  subject_id: s.subjectId,
+  topic_id: s.topicId ?? null,
+  started_at: s.startedAt,
+  ended_at: s.endedAt,
+  duration_sec: s.durationSec,
+  mode: s.mode,
 });

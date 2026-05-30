@@ -1,11 +1,11 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { auth } from '$lib/stores/auth';
-  import { subjects, topics, srsCards, sessions, todayHours, streak, dueCards, loadData, getAuthContext } from '$lib/stores/data';
+  import { subjects, topics, srsCards, sessions, todayHours, streak, dueCards, loadData } from '$lib/stores/data';
   import { settings } from '$lib/stores/settings';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
   import StudyTrendChart from '$lib/components/analytics/StudyTrendChart.svelte';
-  import { db } from '$lib/db';
+  import { sessionsRepo } from '$lib/data/entities';
   import type { StudySession } from '$lib/types';
 
   function getWeekStart(date: Date): Date {
@@ -93,10 +93,8 @@
   async function saveEditSession() {
     const session = $sessions.find(s => s.id === editingSessionId);
     if (!session) { editingSessionId = null; return; }
-    const { mode } = getAuthContext();
     const updated: StudySession = { ...session, subjectId: editSessionSubjectId, durationSec: editSessionMinutes * 60 };
-    sessions.update(all => all.map(s => s.id === session.id ? updated : s));
-    await db.saveSession(updated, mode);
+    await sessionsRepo.save(updated);
     editingSessionId = null;
   }
   function promptDeleteSession(session: StudySession) {
@@ -105,9 +103,7 @@
   }
   async function doDeleteSession() {
     if (!pendingDeleteSession) return;
-    const { mode } = getAuthContext();
-    await db.deleteSession(pendingDeleteSession.id, mode);
-    sessions.update(all => all.filter(s => s.id !== pendingDeleteSession!.id));
+    await sessionsRepo.remove(pendingDeleteSession.id);
     pendingDeleteSession = null;
   }
 </script>

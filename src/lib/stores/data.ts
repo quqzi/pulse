@@ -5,7 +5,7 @@ import {
   subjects, topics, srsCards, sessions, tasks, templates, scheduleSlots, scores,
 } from '$lib/data/stores';
 import { authCtx } from '$lib/data/authctx';
-import { tasksRepo, scoresRepo, templatesRepo, subjectsRepo, topicsRepo, srsRepo } from '$lib/data/entities';
+import { tasksRepo, scoresRepo, templatesRepo, subjectsRepo, topicsRepo, srsRepo, sessionsRepo } from '$lib/data/entities';
 
 // Re-export so existing `import { tasks } from '$lib/stores/data'` keeps working.
 export { subjects, topics, srsCards, sessions, tasks, templates, scheduleSlots, scores };
@@ -51,16 +51,13 @@ export const tasksDueToday = derived(tasks, ($tasks) => {
 
 export async function loadData(authState: AuthState): Promise<void> {
   if (authState.mode === 'loading') return;
-  const userId = authState.mode === 'guest' ? 'guest' : (authState.user?.id ?? '');
-  const mode = authState.mode;
-
   await Promise.all([
     tasksRepo.load(),
     scoresRepo.load(),
     subjectsRepo.load(),
     topicsRepo.load(),
     srsRepo.load(),
-    db.getSessions(userId, mode).then(v => sessions.set(v)),
+    sessionsRepo.load(),
     templatesRepo.load(),
   ]);
 }
