@@ -1,17 +1,13 @@
 import { writable, derived, get } from 'svelte/store';
 import { db } from '$lib/db';
-import type { Subject, Topic, SrsCard, StudySession, Task, Template, ScheduleSlot, MockScore } from '$lib/types';
 import type { AuthState } from '$lib/stores/auth';
 import { auth } from '$lib/stores/auth';
+import {
+  subjects, topics, srsCards, sessions, tasks, templates, scheduleSlots, scores,
+} from '$lib/data/stores';
 
-export const subjects = writable<Subject[]>([]);
-export const topics = writable<Topic[]>([]);
-export const srsCards = writable<SrsCard[]>([]);
-export const sessions = writable<StudySession[]>([]);
-export const tasks = writable<Task[]>([]);
-export const templates = writable<Template[]>([]);
-export const scheduleSlots = writable<ScheduleSlot[]>([]);
-export const scores = writable<MockScore[]>([]);
+// Re-export so existing `import { tasks } from '$lib/stores/data'` keeps working.
+export { subjects, topics, srsCards, sessions, tasks, templates, scheduleSlots, scores };
 
 export const todaysSessions = derived(sessions, ($s) => {
   const today = new Date().toISOString().split('T')[0];
