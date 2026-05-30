@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { writable, get } from 'svelte/store';
-import { createRepository } from '$lib/data/engine';
+import { createRepository, loadInto, writeThrough } from '$lib/data/engine';
 import { mockAdapter, type MockAdapter } from '$lib/data/adapters/mock';
 
 type Row = { id: string; n: number };
@@ -79,5 +79,41 @@ describe('createRepository', () => {
     mode = 'authenticated';
     await repo.load();
     expect(get(store).map((r) => r.id)).toEqual(['u']);
+  });
+});
+
+describe('loadInto', () => {
+  it('sets the store (sorted) and returns items on success', async () => {
+    const store = writable<{ id: string; n: number }[]>([]);
+    const out = await loadInto(store, async () => [{ id: 'b', n: 2 }, { id: 'a', n: 1 }], (x, y) => x.n - y.n);
+    expect(out.map(i => i.id)).toEqual(['b', 'a']); // returns raw fetch order
+    expect(get(store).map(i => i.id)).toEqual(['a', 'b']); // store is sorted
+  });
+
+  it('leaves the store unchanged and returns current value when fetch throws', async () => {
+    const store = writable([{ id: 'x', n: 9 }]);
+    const out = await loadInto(store, async () => { throw new Error('boom'); });
+    expect(out).toEqual([{ id: 'x', n: 9 }]);
+    expect(get(store)).toEqual([{ id: 'x', n: 9 }]);
+  });
+});
+
+describe('writeThrough', () => {
+  it('applies the optimistic update (sorted) and persists on success', async () => {
+    const store = writable<{ id: string; n: number }[]>([{ id: 'a', n: 1 }]);
+    let persisted = false;
+    await writeThrough(store, arr => [...arr, { id: 'b', n: 0 }], async () => { persisted = true; },
+      { order: (x, y) => x.n - y.n, onError: () => {} });
+    expect(persisted).toBe(true);
+    expect(get(store).map(i => i.id)).toEqual(['b', 'a']);
+  });
+
+  it('rolls back to the snapshot and calls onError when persist throws', async () => {
+    const store = writable([{ id: 'a', n: 1 }]);
+    let msg = '';
+    await writeThrough(store, arr => [...arr, { id: 'b', n: 2 }], async () => { throw new Error('no'); },
+      { onError: m => { msg = m; } });
+    expect(get(store)).toEqual([{ id: 'a', n: 1 }]); // rolled back
+    expect(msg).toBe("Couldn't save — try again");
   });
 });
