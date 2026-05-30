@@ -499,7 +499,6 @@ All tables have RLS enabled. Policy: `auth.uid() = user_id`.
 
 ### Open (ready to implement)
 
-- `docs/superpowers/plans/2026-05-29-ws1.3a-repo-wiring-tasks-pilot.md` — WS1.3a: data-layer restructure (`data/stores.ts`, `data/authctx.ts`), Supabase adapter, `repo()` wiring, tasks entity migrated as pilot (needs browser verify)
 - `docs/superpowers/plans/2026-05-28-exam-simulation.md` — Exam Simulation (readiness score card, question bank, mock exam with timer modes)
 
 ### Planned (spec'd, plan not yet written)
@@ -513,6 +512,7 @@ All tables have RLS enabled. Policy: `auth.uid() = user_id`.
 
 - `docs/superpowers/plans/2026-05-29-ws1.1-test-harness-characterization.md` — WS1.1: Vitest harness + srs/scheduler characterization tests (PR #1)
 - `docs/superpowers/plans/2026-05-29-ws1.2-repository-engine.md` — WS1.2: repository engine + local/mock adapters + toast + `id` helper (PR #1)
+- `docs/superpowers/plans/2026-05-29-ws1.3a-repo-wiring-tasks-pilot.md` — WS1.3a: data-layer restructure (`data/stores.ts`, `data/authctx.ts`), Supabase adapter, `repo()` wiring, tasks migrated as pilot (write-through + rollback browser-verified; pending PR)
 - `docs/superpowers/plans/2026-05-26-templates-with-topics.md` — Templates with topic presets
 - `docs/superpowers/plans/2026-05-26-google-oauth.md` — Google OAuth login (implicit flow; PKCE upgrade pending @supabase/ssr migration)
 - `docs/superpowers/plans/2026-05-28-stronger-base-design.md` — Token system, ESLint/Stylelint, component decomposition, authCtx derived store, Playwright smoke tests
