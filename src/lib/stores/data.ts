@@ -5,7 +5,7 @@ import {
   subjects, topics, srsCards, sessions, tasks, templates, scheduleSlots, scores,
 } from '$lib/data/stores';
 import { authCtx } from '$lib/data/authctx';
-import { tasksRepo } from '$lib/data/entities';
+import { tasksRepo, scoresRepo } from '$lib/data/entities';
 
 // Re-export so existing `import { tasks } from '$lib/stores/data'` keeps working.
 export { subjects, topics, srsCards, sessions, tasks, templates, scheduleSlots, scores };
@@ -54,21 +54,15 @@ export async function loadData(authState: AuthState): Promise<void> {
   const userId = authState.mode === 'guest' ? 'guest' : (authState.user?.id ?? '');
   const mode = authState.mode;
 
-  const [s, t, c, sess, tmpl, sc] = await Promise.all([
-    db.getSubjects(userId, mode),
-    db.getTopics(userId, mode),
-    db.getSrsCards(userId, mode),
-    db.getSessions(userId, mode),
-    db.getTemplates(userId, mode),
-    db.getScores(userId, mode),
-    tasksRepo.load(), // sets the tasks store via write-through
+  await Promise.all([
+    tasksRepo.load(),
+    scoresRepo.load(),
+    db.getSubjects(userId, mode).then(v => subjects.set(v)),
+    db.getTopics(userId, mode).then(v => topics.set(v)),
+    db.getSrsCards(userId, mode).then(v => srsCards.set(v)),
+    db.getSessions(userId, mode).then(v => sessions.set(v)),
+    db.getTemplates(userId, mode).then(v => templates.set(v)),
   ]);
-  subjects.set(s);
-  topics.set(t);
-  srsCards.set(c);
-  sessions.set(sess);
-  templates.set(tmpl);
-  scores.set(sc);
 }
 
 export async function loadScheduleSlots(weekStart: Date, weekEnd: Date): Promise<void> {
