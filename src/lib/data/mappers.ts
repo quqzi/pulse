@@ -1,4 +1,4 @@
-import type { Task, MockScore, Template, SubjectPreset } from '$lib/types';
+import type { Task, MockScore, Template, SubjectPreset, Subject } from '$lib/types';
 
 export const taskFromRow = (r: Record<string, unknown>): Task => ({
   id: r.id as string,
@@ -58,4 +58,26 @@ export const templateToRow = (t: Template): Record<string, unknown> => ({
   name: t.name,
   presets: t.presets,
   created_at: t.createdAt,
+});
+
+export const subjectFromRow = (r: Record<string, unknown>): Subject => ({
+  id: r.id as string,
+  userId: r.user_id as string,
+  name: r.name as string,
+  symbol: r.symbol as string,
+  color: r.color as string,
+  colorRgb: r.color_rgb as string,
+  orderIndex: r.order_index as number,
+  targetScore: (r.target_score as number | null) ?? undefined,
+});
+
+export const subjectToRow = (s: Subject): Record<string, unknown> => ({
+  id: s.id,
+  user_id: s.userId,
+  name: s.name,
+  symbol: s.symbol,
+  color: s.color,
+  color_rgb: s.colorRgb,
+  order_index: s.orderIndex,
+  target_score: s.targetScore ?? null,
 });

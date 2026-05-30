@@ -6,6 +6,8 @@
   import { subjects, topics, srsCards, templates, loadData, getAuthContext } from '$lib/stores/data';
   import { BUILTIN_TEMPLATES } from '$lib/constants';
   import { db } from '$lib/db';
+  import { newId } from '$lib/id';
+  import { subjectsRepo } from '$lib/data/entities';
   import type { Subject, Topic } from '$lib/types';
 
   onMount(() => loadData($auth));
@@ -43,7 +45,7 @@
     const toAdd = template.presets.filter(p => checked.has(p.name) && !existingNames.has(p.name.toLowerCase()));
 
     const newSubjects: Subject[] = toAdd.map((p, i) => ({
-      id: db.newId(),
+      id: newId(),
       userId,
       name: p.name,
       symbol: p.symbol,
@@ -51,8 +53,7 @@
       colorRgb: p.colorRgb,
       orderIndex: maxOrder + 1 + i,
     }));
-    subjects.update(all => [...all, ...newSubjects]);
-    await Promise.all(newSubjects.map(s => db.saveSubject(s, mode)));
+    await Promise.all(newSubjects.map(s => subjectsRepo.save(s)));
 
     for (let i = 0; i < toAdd.length; i++) {
       const preset = toAdd[i];

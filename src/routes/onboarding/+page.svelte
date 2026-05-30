@@ -4,7 +4,8 @@
   import { settings } from '$lib/stores/settings';
   import { auth } from '$lib/stores/auth';
   import { BUILTIN_TEMPLATES } from '$lib/constants';
-  import { db } from '$lib/db';
+  import { newId } from '$lib/id';
+  import { subjectsRepo } from '$lib/data/entities';
   import type { Subject, Template } from '$lib/types';
 
   let step = 0;
@@ -42,7 +43,7 @@
     const mode: 'guest' | 'authenticated' = isAuth ? 'authenticated' : 'guest';
 
     const subjectRecords: Subject[] = selectedPresets.map((p, i) => ({
-      id: db.newId(),
+      id: newId(),
       userId,
       name: p.name,
       symbol: p.symbol,
@@ -53,10 +54,10 @@
     }));
 
     if (mode === 'guest') {
-      localStorage.setItem('pulse_subjects', JSON.stringify(subjectRecords));
+      localStorage.setItem('pulse.subjects', JSON.stringify(subjectRecords));
     } else {
       try {
-        await Promise.all(subjectRecords.map(s => db.saveSubject(s, 'authenticated')));
+        await Promise.all(subjectRecords.map(s => subjectsRepo.save(s)));
       } catch {
         saveError = 'Failed to save your subjects. Please try again.';
         return;
