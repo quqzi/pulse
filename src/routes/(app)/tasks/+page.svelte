@@ -2,7 +2,8 @@
   import { onMount } from 'svelte';
   import { auth } from '$lib/stores/auth';
   import { tasks, subjects, loadData, getAuthContext } from '$lib/stores/data';
-  import { db } from '$lib/db';
+  import { tasksRepo } from '$lib/data/entities';
+  import { newId } from '$lib/id';
   import type { Task } from '$lib/types';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
   import TaskForm from '$lib/components/tasks/TaskForm.svelte';
@@ -38,9 +39,9 @@
   $: if ($auth.mode !== 'loading') loadData($auth);
 
   async function handleAdd(e: CustomEvent<{ title: string; priority: Task['priority']; dueDate: string; subjectId: string }>) {
-    const { userId, mode } = getAuthContext();
+    const { userId } = getAuthContext();
     const task: Task = {
-      id: db.newId(),
+      id: newId(),
       userId,
       subjectId: e.detail.subjectId || undefined,
       title: e.detail.title,
@@ -49,19 +50,16 @@
       completedAt: undefined,
       createdAt: new Date().toISOString(),
     };
-    tasks.update(all => [task, ...all]);
-    await db.saveTask(task, mode);
+    await tasksRepo.save(task);
     adding = false;
   }
 
   async function toggleComplete(task: Task) {
-    const { mode } = getAuthContext();
     const updated: Task = {
       ...task,
       completedAt: task.completedAt ? undefined : new Date().toISOString(),
     };
-    tasks.update(all => all.map(t => t.id === task.id ? updated : t));
-    await db.saveTask(updated, mode);
+    await tasksRepo.save(updated);
   }
 
   let taskConfirmOpen = false;
@@ -82,8 +80,7 @@
     undoTimer = setTimeout(async () => {
       undoTask = null;
       undoTimer = null;
-      const { mode } = getAuthContext();
-      await db.deleteTask(task.id, mode);
+      await tasksRepo.remove(task.id);
     }, 4000);
   }
 
@@ -100,10 +97,8 @@
   }
 
   async function saveTask(e: CustomEvent<Task>) {
-    const { mode } = getAuthContext();
     const updated = e.detail;
-    tasks.update(all => all.map(t => t.id === updated.id ? updated : t));
-    await db.saveTask(updated, mode);
+    await tasksRepo.save(updated);
   }
 </script>
 
