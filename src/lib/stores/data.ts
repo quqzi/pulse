@@ -1,11 +1,9 @@
-import { derived, get } from 'svelte/store';
-import { db } from '$lib/db';
+import { derived } from 'svelte/store';
 import type { AuthState } from '$lib/stores/auth';
 import {
   subjects, topics, srsCards, sessions, tasks, templates, scheduleSlots, scores,
 } from '$lib/data/stores';
-import { authCtx } from '$lib/data/authctx';
-import { tasksRepo, scoresRepo, templatesRepo, subjectsRepo, topicsRepo, srsRepo, sessionsRepo } from '$lib/data/entities';
+import { tasksRepo, scoresRepo, templatesRepo, subjectsRepo, topicsRepo, srsRepo, sessionsRepo, scheduleRepo } from '$lib/data/entities';
 
 // Re-export so existing `import { tasks } from '$lib/stores/data'` keeps working.
 export { subjects, topics, srsCards, sessions, tasks, templates, scheduleSlots, scores };
@@ -63,11 +61,8 @@ export async function loadData(authState: AuthState): Promise<void> {
 }
 
 export async function loadScheduleSlots(weekStart: Date, weekEnd: Date): Promise<void> {
-  const { userId, mode } = get(authCtx);
-  const slots = await db.getScheduleSlots(
-    userId, mode,
+  await scheduleRepo.loadWeek(
     weekStart.toISOString().substring(0, 19),
-    weekEnd.toISOString().substring(0, 19)
+    weekEnd.toISOString().substring(0, 19),
   );
-  scheduleSlots.set(slots);
 }

@@ -1,4 +1,4 @@
-import type { Task, MockScore, Template, SubjectPreset, Subject, Topic, SrsCard, StudySession } from '$lib/types';
+import type { Task, MockScore, Template, SubjectPreset, Subject, Topic, SrsCard, StudySession, ScheduleSlot } from '$lib/types';
 
 export const taskFromRow = (r: Record<string, unknown>): Task => ({
   id: r.id as string,
@@ -137,4 +137,38 @@ export const sessionToRow = (s: StudySession): Record<string, unknown> => ({
   ended_at: s.endedAt,
   duration_sec: s.durationSec,
   mode: s.mode,
+});
+
+const toLocal = (s: string) => s.replace(/\+.*$|Z$/, '').replace(' ', 'T').substring(0, 19);
+
+export const slotFromRow = (r: Record<string, unknown>): ScheduleSlot => ({
+  id: r.id as string,
+  userId: r.user_id as string,
+  subjectId: (r.subject_id as string | null) ?? undefined,
+  topicId: (r.topic_id as string | null) ?? undefined,
+  startTime: toLocal(r.start_time as string),
+  endTime: toLocal(r.end_time as string),
+  isAiSuggested: r.is_ai_suggested as boolean,
+  isConfirmed: r.is_confirmed as boolean,
+  isFocusBlock: r.is_focus_block as boolean,
+  isRecurring: r.is_recurring as boolean,
+  recurrenceDays: (r.recurrence_days as number[]) ?? [],
+  recurrenceEndDate: (r.recurrence_end as string | null) ?? undefined,
+  createdAt: r.created_at as string,
+});
+
+export const slotToRow = (s: ScheduleSlot): Record<string, unknown> => ({
+  id: s.id,
+  user_id: s.userId,
+  subject_id: s.subjectId ?? null,
+  topic_id: s.topicId ?? null,
+  start_time: s.startTime,
+  end_time: s.endTime,
+  is_ai_suggested: s.isAiSuggested,
+  is_confirmed: s.isConfirmed,
+  is_focus_block: s.isFocusBlock,
+  is_recurring: s.isRecurring,
+  recurrence_days: s.recurrenceDays,
+  recurrence_end: s.recurrenceEndDate ?? null,
+  created_at: s.createdAt,
 });

@@ -1,9 +1,9 @@
 import { get } from 'svelte/store';
-import type { Task, MockScore, Template, Subject, Topic, SrsCard, StudySession } from '$lib/types';
-import { tasks, scores, templates, subjects, topics, srsCards, sessions } from '$lib/data/stores';
+import type { Task, MockScore, Template, Subject, Topic, SrsCard, StudySession, ScheduleSlot } from '$lib/types';
+import { tasks, scores, templates, subjects, topics, srsCards, sessions, scheduleSlots } from '$lib/data/stores';
 import { repo } from '$lib/data/repository';
 import { writeThrough, loadInto } from '$lib/data/engine';
-import { taskFromRow, taskToRow, scoreFromRow, scoreToRow, templateFromRow, templateToRow, subjectFromRow, subjectToRow, topicFromRow, topicToRow, cardFromRow, cardToRow, sessionFromRow, sessionToRow } from '$lib/data/mappers';
+import { taskFromRow, taskToRow, scoreFromRow, scoreToRow, templateFromRow, templateToRow, subjectFromRow, subjectToRow, topicFromRow, topicToRow, cardFromRow, cardToRow, sessionFromRow, sessionToRow, slotFromRow, slotToRow } from '$lib/data/mappers';
 import { getAuthContext } from '$lib/data/authctx';
 import { toast } from '$lib/stores/toast';
 import { lsWrite, lsRead } from '$lib/data/ls';
@@ -267,6 +267,63 @@ export const sessionsRepo = {
         }
       },
       { order: sessionOrder, onError: toast.error },
+    );
+  },
+};
+
+const slotOrder = (a: ScheduleSlot, b: ScheduleSlot) => a.startTime.localeCompare(b.startTime);
+
+const scheduleBase = repo<ScheduleSlot>({
+  store: scheduleSlots,
+  lsKey: 'pulse.scheduleSlots',
+  table: 'schedule_slots',
+  toRow: slotToRow,
+  fromRow: slotFromRow,
+  order: slotOrder,
+});
+
+export const scheduleRepo = {
+  save: scheduleBase.save,
+  remove: scheduleBase.remove,
+
+  /** Windowed read for the viewed week. Lives outside loadData (called reactively per week). */
+  async loadWeek(weekStart: string, weekEnd: string): Promise<ScheduleSlot[]> {
+    const { userId, mode } = getAuthContext();
+    return loadInto(scheduleSlots, async () => {
+      if (mode === 'guest') {
+        return lsRead<ScheduleSlot>('pulse.scheduleSlots').filter(s => s.startTime >= weekStart && s.startTime < weekEnd);
+      }
+      const { data, error } = await supabase.from('schedule_slots').select('*')
+        .eq('user_id', userId)
+        .gte('start_time', weekStart)
+        .lt('start_time', weekEnd)
+        .order('start_time');
+      if (error) throw error;
+      return (data ?? []).map(slotFromRow);
+    }, slotOrder);
+  },
+
+  /** Bulk confirm: flip isConfirmed=true / isAiSuggested=false for the given slots, persist all, one store update. */
+  async confirmAll(slots: ScheduleSlot[]): Promise<void> {
+    const { mode } = getAuthContext();
+    const ids = new Set(slots.map(s => s.id));
+    await writeThrough(
+      scheduleSlots,
+      (arr) => arr.map(s => (ids.has(s.id) ? { ...s, isConfirmed: true, isAiSuggested: false } : s)),
+      async () => {
+        if (mode === 'guest') {
+          // The store holds only the viewed week, but the localStorage key holds ALL weeks —
+          // read the full set, transform by id, write the full set back (never lsWrite(get(store)) here).
+          const all = lsRead<ScheduleSlot>('pulse.scheduleSlots')
+            .map(s => (ids.has(s.id) ? { ...s, isConfirmed: true, isAiSuggested: false } : s));
+          lsWrite('pulse.scheduleSlots', all);
+        } else {
+          const rows = slots.map(s => slotToRow({ ...s, isConfirmed: true, isAiSuggested: false }));
+          const { error } = await supabase.from('schedule_slots').upsert(rows);
+          if (error) throw error;
+        }
+      },
+      { order: slotOrder, onError: toast.error },
     );
   },
 };
