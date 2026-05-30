@@ -1,17 +1,15 @@
-import { writable, derived, get } from 'svelte/store';
+import { derived, get } from 'svelte/store';
 import { db } from '$lib/db';
-import type { Subject, Topic, SrsCard, StudySession, Task, Template, ScheduleSlot, MockScore } from '$lib/types';
 import type { AuthState } from '$lib/stores/auth';
-import { auth } from '$lib/stores/auth';
+import {
+  subjects, topics, srsCards, sessions, tasks, templates, scheduleSlots, scores,
+} from '$lib/data/stores';
+import { authCtx } from '$lib/data/authctx';
+import { tasksRepo } from '$lib/data/entities';
 
-export const subjects = writable<Subject[]>([]);
-export const topics = writable<Topic[]>([]);
-export const srsCards = writable<SrsCard[]>([]);
-export const sessions = writable<StudySession[]>([]);
-export const tasks = writable<Task[]>([]);
-export const templates = writable<Template[]>([]);
-export const scheduleSlots = writable<ScheduleSlot[]>([]);
-export const scores = writable<MockScore[]>([]);
+// Re-export so existing `import { tasks } from '$lib/stores/data'` keeps working.
+export { subjects, topics, srsCards, sessions, tasks, templates, scheduleSlots, scores };
+export { authCtx, getAuthContext } from '$lib/data/authctx';
 
 export const todaysSessions = derived(sessions, ($s) => {
   const today = new Date().toISOString().split('T')[0];
@@ -51,33 +49,24 @@ export const tasksDueToday = derived(tasks, ($tasks) => {
   return $tasks.filter(t => !t.completedAt && t.dueDate && t.dueDate <= today);
 });
 
-export const authCtx = derived(auth, ($auth: AuthState) => {
-  if ($auth.mode === 'loading') return { userId: 'guest', mode: 'guest' as const };
-  return {
-    userId: $auth.mode === 'guest' ? 'guest' : ($auth.user?.id ?? ''),
-    mode: $auth.mode as 'guest' | 'authenticated',
-  };
-});
-
 export async function loadData(authState: AuthState): Promise<void> {
   if (authState.mode === 'loading') return;
   const userId = authState.mode === 'guest' ? 'guest' : (authState.user?.id ?? '');
   const mode = authState.mode;
 
-  const [s, t, c, sess, tsk, tmpl, sc] = await Promise.all([
+  const [s, t, c, sess, tmpl, sc] = await Promise.all([
     db.getSubjects(userId, mode),
     db.getTopics(userId, mode),
     db.getSrsCards(userId, mode),
     db.getSessions(userId, mode),
-    db.getTasks(userId, mode),
     db.getTemplates(userId, mode),
     db.getScores(userId, mode),
+    tasksRepo.load(), // sets the tasks store via write-through
   ]);
   subjects.set(s);
   topics.set(t);
   srsCards.set(c);
   sessions.set(sess);
-  tasks.set(tsk);
   templates.set(tmpl);
   scores.set(sc);
 }
@@ -90,8 +79,4 @@ export async function loadScheduleSlots(weekStart: Date, weekEnd: Date): Promise
     weekEnd.toISOString().substring(0, 19)
   );
   scheduleSlots.set(slots);
-}
-
-export function getAuthContext(): { userId: string; mode: 'guest' | 'authenticated' } {
-  return get(authCtx);
 }

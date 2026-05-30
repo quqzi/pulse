@@ -6,7 +6,7 @@
   import {
     subjects, topics, srsCards, sessions,
     dueCards, todayHours, streak, loadData, getAuthContext,
-    tasks, tasksDueToday,
+    tasksDueToday,
   } from '$lib/stores/data';
   import { setTimerSubject } from '$lib/stores/timer';
   import { cardTilt } from '$lib/effects';
@@ -15,6 +15,7 @@
   import TodaysPlan from '$lib/components/TodaysPlan.svelte';
   import QuickLog from '$lib/components/QuickLog.svelte';
   import { db } from '$lib/db';
+  import { tasksRepo } from '$lib/data/entities';
 
   $: name = $auth.name;
   $: greeting = getGreeting();
@@ -123,10 +124,8 @@
         {#each $tasksDueToday.slice(0, 5) as task (task.id)}
           <div class="task-row">
             <button class="dash-check" on:click={async () => {
-              const { mode } = getAuthContext();
               const updated = { ...task, completedAt: new Date().toISOString() };
-              tasks.update(all => all.map(t => t.id === task.id ? updated : t));
-              await db.saveTask(updated, mode);
+              await tasksRepo.save(updated);
             }} aria-label="Complete task">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <circle cx="8" cy="8" r="7" stroke="var(--border)" stroke-width="1.5"/>
