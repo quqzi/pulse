@@ -1,12 +1,15 @@
 import { get } from 'svelte/store';
-import type { Task, MockScore, Template, Subject } from '$lib/types';
+import type { Task, MockScore, Template, Subject, Topic, SrsCard } from '$lib/types';
 import { tasks, scores, templates, subjects, topics, srsCards } from '$lib/data/stores';
 import { repo } from '$lib/data/repository';
-import { taskFromRow, taskToRow, scoreFromRow, scoreToRow, templateFromRow, templateToRow, subjectFromRow, subjectToRow } from '$lib/data/mappers';
+import { writeThrough } from '$lib/data/engine';
+import { taskFromRow, taskToRow, scoreFromRow, scoreToRow, templateFromRow, templateToRow, subjectFromRow, subjectToRow, topicFromRow, topicToRow, cardFromRow, cardToRow } from '$lib/data/mappers';
 import { getAuthContext } from '$lib/data/authctx';
 import { toast } from '$lib/stores/toast';
 import { lsWrite } from '$lib/data/ls';
 import { supabase } from '$lib/supabase';
+import { newId } from '$lib/id';
+import { defaultCard } from '$lib/srs';
 
 export const tasksRepo = repo<Task>({
   store: tasks,
@@ -86,5 +89,130 @@ export const subjectsRepo = {
       srsCards.set(snapCard);
       toast.error("Couldn't delete — try again");
     }
+  },
+};
+
+// Cascade / multi-store methods below use an explicit inline snapshot/rollback pattern by design —
+// writeThrough() covers only a single store and cannot atomically roll back multiple stores.
+
+const topicOrder = (a: Topic, b: Topic) => a.orderIndex - b.orderIndex;
+
+const topicsBase = repo<Topic>({
+  store: topics,
+  lsKey: 'pulse.topics',
+  table: 'topics',
+  toRow: topicToRow,
+  fromRow: topicFromRow,
+  orderColumn: 'order_index',
+  ascending: true,
+  order: topicOrder,
+});
+
+export const topicsRepo = {
+  load: topicsBase.load,
+
+  /** Topic edit (name/order). Injects user_id (required NOT NULL) from authCtx for the auth UPSERT. */
+  async save(topic: Topic): Promise<void> {
+    const { userId, mode } = getAuthContext();
+    await writeThrough(
+      topics,
+      (arr) => arr.map(t => (t.id === topic.id ? topic : t)),
+      async () => {
+        if (mode === 'guest') lsWrite('pulse.topics', get(topics));
+        else {
+          const { error } = await supabase.from('topics').upsert({ ...topicToRow(topic), user_id: userId });
+          if (error) throw error;
+        }
+      },
+      { order: topicOrder, onError: toast.error },
+    );
+  },
+
+  /** Add a topic and ensure exactly one SRS card for it. Returns the card. Idempotent on the card. */
+  async create(topic: Topic): Promise<SrsCard> {
+    const { userId, mode } = getAuthContext();
+    const existing = get(srsCards).find(c => c.topicId === topic.id);
+    const card: SrsCard = existing ?? { id: newId(), topicId: topic.id, userId, ...defaultCard() };
+
+    const snapTop = get(topics);
+    const snapCard = get(srsCards);
+    topics.set([...snapTop.filter(t => t.id !== topic.id), topic].sort(topicOrder));
+    if (!existing) srsCards.set([...snapCard, card]);
+
+    try {
+      if (mode === 'guest') {
+        lsWrite('pulse.topics', get(topics));
+        if (!existing) lsWrite('pulse.srsCards', get(srsCards));
+      } else {
+        const { error: te } = await supabase.from('topics').upsert({ ...topicToRow(topic), user_id: userId });
+        if (te) throw te;
+        if (!existing) {
+          const { error: ce } = await supabase.from('srs_cards').upsert(cardToRow(card));
+          if (ce) throw ce;
+        }
+      }
+    } catch {
+      topics.set(snapTop);
+      srsCards.set(snapCard);
+      toast.error("Couldn't save — try again");
+    }
+    return card;
+  },
+
+  /** Delete a topic and its card. Guest purges localStorage; auth relies on the srs_cards FK cascade. */
+  async removeCascade(id: string): Promise<void> {
+    const { mode } = getAuthContext();
+    const snapTop = get(topics);
+    const snapCard = get(srsCards);
+    topics.set(snapTop.filter(t => t.id !== id));
+    srsCards.set(snapCard.filter(c => c.topicId !== id));
+    try {
+      if (mode === 'guest') {
+        lsWrite('pulse.topics', get(topics));
+        lsWrite('pulse.srsCards', get(srsCards));
+      } else {
+        const { error } = await supabase.from('topics').delete().eq('id', id);
+        if (error) throw error;
+      }
+    } catch {
+      topics.set(snapTop);
+      srsCards.set(snapCard);
+      toast.error("Couldn't delete — try again");
+    }
+  },
+};
+
+const srsBase = repo<SrsCard>({
+  store: srsCards,
+  lsKey: 'pulse.srsCards',
+  table: 'srs_cards',
+  toRow: cardToRow,
+  fromRow: cardFromRow,
+});
+
+export const srsRepo = {
+  load: srsBase.load,
+
+  /** Update-only (never inserts); sets updated_at. SM-2 writes go here, not generic save. */
+  async update(card: SrsCard): Promise<void> {
+    const { mode } = getAuthContext();
+    await writeThrough(
+      srsCards,
+      (arr) => arr.map(c => (c.id === card.id ? card : c)),
+      async () => {
+        if (mode === 'guest') lsWrite('pulse.srsCards', get(srsCards));
+        else {
+          const { error } = await supabase.from('srs_cards').update({
+            ease: card.ease,
+            interval_days: card.intervalDays,
+            due_date: card.dueDate,
+            reps: card.reps,
+            updated_at: new Date().toISOString(),
+          }).eq('id', card.id);
+          if (error) throw error;
+        }
+      },
+      { onError: toast.error },
+    );
   },
 };

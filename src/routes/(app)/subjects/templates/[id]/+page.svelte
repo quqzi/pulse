@@ -3,11 +3,10 @@
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import { auth } from '$lib/stores/auth';
-  import { subjects, topics, srsCards, templates, loadData, getAuthContext } from '$lib/stores/data';
+  import { subjects, templates, loadData, getAuthContext } from '$lib/stores/data';
   import { BUILTIN_TEMPLATES } from '$lib/constants';
-  import { db } from '$lib/db';
   import { newId } from '$lib/id';
-  import { subjectsRepo } from '$lib/data/entities';
+  import { subjectsRepo, topicsRepo } from '$lib/data/entities';
   import type { Subject, Topic } from '$lib/types';
 
   onMount(() => loadData($auth));
@@ -40,7 +39,7 @@
 
   async function addSelected() {
     if (!template || selectedCount === 0) return;
-    const { userId, mode } = getAuthContext();
+    const { userId } = getAuthContext();
     const maxOrder = $subjects.reduce((m, s) => Math.max(m, s.orderIndex), -1);
     const toAdd = template.presets.filter(p => checked.has(p.name) && !existingNames.has(p.name.toLowerCase()));
 
@@ -60,14 +59,12 @@
       const subject = newSubjects[i];
       for (const topicName of preset.topics ?? []) {
         const topic: Topic = {
-          id: db.newId(),
+          id: newId(),
           subjectId: subject.id,
           name: topicName,
           orderIndex: 0,
         };
-        topics.update(all => [...all, topic]);
-        const card = await db.saveTopic(topic, userId, mode);
-        srsCards.update(all => [...all, card]);
+        await topicsRepo.create(topic);
       }
     }
 

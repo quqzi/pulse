@@ -1,4 +1,4 @@
-import type { Task, MockScore, Template, SubjectPreset, Subject } from '$lib/types';
+import type { Task, MockScore, Template, SubjectPreset, Subject, Topic, SrsCard } from '$lib/types';
 
 export const taskFromRow = (r: Record<string, unknown>): Task => ({
   id: r.id as string,
@@ -80,4 +80,39 @@ export const subjectToRow = (s: Subject): Record<string, unknown> => ({
   color_rgb: s.colorRgb,
   order_index: s.orderIndex,
   target_score: s.targetScore ?? null,
+});
+
+export const topicFromRow = (r: Record<string, unknown>): Topic => ({
+  id: r.id as string,
+  subjectId: r.subject_id as string,
+  name: r.name as string,
+  orderIndex: r.order_index as number,
+});
+
+export const topicToRow = (t: Topic): Record<string, unknown> => ({
+  id: t.id,
+  subject_id: t.subjectId,
+  // user_id is injected by topicsRepo.save/create (Topic has no userId field; guest rows never carry it).
+  name: t.name,
+  order_index: t.orderIndex,
+});
+
+export const cardFromRow = (r: Record<string, unknown>): SrsCard => ({
+  id: r.id as string,
+  topicId: r.topic_id as string,
+  userId: r.user_id as string,
+  ease: r.ease as number,
+  intervalDays: r.interval_days as number,
+  dueDate: (r.due_date as string).split('T')[0],
+  reps: r.reps as number,
+});
+
+export const cardToRow = (c: SrsCard): Record<string, unknown> => ({
+  id: c.id,
+  topic_id: c.topicId,
+  user_id: c.userId,
+  ease: c.ease,
+  interval_days: c.intervalDays,
+  due_date: c.dueDate,
+  reps: c.reps,
 });
