@@ -62,6 +62,7 @@
     const suggested = generateSchedule({
       weekStart: viewedWeekStart,
       subjects: $subjects,
+      topics: $topics,
       sessions: $sessions,
       srsCards: $srsCards,
       tasks: $tasks,

@@ -30,6 +30,7 @@ function baseInput(over: Partial<SchedulerInput> = {}): SchedulerInput {
   return {
     weekStart: WEEK_START,
     subjects: [],
+    topics: [],
     sessions: [],
     srsCards: [],
     tasks: [],
