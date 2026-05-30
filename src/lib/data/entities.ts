@@ -56,7 +56,10 @@ const subjectsBase = repo<Subject>({
 });
 
 export const subjectsRepo = {
-  ...subjectsBase,
+  load: subjectsBase.load,
+  save: subjectsBase.save,
+  // Subjects are only ever deleted via removeCascade; the bare engine `remove` (which would orphan
+  // topics/cards) is intentionally not exposed (mirrors topicsRepo).
   /**
    * Delete a subject and its dependents. Guest: purge topics + their cards in localStorage.
    * Auth: delete the subject; the DB FK cascade removes topics/cards (and sessions/schedule/scores).
