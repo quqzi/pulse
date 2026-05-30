@@ -500,11 +500,12 @@ All tables have RLS enabled. Policy: `auth.uid() = user_id`.
 ### Open (ready to implement)
 
 - `docs/superpowers/plans/2026-05-28-exam-simulation.md` — Exam Simulation (readiness score card, question bank, mock exam with timer modes)
+- `docs/superpowers/plans/2026-05-30-ws1.3b-entities-migration.md` — WS1.3b: migrate the remaining 7 entities + 9 bespoke methods onto the repository engine (no schema migration — FK cascades already exist; drops phantom `SrsCard.subjectId`)
 
 ### Planned (spec'd, plan not yet written)
 
-- WS1.3b — remaining entities + bespoke methods (cascade deletes, topics+SRS card, srs update-only, sessions log/save + windowed, schedule loadWeek/confirmAll) + FK-cascade migration
-- WS1.3c — retire `db.ts`, move onboarding seed into the onboarding flow, final cutover
+- WS1.3c — retire `db.ts` (dead after WS1.3b), drop the dead `seedSubjectsFromNames` shim, final cutover
+- WS1.4 — settings sync (`user_settings` table) + single-source cleanup (examDate, `HISTORY_DAYS` 90→112 + heatmap derivation)
 - WS1.4 — settings sync (`user_settings` table) + single-source cleanup (examDate, `HISTORY_DAYS`)
 - WS2 multi-device & interaction-correctness · WS3 Thai i18n · WS4 features · WS5 polish · WS6 motion (see roadmap spec)
 
