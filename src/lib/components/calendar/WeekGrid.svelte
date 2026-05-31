@@ -440,8 +440,8 @@
 
   onDestroy(() => {
     clearInterval(nowInterval);
-    clearHoldTimer();
     if (!browser) return;
+    clearHoldTimer();
     document.removeEventListener('mousemove', onMousemove);
     document.removeEventListener('mouseup', onMouseup);
     document.removeEventListener('touchmove', onTouchmove);
