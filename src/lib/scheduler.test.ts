@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { generateSchedule, type SchedulerInput } from '$lib/scheduler';
-import type { Settings } from '$lib/types';
+import type { Settings } from '$lib/stores/settings';
 
 // 2026-01-12 is a Monday. Parsed without 'Z' => local midnight, matching how the
 // scheduler builds week days with local date methods.
@@ -19,9 +19,7 @@ function baseSettings(over: Partial<Settings> = {}): Settings {
     schoolEnd: '15:30',
     energyProfile: 'neutral',
     bufferMinutes: 10,
-    // NOTE: `Settings` in $lib/types has no `examDate` yet (the settings.ts copy does —
-    // the two are unified in WS1.4 / gap G10). The scheduler reads input.examDate, not
-    // settings.examDate, so we intentionally omit it here to match the $lib/types shape.
+    examDate: null,
     ...over,
   };
 }
