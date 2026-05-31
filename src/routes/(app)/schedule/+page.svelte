@@ -60,6 +60,7 @@
       filteredSlots = all.filter(s => !s.isAiSuggested);
       return filteredSlots;
     });
+    const { userId } = getAuthContext();
     const suggested = generateSchedule({
       weekStart: viewedWeekStart,
       subjects: $subjects,
@@ -70,7 +71,7 @@
       existingSlots: filteredSlots,
       settings: $settings,
       examDate: $settings.examDate,
-    });
+    }).map(s => ({ ...s, userId }));
     scheduleSlots.update(all => [...all, ...suggested]);
     isScheduling = false;
   }

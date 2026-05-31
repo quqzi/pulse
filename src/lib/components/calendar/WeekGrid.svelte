@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy, tick } from 'svelte';
   import { createEventDispatcher } from 'svelte';
+  import { browser } from '$app/environment';
   import CalBlock from './CalBlock.svelte';
   import BlockPopover from './BlockPopover.svelte';
   import type { ScheduleSlot, Subject, Topic, Task } from '$lib/types';
@@ -439,6 +440,7 @@
 
   onDestroy(() => {
     clearInterval(nowInterval);
+    if (!browser) return;
     clearHoldTimer();
     document.removeEventListener('mousemove', onMousemove);
     document.removeEventListener('mouseup', onMouseup);

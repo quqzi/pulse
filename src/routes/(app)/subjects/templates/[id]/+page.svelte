@@ -57,12 +57,13 @@
     for (let i = 0; i < toAdd.length; i++) {
       const preset = toAdd[i];
       const subject = newSubjects[i];
-      for (const topicName of preset.topics ?? []) {
+      const topicNames = preset.topics ?? [];
+      for (let j = 0; j < topicNames.length; j++) {
         const topic: Topic = {
           id: newId(),
           subjectId: subject.id,
-          name: topicName,
-          orderIndex: 0,
+          name: topicNames[j],
+          orderIndex: j,
         };
         await topicsRepo.create(topic);
       }
