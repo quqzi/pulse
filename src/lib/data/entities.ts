@@ -315,11 +315,12 @@ export const scheduleRepo = {
       (arr) => arr.map(s => (ids.has(s.id) ? { ...s, isConfirmed: true, isAiSuggested: false } : s)),
       async () => {
         if (mode === 'guest') {
-          // The store holds only the viewed week, but the localStorage key holds ALL weeks —
-          // read the full set, transform by id, write the full set back (never lsWrite(get(store)) here).
-          const all = lsRead<ScheduleSlot>('pulse.scheduleSlots')
-            .map(s => (ids.has(s.id) ? { ...s, isConfirmed: true, isAiSuggested: false } : s));
-          lsWrite('pulse.scheduleSlots', all);
+          // The store holds only the viewed week, but the localStorage key holds ALL weeks. AI-suggested
+          // slots live only in the store until accepted, so UPSERT the confirmed slots (insert-if-absent)
+          // into the full set — mapping over only existing rows would drop never-persisted suggestions.
+          const byId = new Map(lsRead<ScheduleSlot>('pulse.scheduleSlots').map(s => [s.id, s]));
+          for (const s of slots) byId.set(s.id, { ...s, isConfirmed: true, isAiSuggested: false });
+          lsWrite('pulse.scheduleSlots', [...byId.values()]);
         } else {
           const rows = slots.map(s => slotToRow({ ...s, isConfirmed: true, isAiSuggested: false }));
           const { error } = await supabase.from('schedule_slots').upsert(rows);
