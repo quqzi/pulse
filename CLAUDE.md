@@ -503,12 +503,12 @@ All tables have RLS enabled. Policy: `auth.uid() = user_id`.
 
 ### Planned (spec'd, plan not yet written)
 
-- WS1.3c — retire `db.ts` (orphaned after WS1.3b — zero importers), drop the dead `seedSubjectsFromNames` shim, final cutover. **Backlog surfaced in WS1.3b review:** add `UNIQUE(srs_cards.topic_id)` + `onConflict` to harden `topicsRepo.create` against duplicate cards; fix AI-suggested slots carrying `userId:''` (inject userId in `handleAutoSchedule` so accepted slots aren't RLS-hidden for auth users); template-applied topics all get `orderIndex:0`; pre-existing `/schedule` hard-load SSR 500 (`document` in `WeekGrid.onDestroy`).
 - WS1.4 — settings sync (`user_settings` table) + single-source cleanup (examDate, `HISTORY_DAYS` 90→112 + heatmap derivation)
 - WS2 multi-device & interaction-correctness · WS3 Thai i18n · WS4 features · WS5 polish · WS6 motion (see roadmap spec)
 
 ### Completed
 
+- `docs/superpowers/plans/2026-05-31-ws1.3c-cleanup.md` — WS1.3c: deleted orphaned `db.ts` (514 lines, zero importers; killed the dead `seedSubjectsFromNames` shim); added `UNIQUE(srs_cards.topic_id)` + `onConflict:'topic_id'` to make `topicsRepo.create` idempotent (no dupes existed — clean add); fixed AI-suggested slots persisting with `user_id=''` (RLS-hidden for auth users — `handleAutoSchedule` now stamps real userId); fixed template-applied topics all getting `orderIndex:0`; fixed `/schedule` SSR 500 (`document` in `WeekGrid.onDestroy` via `clearHoldTimer` — guarded with `browser`, verified `GET /schedule` → 200). PR #4
 - `docs/superpowers/plans/2026-05-29-ws1.1-test-harness-characterization.md` — WS1.1: Vitest harness + srs/scheduler characterization tests (PR #1)
 - `docs/superpowers/plans/2026-05-29-ws1.2-repository-engine.md` — WS1.2: repository engine + local/mock adapters + toast + `id` helper (PR #1)
 - `docs/superpowers/plans/2026-05-29-ws1.3a-repo-wiring-tasks-pilot.md` — WS1.3a: data-layer restructure (`data/stores.ts`, `data/authctx.ts`), Supabase adapter, `repo()` wiring, tasks migrated as pilot (write-through + rollback browser-verified; PR #2)
