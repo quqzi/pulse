@@ -6,6 +6,8 @@ export default defineConfig({
     alias: {
       // Resolve $lib ourselves so we don't need the SvelteKit Vite plugin in tests.
       $lib: fileURLToPath(new URL('./src/lib', import.meta.url)),
+      // Stub SvelteKit's $app/environment so store modules (which import `browser`) load under Vitest.
+      '$app/environment': fileURLToPath(new URL('./src/test-stubs/app-environment.ts', import.meta.url)),
     },
   },
   test: {
