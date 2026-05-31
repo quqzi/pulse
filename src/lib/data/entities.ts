@@ -150,7 +150,9 @@ export const topicsRepo = {
         const { error: te } = await supabase.from('topics').upsert({ ...topicToRow(topic), user_id: userId });
         if (te) throw te;
         if (!existing) {
-          const { error: ce } = await supabase.from('srs_cards').upsert(cardToRow(card));
+          const { error: ce } = await supabase
+            .from('srs_cards')
+            .upsert(cardToRow(card), { onConflict: 'topic_id' });
           if (ce) throw ce;
         }
       }
