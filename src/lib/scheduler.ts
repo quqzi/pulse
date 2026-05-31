@@ -1,4 +1,5 @@
-import type { Subject, Topic, SrsCard, StudySession, Task, ScheduleSlot, Settings } from '$lib/types';
+import type { Subject, Topic, SrsCard, StudySession, Task, ScheduleSlot } from '$lib/types';
+import type { Settings } from '$lib/stores/settings';
 
 export interface SchedulerInput {
   weekStart: Date;

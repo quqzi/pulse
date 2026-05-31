@@ -33,7 +33,7 @@
   async function finish() {
     saveError = '';
     settings.update(s => ({ ...s, dailyGoalHours }));
-    localStorage.setItem('pulse_exam_date', examDate);
+    settings.update(s => ({ ...s, examDate: examDate || null }));
     localStorage.setItem('pulse_target_scores', JSON.stringify(targetScores));
     localStorage.setItem('pulse_onboarded', '1');
 

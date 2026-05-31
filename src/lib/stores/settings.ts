@@ -1,5 +1,6 @@
-import { writable } from 'svelte/store';
+import { writable, get } from 'svelte/store';
 import { browser } from '$app/environment';
+import { authCtx } from '$lib/data/authctx';
 
 export type Theme =
   | 'vercel-light'
@@ -23,7 +24,7 @@ export interface Settings {
   examDate: string | null;
 }
 
-function defaults(): Settings {
+export function defaults(): Settings {
   return {
     theme: 'vercel-light',
     lang: 'en',
@@ -38,6 +39,11 @@ function defaults(): Settings {
     bufferMinutes: 10,
     examDate: null,
   };
+}
+
+/** Pure: overlay a (possibly partial / absent) remote settings blob onto a fresh defaults(). */
+export function mergeRemote(remote: Partial<Settings> | null | undefined): Settings {
+  return { ...defaults(), ...(remote ?? {}) };
 }
 
 function load(): Settings {
@@ -61,5 +67,7 @@ function load(): Settings {
 export const settings = writable<Settings>(load());
 
 settings.subscribe(val => {
-  if (browser) localStorage.setItem('pulse_settings', JSON.stringify(val));
+  if (browser && get(authCtx).mode !== 'authenticated') {
+    localStorage.setItem('pulse_settings', JSON.stringify(val));
+  }
 });

@@ -5,8 +5,10 @@
   import { supabase } from '$lib/supabase';
   import { onMount } from 'svelte';
   import { browser } from '$app/environment';
+  import { initSettingsSync } from '$lib/data/settingsSync';
 
   onMount(() => {
+    initSettingsSync();
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         auth.set({ mode: 'authenticated', user: session.user, name: session.user.user_metadata?.name ?? 'Student' });
