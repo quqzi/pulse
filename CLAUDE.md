@@ -500,13 +500,11 @@ All tables have RLS enabled. Policy: `auth.uid() = user_id`.
 ### Open (ready to implement)
 
 - `docs/superpowers/plans/2026-05-28-exam-simulation.md` — Exam Simulation (readiness score card, question bank, mock exam with timer modes)
-- `docs/superpowers/plans/2026-05-30-ws1.3b-entities-migration.md` — WS1.3b: migrate the remaining 7 entities + 9 bespoke methods onto the repository engine (no schema migration — FK cascades already exist; drops phantom `SrsCard.subjectId`)
 
 ### Planned (spec'd, plan not yet written)
 
-- WS1.3c — retire `db.ts` (dead after WS1.3b), drop the dead `seedSubjectsFromNames` shim, final cutover
+- WS1.3c — retire `db.ts` (orphaned after WS1.3b — zero importers), drop the dead `seedSubjectsFromNames` shim, final cutover. **Backlog surfaced in WS1.3b review:** add `UNIQUE(srs_cards.topic_id)` + `onConflict` to harden `topicsRepo.create` against duplicate cards; fix AI-suggested slots carrying `userId:''` (inject userId in `handleAutoSchedule` so accepted slots aren't RLS-hidden for auth users); template-applied topics all get `orderIndex:0`; pre-existing `/schedule` hard-load SSR 500 (`document` in `WeekGrid.onDestroy`).
 - WS1.4 — settings sync (`user_settings` table) + single-source cleanup (examDate, `HISTORY_DAYS` 90→112 + heatmap derivation)
-- WS1.4 — settings sync (`user_settings` table) + single-source cleanup (examDate, `HISTORY_DAYS`)
 - WS2 multi-device & interaction-correctness · WS3 Thai i18n · WS4 features · WS5 polish · WS6 motion (see roadmap spec)
 
 ### Completed
@@ -514,6 +512,7 @@ All tables have RLS enabled. Policy: `auth.uid() = user_id`.
 - `docs/superpowers/plans/2026-05-29-ws1.1-test-harness-characterization.md` — WS1.1: Vitest harness + srs/scheduler characterization tests (PR #1)
 - `docs/superpowers/plans/2026-05-29-ws1.2-repository-engine.md` — WS1.2: repository engine + local/mock adapters + toast + `id` helper (PR #1)
 - `docs/superpowers/plans/2026-05-29-ws1.3a-repo-wiring-tasks-pilot.md` — WS1.3a: data-layer restructure (`data/stores.ts`, `data/authctx.ts`), Supabase adapter, `repo()` wiring, tasks migrated as pilot (write-through + rollback browser-verified; PR #2)
+- `docs/superpowers/plans/2026-05-30-ws1.3b-entities-migration.md` — WS1.3b: migrated the remaining 7 entities + 9 bespoke methods (subjects/topics cascade delete, topic+SRS-card create, srs update-only, sessions windowed-load/log, schedule loadWeek/confirmAll) onto the repo engine; dropped phantom `SrsCard.subjectId` (scheduler joins card→topic→subject); no schema migration (FK cascades already existed); `db.ts` now orphaned (zero importers — WS1.3c deletes it). Two-stage reviewed + browser-verified guest flows incl. cascade-delete (no orphans) and schedule confirm-all. Branch `ws1.3b-entities` (PR pending)
 - `docs/superpowers/plans/2026-05-26-templates-with-topics.md` — Templates with topic presets
 - `docs/superpowers/plans/2026-05-26-google-oauth.md` — Google OAuth login (implicit flow; PKCE upgrade pending @supabase/ssr migration)
 - `docs/superpowers/plans/2026-05-28-stronger-base-design.md` — Token system, ESLint/Stylelint, component decomposition, authCtx derived store, Playwright smoke tests
