@@ -74,3 +74,8 @@ export const BUILTIN_TEMPLATES: Template[] = [
 export const ALL_BUILTIN_PRESETS = new Map(
   BUILTIN_TEMPLATES.flatMap(t => t.presets).map(p => [p.name.toLowerCase(), p])
 );
+
+/** History window shared by the sessions load (data/entities.ts) and the Journey heatmap.
+ *  112 days = exactly 16 weeks. Changing this moves both in lockstep. */
+export const HISTORY_DAYS = 112;
+export const HISTORY_WEEKS = HISTORY_DAYS / 7;

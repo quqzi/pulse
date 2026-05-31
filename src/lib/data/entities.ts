@@ -10,6 +10,7 @@ import { lsWrite, lsRead } from '$lib/data/ls';
 import { supabase } from '$lib/supabase';
 import { newId } from '$lib/id';
 import { defaultCard } from '$lib/srs';
+import { HISTORY_DAYS } from '$lib/constants';
 
 export const tasksRepo = repo<Task>({
   store: tasks,
@@ -224,9 +225,6 @@ export const srsRepo = {
 
 const sessionOrder = (a: StudySession, b: StudySession) => b.startedAt.localeCompare(a.startedAt);
 
-/** WS1.4 will raise this to 112 and share it with the heatmap. Behavior-preserving for now. */
-const SESSION_WINDOW_DAYS = 90;
-
 const sessionsBase = repo<StudySession>({
   store: sessions,
   lsKey: 'pulse.sessions',
@@ -242,13 +240,16 @@ export const sessionsRepo = {
   save: sessionsBase.save,     // UPSERT (analytics edit)
   remove: sessionsBase.remove,
 
-  /** Windowed read: auth = last 90 days; guest = uncapped (preserves today's behavior). */
+  /** Windowed read: last HISTORY_DAYS (112) for both modes. */
   async load(): Promise<StudySession[]> {
     const { userId, mode } = getAuthContext();
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - HISTORY_DAYS);
     return loadInto(sessions, async () => {
-      if (mode === 'guest') return lsRead<StudySession>('pulse.sessions');
-      const cutoff = new Date();
-      cutoff.setDate(cutoff.getDate() - SESSION_WINDOW_DAYS);
+      if (mode === 'guest') {
+        const cutoffStr = cutoff.toISOString();
+        return lsRead<StudySession>('pulse.sessions').filter(s => s.startedAt >= cutoffStr);
+      }
       const { data, error } = await supabase.from('study_sessions').select('*')
         .eq('user_id', userId)
         .gte('started_at', cutoff.toISOString())

@@ -4,6 +4,7 @@
   import { subjects, topics, sessions, streak, loadData } from '$lib/stores/data';
   import HeatmapGrid from '$lib/components/journey/HeatmapGrid.svelte';
   import { formatDuration, localDateStr } from '$lib/utils';
+  import { HISTORY_WEEKS } from '$lib/constants';
 
   const TIMELINE_PAGE_SIZE = 30;
 
@@ -86,7 +87,7 @@
   <section class="section">
     <div class="section-header">
       <span class="section-label">ACTIVITY</span>
-      <span class="section-sub">Last 16 weeks</span>
+      <span class="section-sub">Last {HISTORY_WEEKS} weeks</span>
     </div>
     <div class="card heatmap-card">
       <HeatmapGrid sessions={$sessions} />

@@ -1,10 +1,11 @@
 <script lang="ts">
   import type { StudySession } from '$lib/types';
   import { formatDuration, localDateStr } from '$lib/utils';
+  import { HISTORY_WEEKS } from '$lib/constants';
 
   export let sessions: StudySession[] = [];
 
-  const WEEKS = 16;
+  const WEEKS = HISTORY_WEEKS;
   const INTENSITY_HOURS = [0, 0.5, 1.5, 3];
 
   function sessionsByDay(ss: StudySession[]): Map<string, StudySession[]> {
