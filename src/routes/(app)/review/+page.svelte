@@ -2,9 +2,9 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { auth } from '$lib/stores/auth';
-  import { srsCards, topics, subjects, dueCards, loadData, getAuthContext } from '$lib/stores/data';
+  import { topics, subjects, dueCards, loadData } from '$lib/stores/data';
+  import { srsRepo } from '$lib/data/entities';
   import { reviewCard } from '$lib/srs';
-  import { db } from '$lib/db';
   import type { SrsCard, Topic, Subject } from '$lib/types';
 
   interface RatingOption {
@@ -72,16 +72,10 @@
       dueDate: result.dueDate,
       reps: current.card.reps + 1,
     };
-
-    srsCards.update(all => all.map(c => c.id === updated.id ? updated : c));
-
-    const { mode } = getAuthContext();
-    await db.updateSrsCard(updated, mode);
-
+    await srsRepo.update(updated);
     ratingCounts[rating] += 1;
     currentIndex += 1;
     revealed = false;
-
     if (currentIndex >= queue.length) {
       done = true;
     }

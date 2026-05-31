@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { auth } from '$lib/stores/auth';
   import { scores, subjects, loadData, getAuthContext } from '$lib/stores/data';
-  import { db } from '$lib/db';
+  import { scoresRepo } from '$lib/data/entities';
   import ScoreForm from '$lib/components/scores/ScoreForm.svelte';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
   import type { MockScore } from '$lib/types';
@@ -59,14 +59,9 @@
 
   async function handleSave(e: CustomEvent<MockScore>) {
     const entry = e.detail;
-    const { userId, mode } = getAuthContext();
+    const { userId } = getAuthContext();
     const withUser: MockScore = { ...entry, userId };
-    scores.update(all => {
-      const idx = all.findIndex(s => s.id === withUser.id);
-      if (idx >= 0) { const next = [...all]; next[idx] = withUser; return next; }
-      return [withUser, ...all];
-    });
-    await db.saveScore(withUser, mode);
+    await scoresRepo.save(withUser);
     adding = false;
     editingScore = null;
   }
@@ -88,9 +83,7 @@
     if (!pendingDeleteScore) return;
     const score = pendingDeleteScore;
     pendingDeleteScore = null;
-    const { mode } = getAuthContext();
-    scores.update(all => all.filter(s => s.id !== score.id));
-    await db.deleteScore(score.id, mode);
+    await scoresRepo.remove(score.id);
   }
 </script>
 

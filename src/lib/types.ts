@@ -41,7 +41,6 @@ export interface SrsCard {
   id: string;
   topicId: string;
   userId: string;
-  subjectId: string;
   ease: number;
   intervalDays: number;
   dueDate: string;   // YYYY-MM-DD

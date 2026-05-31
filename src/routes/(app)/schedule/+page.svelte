@@ -4,7 +4,8 @@
   import { auth } from '$lib/stores/auth';
   import { subjects, topics, srsCards, tasks, sessions, scheduleSlots, loadData, loadScheduleSlots, getAuthContext } from '$lib/stores/data';
   import { settings } from '$lib/stores/settings';
-  import { db } from '$lib/db';
+  import { newId } from '$lib/id';
+  import { scheduleRepo } from '$lib/data/entities';
   import { generateSchedule } from '$lib/scheduler';
   import WeekGrid from '$lib/components/calendar/WeekGrid.svelte';
   import MiniMonth from '$lib/components/calendar/MiniMonth.svelte';
@@ -62,6 +63,7 @@
     const suggested = generateSchedule({
       weekStart: viewedWeekStart,
       subjects: $subjects,
+      topics: $topics,
       sessions: $sessions,
       srsCards: $srsCards,
       tasks: $tasks,
@@ -75,10 +77,10 @@
 
   // ── Event handlers ────────────────────────────────────────────
   async function handleCreateSlot(e: CustomEvent) {
-    const { userId, mode } = getAuthContext();
+    const { userId } = getAuthContext();
     const { subjectId, topicId, startTime, endTime, isFocusBlock } = e.detail;
     const slot: ScheduleSlot = {
-      id: db.newId(),
+      id: newId(),
       userId,
       subjectId,
       topicId,
@@ -91,54 +93,33 @@
       recurrenceDays: [],
       createdAt: new Date().toISOString(),
     };
-    scheduleSlots.update(all => [...all, slot]);
-    await db.saveScheduleSlot(slot, mode);
+    await scheduleRepo.save(slot);
   }
 
   async function handleMoveSlot(e: CustomEvent) {
-    const { mode } = getAuthContext();
     const { slotId, startTime, endTime } = e.detail;
-    scheduleSlots.update(all => {
-      return all.map(s => {
-        if (s.id !== slotId) return s;
-        const updated = { ...s, startTime, endTime };
-        db.saveScheduleSlot(updated, mode);
-        return updated;
-      });
-    });
+    const slot = $scheduleSlots.find(s => s.id === slotId);
+    if (!slot) return;
+    await scheduleRepo.save({ ...slot, startTime, endTime });
   }
 
   async function handleResizeSlot(e: CustomEvent) {
-    const { mode } = getAuthContext();
     const { slotId, startTime, endTime } = e.detail;
-    scheduleSlots.update(all => {
-      return all.map(s => {
-        if (s.id !== slotId) return s;
-        const updated = { ...s, startTime, endTime };
-        db.saveScheduleSlot(updated, mode);
-        return updated;
-      });
-    });
+    const slot = $scheduleSlots.find(s => s.id === slotId);
+    if (!slot) return;
+    await scheduleRepo.save({ ...slot, startTime, endTime });
   }
 
   async function handleDeleteSlot(e: CustomEvent) {
-    const { mode } = getAuthContext();
     const { slotId } = e.detail;
-    await db.deleteScheduleSlot(slotId, mode);
-    scheduleSlots.update(all => all.filter(s => s.id !== slotId));
+    await scheduleRepo.remove(slotId);
   }
 
   async function handleAcceptSlot(e: CustomEvent) {
-    const { mode } = getAuthContext();
     const { slotId } = e.detail;
-    scheduleSlots.update(all => {
-      return all.map(s => {
-        if (s.id !== slotId) return s;
-        const updated = { ...s, isConfirmed: true, isAiSuggested: false };
-        db.saveScheduleSlot(updated, mode);
-        return updated;
-      });
-    });
+    const slot = $scheduleSlots.find(s => s.id === slotId);
+    if (!slot) return;
+    await scheduleRepo.save({ ...slot, isConfirmed: true, isAiSuggested: false });
   }
 
   function handleDismissSlot(e: CustomEvent) {
@@ -152,25 +133,15 @@
   }
 
   async function handleChangeSubject(e: CustomEvent) {
-    const { mode } = getAuthContext();
     const { slotId, subjectId } = e.detail as { slotId: string; subjectId: string | undefined };
-    scheduleSlots.update(all => {
-      return all.map(s => {
-        if (s.id !== slotId) return s;
-        const updated = { ...s, subjectId, topicId: undefined };
-        db.saveScheduleSlot(updated, mode);
-        return updated;
-      });
-    });
+    const slot = $scheduleSlots.find(s => s.id === slotId);
+    if (!slot) return;
+    await scheduleRepo.save({ ...slot, subjectId, topicId: undefined });
   }
 
   async function handleAcceptAll() {
-    const { mode } = getAuthContext();
     const suggested = $scheduleSlots.filter(s => s.isAiSuggested && !s.isConfirmed);
-    await db.confirmAllSuggested(suggested, mode);
-    scheduleSlots.update(all => all.map(s =>
-      s.isAiSuggested ? { ...s, isConfirmed: true, isAiSuggested: false } : s
-    ));
+    await scheduleRepo.confirmAll(suggested);
   }
 
   function handleRejectAll() {

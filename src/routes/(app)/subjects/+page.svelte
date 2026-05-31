@@ -2,9 +2,10 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { auth } from '$lib/stores/auth';
-  import { subjects, topics, srsCards, dueCards, templates, loadData, getAuthContext } from '$lib/stores/data';
+  import { subjects, topics, srsCards, dueCards, loadData, getAuthContext } from '$lib/stores/data';
   import SubjectTile from '$lib/components/SubjectTile.svelte';
-  import { db } from '$lib/db';
+  import { templatesRepo, subjectsRepo } from '$lib/data/entities';
+  import { newId } from '$lib/id';
   import { SUBJECT_COLOR_PALETTE } from '$lib/constants';
   import type { Subject, Template, SubjectPreset } from '$lib/types';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
@@ -51,7 +52,7 @@
     if (savingSubject || !sheetName.trim()) return;
     savingSubject = true;
     try {
-      const { userId, mode } = getAuthContext();
+      const { userId } = getAuthContext();
       if (editingSubject) {
         const updated: Subject = {
           ...editingSubject,
@@ -60,12 +61,11 @@
           color: sheetColor.hex,
           colorRgb: sheetColor.rgb,
         };
-        subjects.update(all => all.map(s => s.id === updated.id ? updated : s));
-        await db.saveSubject(updated, mode);
+        await subjectsRepo.save(updated);
       } else {
         const maxOrder = $subjects.reduce((m, s) => Math.max(m, s.orderIndex), -1);
         const subject: Subject = {
-          id: db.newId(),
+          id: newId(),
           userId,
           name: sheetName.trim(),
           symbol: (sheetSymbol || sheetName.slice(0, 2)).slice(0, 2),
@@ -73,8 +73,7 @@
           colorRgb: sheetColor.rgb,
           orderIndex: maxOrder + 1,
         };
-        subjects.update(all => [...all, subject]);
-        await db.saveSubject(subject, mode);
+        await subjectsRepo.save(subject);
       }
       closeSheet();
     } finally {
@@ -92,7 +91,7 @@
   async function saveCurrentAsTemplate() {
     const name = prompt('Template name:');
     if (!name?.trim()) return;
-    const { userId, mode } = getAuthContext();
+    const { userId } = getAuthContext();
     const presets: SubjectPreset[] = $subjects.map(sub => ({
       name: sub.name,
       symbol: sub.symbol,
@@ -101,26 +100,20 @@
       topics: $topics.filter(t => t.subjectId === sub.id).map(t => t.name),
     }));
     const template: Template = {
-      id: db.newId(),
+      id: newId(),
       userId,
       name: name.trim(),
       presets,
       createdAt: new Date().toISOString(),
     };
-    templates.update(all => [...all, template]);
-    await db.saveTemplate(template, mode);
+    await templatesRepo.save(template);
   }
 
   async function doDeleteSubject() {
     if (!editingSubject) return;
-    const { mode } = getAuthContext();
     const id = editingSubject.id;
-    const removedTopicIds = new Set($topics.filter(t => t.subjectId === id).map(t => t.id));
-    subjects.update(all => all.filter(s => s.id !== id));
-    topics.update(all => all.filter(t => t.subjectId !== id));
-    srsCards.update(all => all.filter(c => !removedTopicIds.has(c.topicId)));
     closeSheet();
-    await db.deleteSubject(id, mode);
+    await subjectsRepo.removeCascade(id);
   }
 </script>
 

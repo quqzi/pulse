@@ -1,8 +1,9 @@
-import type { Subject, SrsCard, StudySession, Task, ScheduleSlot, Settings } from '$lib/types';
+import type { Subject, Topic, SrsCard, StudySession, Task, ScheduleSlot, Settings } from '$lib/types';
 
 export interface SchedulerInput {
   weekStart: Date;
   subjects: Subject[];
+  topics: Topic[];
   sessions: StudySession[];       // past 14 days (for deficit calc)
   srsCards: SrsCard[];
   tasks: Task[];
@@ -12,7 +13,7 @@ export interface SchedulerInput {
 }
 
 export function generateSchedule(input: SchedulerInput): ScheduleSlot[] {
-  const { weekStart, subjects, sessions, srsCards, tasks, existingSlots, settings, examDate } = input;
+  const { weekStart, subjects, topics, sessions, srsCards, tasks, existingSlots, settings, examDate } = input;
   const results: ScheduleSlot[] = [];
 
   // Build week days (Mon–Sun)
@@ -65,8 +66,10 @@ export function generateSchedule(input: SchedulerInput): ScheduleSlot[] {
     ? Math.round((new Date(examDate).getTime() - today.getTime()) / 86400000)
     : Infinity;
 
+  const cardSubjectId = new Map(topics.map(t => [t.id, t.subjectId]));
+
   const subjectScores = subjects.map(subject => {
-    const cards = srsCards.filter(c => c.subjectId === subject.id);
+    const cards = srsCards.filter(c => cardSubjectId.get(c.topicId) === subject.id);
     const overdueCount = cards.filter(c => c.dueDate < todayStr).length;
     const dueThisWeekCount = cards.filter(c => c.dueDate >= todayStr && c.dueDate < weekEndStr).length;
 

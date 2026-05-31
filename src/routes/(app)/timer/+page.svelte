@@ -2,12 +2,13 @@
   import { onMount } from 'svelte';
   import { auth } from '$lib/stores/auth';
   import { settings } from '$lib/stores/settings';
-  import { subjects, topics, sessions, loadData, getAuthContext } from '$lib/stores/data';
+  import { subjects, topics, loadData, getAuthContext } from '$lib/stores/data';
   import {
     timerStore, remaining, startTimer, pauseTimer, stopTimer, resetTimer,
     type TimerMode
   } from '$lib/stores/timer';
-  import { db } from '$lib/db';
+  import { newId } from '$lib/id';
+  import { sessionsRepo } from '$lib/data/entities';
 
   let showSummary = false;
   let lastSession: { durationSec: number; subjectName: string; topicName: string | null } | null = null;
@@ -58,10 +59,10 @@
     if (!$timerStore.subjectId || !$timerStore.startedAt) return;
     const elapsed = $timerStore.elapsed;
     if (elapsed < 1) return;
-    const { userId, mode } = getAuthContext();
+    const { userId } = getAuthContext();
     const now = new Date();
     const session = {
-      id: db.newId(),
+      id: newId(),
       userId,
       subjectId: $timerStore.subjectId,
       topicId: $timerStore.topicId ?? undefined,
@@ -70,8 +71,7 @@
       durationSec: elapsed,
       mode: $timerStore.mode as 'pomodoro' | 'free',
     };
-    await db.logSession(session, mode);
-    sessions.update(s => [session, ...s]);
+    await sessionsRepo.log(session);
     lastSession = {
       durationSec: elapsed,
       subjectName: selectedSubject?.name ?? '',

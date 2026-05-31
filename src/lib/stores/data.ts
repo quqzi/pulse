@@ -1,11 +1,9 @@
-import { derived, get } from 'svelte/store';
-import { db } from '$lib/db';
+import { derived } from 'svelte/store';
 import type { AuthState } from '$lib/stores/auth';
 import {
   subjects, topics, srsCards, sessions, tasks, templates, scheduleSlots, scores,
 } from '$lib/data/stores';
-import { authCtx } from '$lib/data/authctx';
-import { tasksRepo } from '$lib/data/entities';
+import { tasksRepo, scoresRepo, templatesRepo, subjectsRepo, topicsRepo, srsRepo, sessionsRepo, scheduleRepo } from '$lib/data/entities';
 
 // Re-export so existing `import { tasks } from '$lib/stores/data'` keeps working.
 export { subjects, topics, srsCards, sessions, tasks, templates, scheduleSlots, scores };
@@ -51,32 +49,20 @@ export const tasksDueToday = derived(tasks, ($tasks) => {
 
 export async function loadData(authState: AuthState): Promise<void> {
   if (authState.mode === 'loading') return;
-  const userId = authState.mode === 'guest' ? 'guest' : (authState.user?.id ?? '');
-  const mode = authState.mode;
-
-  const [s, t, c, sess, tmpl, sc] = await Promise.all([
-    db.getSubjects(userId, mode),
-    db.getTopics(userId, mode),
-    db.getSrsCards(userId, mode),
-    db.getSessions(userId, mode),
-    db.getTemplates(userId, mode),
-    db.getScores(userId, mode),
-    tasksRepo.load(), // sets the tasks store via write-through
+  await Promise.all([
+    tasksRepo.load(),
+    scoresRepo.load(),
+    subjectsRepo.load(),
+    topicsRepo.load(),
+    srsRepo.load(),
+    sessionsRepo.load(),
+    templatesRepo.load(),
   ]);
-  subjects.set(s);
-  topics.set(t);
-  srsCards.set(c);
-  sessions.set(sess);
-  templates.set(tmpl);
-  scores.set(sc);
 }
 
 export async function loadScheduleSlots(weekStart: Date, weekEnd: Date): Promise<void> {
-  const { userId, mode } = get(authCtx);
-  const slots = await db.getScheduleSlots(
-    userId, mode,
+  await scheduleRepo.loadWeek(
     weekStart.toISOString().substring(0, 19),
-    weekEnd.toISOString().substring(0, 19)
+    weekEnd.toISOString().substring(0, 19),
   );
-  scheduleSlots.set(slots);
 }

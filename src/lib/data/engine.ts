@@ -77,3 +77,36 @@ export function createRepository<T extends { id: string }>(
     },
   };
 }
+
+/** Read into a store with the read-empty-on-error contract (G13). Used by windowed bespoke reads. */
+export async function loadInto<T>(
+  store: Writable<T[]>,
+  fetch: () => Promise<T[]>,
+  order?: (a: T, b: T) => number,
+): Promise<T[]> {
+  try {
+    const items = await fetch();
+    store.set(order ? [...items].sort(order) : items);
+    return items;
+  } catch {
+    return get(store);
+  }
+}
+
+/** Optimistic write-through with rollback (G8) for bespoke writes that the generic save/remove don't cover. */
+export async function writeThrough<T>(
+  store: Writable<T[]>,
+  optimistic: (arr: T[]) => T[],
+  persist: () => Promise<void>,
+  opts: { order?: (a: T, b: T) => number; onError: (message: string) => void; errorMsg?: string },
+): Promise<void> {
+  const snapshot = get(store);
+  const next = optimistic(snapshot);
+  store.set(opts.order ? [...next].sort(opts.order) : next);
+  try {
+    await persist();
+  } catch {
+    store.set(snapshot);
+    opts.onError(opts.errorMsg ?? "Couldn't save — try again");
+  }
+}

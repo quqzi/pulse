@@ -3,8 +3,9 @@
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import { auth } from '$lib/stores/auth';
-  import { subjects, topics, srsCards, loadData, getAuthContext } from '$lib/stores/data';
-  import { db } from '$lib/db';
+  import { subjects, topics, srsCards, loadData } from '$lib/stores/data';
+  import { newId } from '$lib/id';
+  import { topicsRepo, srsRepo } from '$lib/data/entities';
   import { reviewCard, isDue } from '$lib/srs';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 
@@ -24,16 +25,13 @@
     if (submitting || !newTopicName.trim() || !subjectId) return;
     submitting = true;
     try {
-      const { userId, mode } = getAuthContext();
       const topic = {
-        id: db.newId(),
+        id: newId(),
         subjectId,
         name: newTopicName.trim(),
         orderIndex: subjectTopics.length,
       };
-      const card = await db.saveTopic(topic, userId, mode);
-      topics.update(ts => [...ts, topic]);
-      srsCards.update(cs => [...cs, card]);
+      await topicsRepo.create(topic);
       newTopicName = '';
       adding = false;
     } finally {
@@ -52,10 +50,7 @@
       editingTopicId = null;
       return;
     }
-    const { userId, mode } = getAuthContext();
-    const updated = { ...topic, name: trimmed };
-    topics.update(all => all.map(t => t.id === topic.id ? updated : t));
-    await db.saveTopic(updated, userId, mode);
+    await topicsRepo.save({ ...topic, name: trimmed });
     editingTopicId = null;
   }
 
@@ -75,21 +70,16 @@
     if (!pendingDeleteTopicId) return;
     const topicId = pendingDeleteTopicId;
     pendingDeleteTopicId = null;
-    const { mode } = getAuthContext();
-    await db.deleteTopic(topicId, mode);
-    topics.update(ts => ts.filter(t => t.id !== topicId));
-    srsCards.update(cs => cs.filter(c => c.topicId !== topicId));
+    await topicsRepo.removeCascade(topicId);
   }
 
   async function handleReview(rating: 1 | 2 | 3 | 4) {
     if (!reviewingCard) return;
     const card = $srsCards.find(c => c.topicId === reviewingCard!.topicId);
     if (!card) return;
-    const { mode } = getAuthContext();
     const result = reviewCard(card.ease, card.intervalDays, rating);
     const updated = { ...card, ...result, reps: card.reps + 1 };
-    await db.updateSrsCard(updated, mode);
-    srsCards.update(cs => cs.map(c => c.id === card.id ? updated : c));
+    await srsRepo.update(updated);
     reviewingCard = null;
   }
 

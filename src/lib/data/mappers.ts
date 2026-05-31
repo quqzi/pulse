@@ -1,4 +1,4 @@
-import type { Task } from '$lib/types';
+import type { Task, MockScore, Template, SubjectPreset, Subject, Topic, SrsCard, StudySession, ScheduleSlot } from '$lib/types';
 
 export const taskFromRow = (r: Record<string, unknown>): Task => ({
   id: r.id as string,
@@ -20,4 +20,155 @@ export const taskToRow = (t: Task): Record<string, unknown> => ({
   due_date: t.dueDate ?? null,
   completed_at: t.completedAt ?? null,
   created_at: t.createdAt,
+});
+
+export const scoreFromRow = (r: Record<string, unknown>): MockScore => ({
+  id: r.id as string,
+  userId: r.user_id as string,
+  subjectId: r.subject_id as string,
+  score: r.score as number,
+  maxScore: r.max_score as number,
+  takenAt: (r.taken_at as string).split('T')[0],
+  notes: (r.notes as string | null) ?? undefined,
+  createdAt: r.created_at as string,
+});
+
+export const scoreToRow = (s: MockScore): Record<string, unknown> => ({
+  id: s.id,
+  user_id: s.userId,
+  subject_id: s.subjectId,
+  score: s.score,
+  max_score: s.maxScore,
+  taken_at: s.takenAt,
+  notes: s.notes ?? null,
+  created_at: s.createdAt,
+});
+
+export const templateFromRow = (r: Record<string, unknown>): Template => ({
+  id: r.id as string,
+  userId: r.user_id as string,
+  name: r.name as string,
+  presets: r.presets as SubjectPreset[],
+  createdAt: r.created_at as string,
+});
+
+export const templateToRow = (t: Template): Record<string, unknown> => ({
+  id: t.id,
+  user_id: t.userId,
+  name: t.name,
+  presets: t.presets,
+  created_at: t.createdAt,
+});
+
+export const subjectFromRow = (r: Record<string, unknown>): Subject => ({
+  id: r.id as string,
+  userId: r.user_id as string,
+  name: r.name as string,
+  symbol: r.symbol as string,
+  color: r.color as string,
+  colorRgb: r.color_rgb as string,
+  orderIndex: r.order_index as number,
+  targetScore: (r.target_score as number | null) ?? undefined,
+});
+
+export const subjectToRow = (s: Subject): Record<string, unknown> => ({
+  id: s.id,
+  user_id: s.userId,
+  name: s.name,
+  symbol: s.symbol,
+  color: s.color,
+  color_rgb: s.colorRgb,
+  order_index: s.orderIndex,
+  target_score: s.targetScore ?? null,
+});
+
+export const topicFromRow = (r: Record<string, unknown>): Topic => ({
+  id: r.id as string,
+  subjectId: r.subject_id as string,
+  name: r.name as string,
+  orderIndex: r.order_index as number,
+});
+
+export const topicToRow = (t: Topic): Record<string, unknown> => ({
+  id: t.id,
+  subject_id: t.subjectId,
+  // user_id is injected by topicsRepo.save/create (Topic has no userId field; guest rows never carry it).
+  name: t.name,
+  order_index: t.orderIndex,
+});
+
+export const cardFromRow = (r: Record<string, unknown>): SrsCard => ({
+  id: r.id as string,
+  topicId: r.topic_id as string,
+  userId: r.user_id as string,
+  ease: r.ease as number,
+  intervalDays: r.interval_days as number,
+  dueDate: (r.due_date as string).split('T')[0],
+  reps: r.reps as number,
+});
+
+export const cardToRow = (c: SrsCard): Record<string, unknown> => ({
+  id: c.id,
+  topic_id: c.topicId,
+  user_id: c.userId,
+  ease: c.ease,
+  interval_days: c.intervalDays,
+  due_date: c.dueDate,
+  reps: c.reps,
+});
+
+export const sessionFromRow = (r: Record<string, unknown>): StudySession => ({
+  id: r.id as string,
+  userId: r.user_id as string,
+  subjectId: r.subject_id as string,
+  topicId: (r.topic_id as string | null) ?? undefined,
+  startedAt: r.started_at as string,
+  endedAt: r.ended_at as string,
+  durationSec: r.duration_sec as number,
+  mode: r.mode as StudySession['mode'],
+});
+
+export const sessionToRow = (s: StudySession): Record<string, unknown> => ({
+  id: s.id,
+  user_id: s.userId,
+  subject_id: s.subjectId,
+  topic_id: s.topicId ?? null,
+  started_at: s.startedAt,
+  ended_at: s.endedAt,
+  duration_sec: s.durationSec,
+  mode: s.mode,
+});
+
+const toLocal = (s: string) => s.replace(/\+.*$|Z$/, '').replace(' ', 'T').substring(0, 19);
+
+export const slotFromRow = (r: Record<string, unknown>): ScheduleSlot => ({
+  id: r.id as string,
+  userId: r.user_id as string,
+  subjectId: (r.subject_id as string | null) ?? undefined,
+  topicId: (r.topic_id as string | null) ?? undefined,
+  startTime: toLocal(r.start_time as string),
+  endTime: toLocal(r.end_time as string),
+  isAiSuggested: r.is_ai_suggested as boolean,
+  isConfirmed: r.is_confirmed as boolean,
+  isFocusBlock: r.is_focus_block as boolean,
+  isRecurring: r.is_recurring as boolean,
+  recurrenceDays: (r.recurrence_days as number[]) ?? [],
+  recurrenceEndDate: (r.recurrence_end as string | null) ?? undefined,
+  createdAt: r.created_at as string,
+});
+
+export const slotToRow = (s: ScheduleSlot): Record<string, unknown> => ({
+  id: s.id,
+  user_id: s.userId,
+  subject_id: s.subjectId ?? null,
+  topic_id: s.topicId ?? null,
+  start_time: s.startTime,
+  end_time: s.endTime,
+  is_ai_suggested: s.isAiSuggested,
+  is_confirmed: s.isConfirmed,
+  is_focus_block: s.isFocusBlock,
+  is_recurring: s.isRecurring,
+  recurrence_days: s.recurrenceDays,
+  recurrence_end: s.recurrenceEndDate ?? null,
+  created_at: s.createdAt,
 });

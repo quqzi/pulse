@@ -4,7 +4,7 @@
   import { auth } from '$lib/stores/auth';
   import { settings } from '$lib/stores/settings';
   import {
-    subjects, topics, srsCards, sessions,
+    subjects, topics, srsCards,
     dueCards, todayHours, streak, loadData, getAuthContext,
     tasksDueToday,
   } from '$lib/stores/data';
@@ -14,8 +14,8 @@
   import SubjectTile from '$lib/components/SubjectTile.svelte';
   import TodaysPlan from '$lib/components/TodaysPlan.svelte';
   import QuickLog from '$lib/components/QuickLog.svelte';
-  import { db } from '$lib/db';
-  import { tasksRepo } from '$lib/data/entities';
+  import { newId } from '$lib/id';
+  import { tasksRepo, sessionsRepo } from '$lib/data/entities';
 
   $: name = $auth.name;
   $: greeting = getGreeting();
@@ -44,11 +44,11 @@
 
   async function handleLog(e: CustomEvent<{ subjectId: string; topicId: string | undefined; durationMin: number }>) {
     const { subjectId, topicId, durationMin } = e.detail;
-    const { userId, mode } = getAuthContext();
+    const { userId } = getAuthContext();
     const now = new Date();
     const startedAt = new Date(now.getTime() - durationMin * 60000);
     const session = {
-      id: db.newId(),
+      id: newId(),
       userId,
       subjectId,
       topicId,
@@ -57,8 +57,7 @@
       durationSec: durationMin * 60,
       mode: 'quick' as const,
     };
-    await db.logSession(session, mode);
-    sessions.update(s => [session, ...s]);
+    await sessionsRepo.log(session);
   }
 
   onMount(() => loadData($auth));
