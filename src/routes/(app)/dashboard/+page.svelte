@@ -19,7 +19,7 @@
 
   $: name = $auth.name;
   $: greeting = getGreeting();
-  $: daysToExam = getDaysToExam();
+  $: daysToExam = daysToExamFrom($settings.examDate);
 
   function getGreeting(): string {
     const h = new Date().getHours();
@@ -28,13 +28,10 @@
     return 'Good evening';
   }
 
-  function getDaysToExam(): number | null {
-    try {
-      const raw = localStorage.getItem('pulse_exam_date');
-      if (!raw) return null;
-      const diff = new Date(raw).getTime() - Date.now();
-      return Math.max(0, Math.ceil(diff / 86400000));
-    } catch { return null; }
+  function daysToExamFrom(examDate: string | null): number | null {
+    if (!examDate) return null;
+    const diff = new Date(examDate).getTime() - Date.now();
+    return Math.max(0, Math.ceil(diff / 86400000));
   }
 
   function handleStart(e: CustomEvent<{ subjectId: string; topicId: string }>) {
