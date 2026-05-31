@@ -503,10 +503,11 @@ All tables have RLS enabled. Policy: `auth.uid() = user_id`.
 
 ### Planned (spec'd, plan not yet written)
 
-- WS1.4 — settings sync (`user_settings` table) + single-source cleanup (examDate, `HISTORY_DAYS` 90→112 + heatmap derivation)
 - WS2 multi-device & interaction-correctness · WS3 Thai i18n · WS4 features · WS5 polish · WS6 motion (see roadmap spec)
 
 ### Completed
+
+- `docs/superpowers/plans/2026-05-31-ws1.4-settings-sync.md` — WS1.4: settings sync via `user_settings` (JSONB per-user, RLS; new `data/settingsSync.ts` hydrate-on-login merge-over-`defaults()`, echo-guarded `set` + per-user `hydratedUserId` gate, 600ms debounced upsert; guest stays localStorage, guarded to guest-only in `settings.ts`). Unified the divergent `Settings` type onto `stores/settings.ts` (deleted stale `types.ts` copy lacking `examDate`; scheduler re-pointed). Exam date single-sourced on `settings.examDate` (onboarding writes, dashboard reads reactively; dropped `pulse_exam_date`). History window unified to `HISTORY_DAYS=112` (shared constant drives sessions load + heatmap geometry; applied to both modes — guest was uncapped). Added `$app/environment` vitest stub so store modules load under tests. 29/29 unit tests; SSR boot-checked 5 routes → 200. PR #5
 
 - `docs/superpowers/plans/2026-05-31-ws1.3c-cleanup.md` — WS1.3c: deleted orphaned `db.ts` (514 lines, zero importers; killed the dead `seedSubjectsFromNames` shim); added `UNIQUE(srs_cards.topic_id)` + `onConflict:'topic_id'` to make `topicsRepo.create` idempotent (no dupes existed — clean add); fixed AI-suggested slots persisting with `user_id=''` (RLS-hidden for auth users — `handleAutoSchedule` now stamps real userId); fixed template-applied topics all getting `orderIndex:0`; fixed `/schedule` SSR 500 (`document` in `WeekGrid.onDestroy` via `clearHoldTimer` — guarded with `browser`, verified `GET /schedule` → 200). PR #4
 - `docs/superpowers/plans/2026-05-29-ws1.1-test-harness-characterization.md` — WS1.1: Vitest harness + srs/scheduler characterization tests (PR #1)
