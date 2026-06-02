@@ -44,7 +44,7 @@
   .tab-item {
     display: flex; flex-direction: column; align-items: center; gap: 2px;
     padding: 6px 12px; border-radius: 10px;
-    border: none; background: transparent; color: var(--muted); opacity: 0.55;
+    border: none; background: transparent; color: var(--muted);
     text-decoration: none; cursor: pointer; font-family: inherit;
     transition: transform 400ms cubic-bezier(0.34,1.56,0.64,1), opacity 140ms ease;
   }
