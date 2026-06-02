@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { page } from '$app/stores';
   import TabBar from '$lib/components/TabBar.svelte';
   import Sidebar from '$lib/components/Sidebar.svelte';
   import MoreDrawer from '$lib/components/MoreDrawer.svelte';
@@ -9,7 +10,7 @@
 
 <div class="app-shell">
   <div class="sidebar-slot"><Sidebar /></div>
-  <main class="main-content page-enter"><slot /></main>
+  <main class="main-content page-enter" class:full-bleed={$page.url.pathname === '/schedule'}><slot /></main>
   <div class="tabbar-slot">
     <TabBar onMore={() => (drawerOpen = true)} />
     <MoreDrawer open={drawerOpen} onClose={() => (drawerOpen = false)} />
@@ -25,6 +26,12 @@
     min-width: 0;
     overflow-y: auto;
     padding: 20px 16px calc(var(--tab-bar-height) + 20px + env(safe-area-inset-bottom)) 16px;
+  }
+  @media (max-width: 768px) {
+    .main-content.full-bleed {
+      padding: 0 0 calc(var(--tab-bar-height) + env(safe-area-inset-bottom)) 0;
+      overflow: hidden;
+    }
   }
   @media (min-width: 768px) {
     .sidebar-slot { display: block; width: var(--sidebar-width); flex-shrink: 0; }
