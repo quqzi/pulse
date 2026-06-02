@@ -133,9 +133,11 @@ normalized `dragstart / dragmove / dragend` detail with `PointerEvent` payloads.
 - Systematic sweep of **every** app route on phone + iPad: dashboard, timer, subjects,
   `subjects/[id]`, `subjects/templates`, `subjects/templates/[id]`, tasks, analytics,
   schedule, scores, journey, insights, settings, and **`review`** (SRS flashcards).
-- **Known desktop-only gap to fix here:** the `review` page rates cards via **keyboard
-  shortcuts**, which don't exist on touch — it needs touch-accessible rating controls
-  (on-screen buttons / swipe), not just a responsive layout.
+- **Verified during planning:** the `review` page already has on-screen reveal + rating
+  buttons (works on touch); its Space / 1–4 keyboard shortcuts are a desktop *enhancement*,
+  not the only path. No touch gap there. The real verified desktop-only interaction gap is
+  **moving/resizing existing schedule blocks** — `CalBlock` is `pointerdown`-less
+  (`mousedown` only) and WeekGrid's move/resize listen on `mousemove`/`mouseup` — see §7.1.
 - For each route: does every interaction work by touch? **Fix interaction-correctness gaps
   here; defer pure-layout gaps to WS2.2.** The audit checklist is recorded in the WS2.1 plan
   and its results captured as the plan executes.
