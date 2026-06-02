@@ -2,6 +2,7 @@
   import { onMount, onDestroy, tick } from 'svelte';
   import { createEventDispatcher } from 'svelte';
   import { browser } from '$app/environment';
+  import { anchored } from '$lib/actions/anchored';
   import CalBlock from './CalBlock.svelte';
   import BlockPopover from './BlockPopover.svelte';
   import type { ScheduleSlot, Subject, Topic, Task } from '$lib/types';
@@ -195,6 +196,7 @@
 
   // Pending block shown after create-drag ends
   let pendingBlock: { startTime: string; endTime: string; dayIdx: number; top: number } | null = null;
+  let pendingGhostEl: HTMLElement | undefined;
 
   let gridScrollEl: HTMLElement | null = null;
 
@@ -594,9 +596,9 @@
           <!-- BlockPopover for this day after drag-create -->
           {#if pendingBlock && pendingBlock.dayIdx === i}
             <!-- Ghost preview of the block being created -->
-            <div class="ghost-block pending" style="top: {pendingBlock.top}px; height: {(new Date(pendingBlock.endTime).getTime() - new Date(pendingBlock.startTime).getTime()) / 60000}px;"></div>
+            <div class="ghost-block pending" bind:this={pendingGhostEl} style="top: {pendingBlock.top}px; height: {(new Date(pendingBlock.endTime).getTime() - new Date(pendingBlock.startTime).getTime()) / 60000}px;"></div>
             <!-- svelte-ignore a11y-no-static-element-interactions -->
-            <div style="position: absolute; top: {pendingBlock.top}px; left: 0; z-index: 160; width: 240px;" on:mousedown|stopPropagation on:click|stopPropagation>
+            <div use:anchored={{ anchor: pendingGhostEl, placement: 'bottom-start', gutter: 6 }} style="z-index: 160; width: 240px;" on:mousedown|stopPropagation on:click|stopPropagation>
               <BlockPopover
                 {subjects}
                 {topics}
