@@ -25,9 +25,9 @@ export function draggable(node: HTMLElement, options: DraggableOptions = {}) {
   }
 
   function onPointerdown(e: PointerEvent) {
-    clearLongPress();
-    if (activeId !== null) return;       // already tracking a pointer
+    if (activeId !== null) return;       // already tracking a pointer — don't disturb its long-press
     if (e.button > 0) return;            // ignore right/middle mouse buttons (touch/pen are always 0)
+    clearLongPress();                    // fresh gesture: clear any stale timer before arming a new one
     activeId = e.pointerId;
     state = createGesture({ x: e.clientX, y: e.clientY }, false);
     node.setPointerCapture(e.pointerId);
