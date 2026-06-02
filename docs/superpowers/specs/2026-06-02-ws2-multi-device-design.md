@@ -130,11 +130,15 @@ normalized `dragstart / dragmove / dragend` detail with `PointerEvent` payloads.
 - Transient popovers collapse to a centered bottom-sheet under 768px; safe-area aware.
 
 ### 7.3 Mobile functionality audit
-- Systematic sweep of all 10 app pages (dashboard, timer, subjects, tasks, analytics,
-  schedule, scores, journey, insights, settings) on phone + iPad.
-- For each: does every interaction work by touch? **Fix interaction-correctness gaps here;
-  defer pure-layout gaps to WS2.2.** The audit checklist is recorded in the WS2.1 plan and
-  its results captured as the plan executes.
+- Systematic sweep of **every** app route on phone + iPad: dashboard, timer, subjects,
+  `subjects/[id]`, `subjects/templates`, `subjects/templates/[id]`, tasks, analytics,
+  schedule, scores, journey, insights, settings, and **`review`** (SRS flashcards).
+- **Known desktop-only gap to fix here:** the `review` page rates cards via **keyboard
+  shortcuts**, which don't exist on touch — it needs touch-accessible rating controls
+  (on-screen buttons / swipe), not just a responsive layout.
+- For each route: does every interaction work by touch? **Fix interaction-correctness gaps
+  here; defer pure-layout gaps to WS2.2.** The audit checklist is recorded in the WS2.1 plan
+  and its results captured as the plan executes.
 
 ### 7.4 Tab-bar contrast (a11y)
 - Replace `TabBar.svelte` inactive `opacity: 0.55` (fails contrast) with a token-based muted
