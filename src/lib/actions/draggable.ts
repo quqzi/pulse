@@ -12,6 +12,7 @@ export interface DraggableOptions {
 }
 
 const DEFAULTS = { threshold: 4, longPressMs: 250 };
+const SCROLL_ABANDON_PX = 10;
 
 export function draggable(node: HTMLElement, options: DraggableOptions = {}) {
   let opts = { ...DEFAULTS, ...options };
@@ -24,8 +25,9 @@ export function draggable(node: HTMLElement, options: DraggableOptions = {}) {
   }
 
   function onPointerdown(e: PointerEvent) {
+    clearLongPress();
     if (activeId !== null) return;       // already tracking a pointer
-    if (e.button > 0) return;            // primary button / touch only
+    if (e.button > 0) return;            // ignore right/middle mouse buttons (touch/pen are always 0)
     activeId = e.pointerId;
     state = createGesture({ x: e.clientX, y: e.clientY }, false);
     node.setPointerCapture(e.pointerId);
@@ -51,7 +53,7 @@ export function draggable(node: HTMLElement, options: DraggableOptions = {}) {
     // Touch that moves before the long-press fires = the user is scrolling; abandon.
     if (!state.started && e.pointerType !== 'mouse' && !state.grabbed) {
       const moved = Math.hypot(point.x - state.origin.x, point.y - state.origin.y);
-      if (moved > 10) { clearLongPress(); end(e, false); return; }
+      if (moved > SCROLL_ABANDON_PX) { clearLongPress(); end(e, false); return; }
       return;
     }
 
@@ -71,13 +73,13 @@ export function draggable(node: HTMLElement, options: DraggableOptions = {}) {
   }
 
   function end(e: PointerEvent, dragged: boolean) {
-    opts.onEnd?.({ dragged, event: e });
     node.removeEventListener('pointermove', onPointermove);
     node.removeEventListener('pointerup', onPointerup);
     node.removeEventListener('pointercancel', onPointerup);
     try { node.releasePointerCapture(e.pointerId); } catch { /* already released */ }
     state = null;
     activeId = null;
+    opts.onEnd?.({ dragged, event: e });
   }
 
   node.addEventListener('pointerdown', onPointerdown);
@@ -88,6 +90,14 @@ export function draggable(node: HTMLElement, options: DraggableOptions = {}) {
     destroy() {
       clearLongPress();
       node.removeEventListener('pointerdown', onPointerdown);
+      if (activeId !== null) {
+        node.removeEventListener('pointermove', onPointermove);
+        node.removeEventListener('pointerup', onPointerup);
+        node.removeEventListener('pointercancel', onPointerup);
+        try { node.releasePointerCapture(activeId); } catch { /* already released */ }
+        state = null;
+        activeId = null;
+      }
     },
   };
 }
