@@ -18,7 +18,11 @@ export function anchored(node: HTMLElement, options: AnchoredOptions) {
 	let opts = options;
 	let cleanup: () => void = () => {};
 
-	function update() {
+	// Take the node out of flow immediately so it doesn't flash at its static
+	// position for one frame before the async computePosition resolves.
+	node.style.position = 'fixed';
+
+	function reposition() {
 		if (!opts.anchor) return;
 		computePosition(opts.anchor, node, {
 			strategy: 'fixed',
@@ -31,7 +35,7 @@ export function anchored(node: HTMLElement, options: AnchoredOptions) {
 
 	function start() {
 		cleanup();
-		cleanup = opts.anchor ? autoUpdate(opts.anchor, node, update) : () => {};
+		cleanup = opts.anchor ? autoUpdate(opts.anchor, node, reposition) : () => {};
 	}
 
 	start();
