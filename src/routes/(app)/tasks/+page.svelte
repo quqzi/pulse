@@ -222,4 +222,8 @@
     from { transform: translateX(-50%) translateY(8px); opacity: 0; }
     to   { transform: translateX(-50%) translateY(0);   opacity: 1; }
   }
+
+  @media (max-width: 768px) {
+    .filter-btn { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+  }
 </style>

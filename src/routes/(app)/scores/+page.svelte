@@ -264,4 +264,8 @@
   .empty { text-align: center; color: var(--muted); font-size: 14px; padding: 48px 0; }
 
   .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); }
+
+  @media (max-width: 768px) {
+    .btn-add-score { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+  }
 </style>

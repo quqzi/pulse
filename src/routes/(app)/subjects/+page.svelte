@@ -292,4 +292,9 @@
     background: var(--primary); color: var(--bg); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
   }
   .btn-save:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  @media (max-width: 768px) {
+    .add-btn { width: 44px; height: 44px; }
+    .templates-link { display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; }
+  }
 </style>

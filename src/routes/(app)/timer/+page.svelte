@@ -334,4 +334,9 @@
     border: none;
     cursor: pointer;
   }
+
+  @media (max-width: 768px) {
+    .mode-tab { min-height: 44px; display: flex; align-items: center; justify-content: center; }
+    .focus-toggle { min-height: 44px; display: inline-flex; align-items: center; padding: 10px 8px; }
+  }
 </style>
