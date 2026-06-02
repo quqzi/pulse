@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import { draggable } from '$lib/actions/draggable';
+  import { anchored } from '$lib/actions/anchored';
   import type { ScheduleSlot, Subject, Topic } from '$lib/types';
 
   export let slot: ScheduleSlot;
@@ -24,6 +25,7 @@
 
   let showPopover = false;
   let didDrag = false;
+  let blockEl: HTMLElement;
 
   $: isShort = (() => {
     const start = new Date(slot.startTime);
@@ -98,6 +100,7 @@
   class:suggested={slot.isAiSuggested}
   class:focus-block={slot.isFocusBlock && !!subject}
   style="background: {blockBg}; border: {blockBorder}; color: {blockColor};"
+  bind:this={blockEl}
   on:click={onBlockClick}
   use:draggable={moveDrag}
 >
@@ -125,7 +128,7 @@
 
   {#if showPopover}
     <!-- svelte-ignore a11y-click-events-have-key-events -->
-    <div class="block-popover" on:click|stopPropagation>
+    <div class="block-popover" use:anchored={{ anchor: blockEl, placement: 'bottom-start', gutter: 6 }} on:click|stopPropagation>
       {#if slot.isAiSuggested}
         <div class="pop-title">Suggested · {subject?.name ?? 'Free block'}</div>
         <div class="pop-time">{timeLabel} · {durationLabel}</div>
@@ -249,9 +252,6 @@
   .block-resize:hover { background: rgba(0,0,0,0.15); }
 
   .block-popover {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
     z-index: 200;
     background: var(--bg2);
     border: 1px solid var(--border);
