@@ -346,6 +346,8 @@
 
   function onBlockDragEnd() {
     if (dragMode === 'move' && dragSlot) {
+      // dragDayIdx = origin day, ghostDayIdx = target day. They're equal today
+      // (move is vertical/same-day); they would diverge only if cross-day move is added.
       const day = weekDays[ghostDayIdx];
       dispatch('moveSlot', {
         slotId: dragSlot.id,
@@ -382,6 +384,8 @@
     if (dragMode === 'resize' && dragSlot) {
       const start = new Date(dragSlot.startTime);
       const startMin = start.getHours() * 60 + start.getMinutes();
+      // dragDayIdx = origin day (set in onBlockResizeStart, never changed during resize).
+      // ghostDayIdx is also equal; dragDayIdx is used here to anchor the start date.
       const day = weekDays[dragDayIdx];
       dispatch('resizeSlot', {
         slotId: dragSlot.id,
@@ -408,6 +412,7 @@
     document.removeEventListener('mouseup', onMouseup);
     ghostVisible = false;
 
+    // Only the create flow reaches here now — move/resize are handled via CalBlock delta events.
     if (dragMode === 'create' && ghostHeight >= 15) {
       const day = weekDays[dragDayIdx];
       const startMin = ghostTop + START_HOUR * 60;
