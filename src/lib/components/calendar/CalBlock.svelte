@@ -1,5 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
+  import { draggable } from '$lib/actions/draggable';
   import type { ScheduleSlot, Subject, Topic } from '$lib/types';
 
   export let slot: ScheduleSlot;
@@ -12,12 +13,17 @@
     dismiss: { slotId: string };
     delete: { slotId: string };
     startFocus: { slot: ScheduleSlot };
-    dragStart: { slot: ScheduleSlot; event: MouseEvent };
-    resizeStart: { slot: ScheduleSlot; event: MouseEvent };
+    dragStart: { slot: ScheduleSlot };
+    dragMove: { dy: number; clientX: number };
+    dragEnd: void;
+    resizeStart: { slot: ScheduleSlot };
+    resizeMove: { dy: number };
+    resizeEnd: void;
     changeSubject: { slotId: string; subjectId: string | undefined };
   }>();
 
   let showPopover = false;
+  let didDrag = false;
 
   $: isShort = (() => {
     const start = new Date(slot.startTime);
@@ -53,21 +59,32 @@
     ? (slot.isAiSuggested ? subject.color : 'white')
     : 'var(--muted)';
 
-  function onBlockClick(e: MouseEvent) {
-    if ((e.target as HTMLElement).closest('.block-resize')) return;
+  function onBlockClick() {
+    if (didDrag) { didDrag = false; return; }
     showPopover = !showPopover;
   }
 
-  function onMousedown(e: MouseEvent) {
-    if ((e.target as HTMLElement).closest('.block-resize')) return;
-    if (showPopover) return;
-    dispatch('dragStart', { slot, event: e });
-  }
+  const moveDrag = {
+    onStart: () => { if (!showPopover) dispatch('dragStart', { slot }); },
+    onMove: (d: { dy: number; event: PointerEvent }) => { if (!showPopover) dispatch('dragMove', { dy: d.dy, clientX: d.event.clientX }); },
+    onEnd: (d: { dragged: boolean; event: PointerEvent }) => {
+      if (d.dragged) {
+        if (d.event.type !== 'pointercancel') didDrag = true;
+        if (!showPopover) dispatch('dragEnd');
+      }
+    },
+  };
 
-  function onResizeMousedown(e: MouseEvent) {
-    e.stopPropagation();
-    dispatch('resizeStart', { slot, event: e });
-  }
+  const resizeDrag = {
+    onStart: () => dispatch('resizeStart', { slot }),
+    onMove: (d: { dy: number }) => dispatch('resizeMove', { dy: d.dy }),
+    onEnd: (d: { dragged: boolean; event: PointerEvent }) => {
+      if (d.dragged) {
+        if (d.event.type !== 'pointercancel') didDrag = true;
+        dispatch('resizeEnd');
+      }
+    },
+  };
 
   function pickSubject(subjectId: string | undefined) {
     dispatch('changeSubject', { slotId: slot.id, subjectId });
@@ -82,7 +99,7 @@
   class:focus-block={slot.isFocusBlock && !!subject}
   style="background: {blockBg}; border: {blockBorder}; color: {blockColor};"
   on:click={onBlockClick}
-  on:mousedown={onMousedown}
+  use:draggable={moveDrag}
 >
   <div class="block-content">
     {#if slot.isFocusBlock && !slot.isAiSuggested && subject}
@@ -103,7 +120,7 @@
   </div>
 
   {#if !slot.isAiSuggested}
-    <div class="block-resize" on:mousedown={onResizeMousedown} aria-hidden="true"></div>
+    <div class="block-resize" use:draggable={resizeDrag} on:pointerdown|stopPropagation aria-hidden="true"></div>
   {/if}
 
   {#if showPopover}
@@ -183,6 +200,7 @@
     user-select: none;
     box-sizing: border-box;
     min-height: 15px;
+    touch-action: none;
   }
   .block-content {
     position: absolute;
@@ -226,6 +244,7 @@
     height: 5px;
     cursor: s-resize;
     border-radius: 0 0 var(--radius-md) var(--radius-md);
+    touch-action: none;
   }
   .block-resize:hover { background: rgba(0,0,0,0.15); }
 

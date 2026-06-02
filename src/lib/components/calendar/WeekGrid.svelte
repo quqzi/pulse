@@ -324,46 +324,80 @@
     document.addEventListener('mouseup', onMouseup);
   }
 
-  function onBlockDragStart(e: CustomEvent<{ slot: ScheduleSlot; event: MouseEvent }>) {
-    const { slot, event } = e.detail;
-    event.preventDefault();
+  function onBlockDragStart(e: CustomEvent<{ slot: ScheduleSlot }>) {
+    const { slot } = e.detail;
     const start = new Date(slot.startTime);
     const end = new Date(slot.endTime);
-    const origTop = start.getHours() * 60 + start.getMinutes() - START_HOUR * 60;
-    const origHeight = (end.getTime() - start.getTime()) / 60000;
     dragMode = 'move';
     dragSlot = slot;
-    dragSlotOrigTop = origTop;
-    dragSlotOrigHeight = origHeight;
+    dragSlotOrigTop = start.getHours() * 60 + start.getMinutes() - START_HOUR * 60;
+    dragSlotOrigHeight = (end.getTime() - start.getTime()) / 60000;
     dragDayIdx = slotDayIdx(slot);
-    dragStartAbsY = event.clientY;
     ghostDayIdx = dragDayIdx;
-    ghostTop = origTop;
-    ghostHeight = origHeight;
+    ghostTop = dragSlotOrigTop;
+    ghostHeight = dragSlotOrigHeight;
     ghostVisible = true;
-    document.addEventListener('mousemove', onMousemove);
-    document.addEventListener('mouseup', onMouseup);
   }
 
-  function onBlockResizeStart(e: CustomEvent<{ slot: ScheduleSlot; event: MouseEvent }>) {
-    const { slot, event } = e.detail;
-    event.preventDefault();
+  function onBlockDragMove(e: CustomEvent<{ dy: number; clientX: number }>) {
+    if (dragMode !== 'move') return;
+    ghostTop = Math.max(0, Math.min(TOTAL_HEIGHT - dragSlotOrigHeight, snap(dragSlotOrigTop + e.detail.dy)));
+    // Horizontal: move follows the pointer across day columns (cross-day drag).
+    ghostDayIdx = getDayIdxFromClientX(e.detail.clientX);
+  }
+
+  function onBlockDragEnd() {
+    if (dragMode === 'move' && dragSlot) {
+      // dragDayIdx = origin day; ghostDayIdx = target day (updated as the pointer
+      // crosses columns in onBlockDragMove). Persist to the target day.
+      const day = weekDays[ghostDayIdx];
+      dispatch('moveSlot', {
+        slotId: dragSlot.id,
+        startTime: toLocalISO(day, ghostTop + START_HOUR * 60),
+        endTime: toLocalISO(day, ghostTop + ghostHeight + START_HOUR * 60),
+      });
+    }
+    ghostVisible = false;
+    dragMode = 'none';
+    dragSlot = null;
+  }
+
+  function onBlockResizeStart(e: CustomEvent<{ slot: ScheduleSlot }>) {
+    const { slot } = e.detail;
     const start = new Date(slot.startTime);
     const end = new Date(slot.endTime);
-    const origTop = start.getHours() * 60 + start.getMinutes() - START_HOUR * 60;
-    const origHeight = (end.getTime() - start.getTime()) / 60000;
     dragMode = 'resize';
     dragSlot = slot;
-    dragSlotOrigTop = origTop;
-    dragSlotOrigHeight = origHeight;
+    dragSlotOrigTop = start.getHours() * 60 + start.getMinutes() - START_HOUR * 60;
+    dragSlotOrigHeight = (end.getTime() - start.getTime()) / 60000;
     dragDayIdx = slotDayIdx(slot);
-    dragStartAbsY = event.clientY;
     ghostDayIdx = dragDayIdx;
-    ghostTop = origTop;
-    ghostHeight = origHeight;
+    ghostTop = dragSlotOrigTop;
+    ghostHeight = dragSlotOrigHeight;
     ghostVisible = true;
-    document.addEventListener('mousemove', onMousemove);
-    document.addEventListener('mouseup', onMouseup);
+  }
+
+  function onBlockResizeMove(e: CustomEvent<{ dy: number }>) {
+    if (dragMode !== 'resize') return;
+    ghostHeight = Math.max(15, snap(dragSlotOrigHeight + e.detail.dy));
+  }
+
+  function onBlockResizeEnd() {
+    if (dragMode === 'resize' && dragSlot) {
+      const start = new Date(dragSlot.startTime);
+      const startMin = start.getHours() * 60 + start.getMinutes();
+      // dragDayIdx = origin day (set in onBlockResizeStart, never changed during resize).
+      // ghostDayIdx is also equal; dragDayIdx is used here to anchor the start date.
+      const day = weekDays[dragDayIdx];
+      dispatch('resizeSlot', {
+        slotId: dragSlot.id,
+        startTime: toLocalISO(day, startMin),
+        endTime: toLocalISO(day, startMin + ghostHeight),
+      });
+    }
+    ghostVisible = false;
+    dragMode = 'none';
+    dragSlot = null;
   }
 
   function onMousemove(e: MouseEvent) {
@@ -372,10 +406,6 @@
       const currentY = dragStartGridY + delta;
       ghostTop = snap(Math.max(0, Math.min(dragStartGridY, currentY)));
       ghostHeight = Math.max(15, snap(Math.abs(currentY - dragStartGridY)));
-    } else if (dragMode === 'move') {
-      ghostTop = Math.max(0, Math.min(TOTAL_HEIGHT - dragSlotOrigHeight, snap(dragSlotOrigTop + delta)));
-    } else if (dragMode === 'resize') {
-      ghostHeight = Math.max(15, snap(dragSlotOrigHeight + delta));
     }
   }
 
@@ -384,6 +414,7 @@
     document.removeEventListener('mouseup', onMouseup);
     ghostVisible = false;
 
+    // Only the create flow reaches here now — move/resize are handled via CalBlock delta events.
     if (dragMode === 'create' && ghostHeight >= 15) {
       const day = weekDays[dragDayIdx];
       const startMin = ghostTop + START_HOUR * 60;
@@ -394,24 +425,7 @@
         dayIdx: dragDayIdx,
         top: ghostTop,
       };
-    } else if (dragMode === 'move' && dragSlot) {
-      const day = weekDays[ghostDayIdx];
-      dispatch('moveSlot', {
-        slotId: dragSlot.id,
-        startTime: toLocalISO(day, ghostTop + START_HOUR * 60),
-        endTime: toLocalISO(day, ghostTop + ghostHeight + START_HOUR * 60),
-      });
-    } else if (dragMode === 'resize' && dragSlot) {
-      const start = new Date(dragSlot.startTime);
-      const startMin = start.getHours() * 60 + start.getMinutes();
-      const day = weekDays[dragDayIdx];
-      dispatch('resizeSlot', {
-        slotId: dragSlot.id,
-        startTime: dragSlot.startTime,
-        endTime: toLocalISO(day, startMin + ghostHeight),
-      });
     }
-
     dragMode = 'none';
     dragSlot = null;
   }
@@ -563,7 +577,11 @@
                 topic={getTopic(slot.topicId)}
                 {subjects}
                 on:dragStart={onBlockDragStart}
+                on:dragMove={onBlockDragMove}
+                on:dragEnd={onBlockDragEnd}
                 on:resizeStart={onBlockResizeStart}
+                on:resizeMove={onBlockResizeMove}
+                on:resizeEnd={onBlockResizeEnd}
                 on:delete={(e) => dispatch('deleteSlot', { slotId: e.detail.slotId })}
                 on:accept={(e) => dispatch('acceptSlot', { slotId: e.detail.slotId })}
                 on:dismiss={(e) => dispatch('dismissSlot', { slotId: e.detail.slotId })}
