@@ -67,15 +67,23 @@
   const moveDrag = {
     onStart: () => { if (!showPopover) dispatch('dragStart', { slot }); },
     onMove: (d: { dy: number }) => { if (!showPopover) dispatch('dragMove', { dy: d.dy }); },
-    onEnd: (d: { dragged: boolean }) => {
-      if (d.dragged) { didDrag = true; if (!showPopover) dispatch('dragEnd'); }
+    onEnd: (d: { dragged: boolean; event: PointerEvent }) => {
+      if (d.dragged) {
+        if (d.event.type !== 'pointercancel') didDrag = true;
+        if (!showPopover) dispatch('dragEnd');
+      }
     },
   };
 
   const resizeDrag = {
     onStart: () => dispatch('resizeStart', { slot }),
     onMove: (d: { dy: number }) => dispatch('resizeMove', { dy: d.dy }),
-    onEnd: (d: { dragged: boolean }) => { if (d.dragged) { didDrag = true; dispatch('resizeEnd'); } },
+    onEnd: (d: { dragged: boolean; event: PointerEvent }) => {
+      if (d.dragged) {
+        if (d.event.type !== 'pointercancel') didDrag = true;
+        dispatch('resizeEnd');
+      }
+    },
   };
 
   function pickSubject(subjectId: string | undefined) {
@@ -112,7 +120,7 @@
   </div>
 
   {#if !slot.isAiSuggested}
-    <div class="block-resize" use:draggable={resizeDrag} aria-hidden="true"></div>
+    <div class="block-resize" use:draggable={resizeDrag} on:pointerdown|stopPropagation aria-hidden="true"></div>
   {/if}
 
   {#if showPopover}
