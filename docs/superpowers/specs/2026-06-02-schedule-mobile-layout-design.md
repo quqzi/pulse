@@ -46,10 +46,12 @@ The grid stays the hero with contained scroll. A slim, always-visible **trigger 
 ## 5. Design
 
 ### 5.1 Scroll containment & grid (phone)
-- `.schedule-wrap` fills exactly the available height (viewport minus the app's bottom tab bar) with `overflow: hidden` — no page scroll.
-- **Pinned, top to bottom:** week-nav header (‹ month › · Today · ✦ Auto-schedule), then the day-of-week row. Both stay put.
-- Only the **time-grid body** (the hours) scrolls vertically, inside its own scroll container.
-- Full **7-day week**; columns are narrow with gentle horizontal scroll if needed (preserves overview + cross-day drag reach).
+**Root cause (verified):** WeekGrid *already* self-contains its scroll — `.grid-header`, `.load-bar-row`, `.allday-row` are `flex-shrink:0` (pinned) and only `.grid-scroll` scrolls. The page-scroll problem is the **app layout**: `(app)/+layout.svelte` makes `.main-content` `overflow-y: auto` with `20px` padding inside a `100dvh` shell, so the schedule (a fixed-height app) sits in a *scrolling, padded* container and the whole thing scrolls.
+
+**Fix — make the schedule route full-bleed:**
+- The `/schedule` route opts `.main-content` out of its padding and `overflow-y: auto` (e.g. a route-conditional `full-bleed` class on `.main-content` in `(app)/+layout.svelte`, keyed off `$page.route.id`). Other routes keep the padded, scrolling content area.
+- With that, `.schedule-wrap` (`height: 100%`, `overflow: hidden`) fills the shell minus the tab bar; WeekGrid's existing internal scroll is then the only scroll, and its day-of-week header row stays pinned. **No structural change to WeekGrid is required.**
+- Full **7-day week**; columns stay narrow with the existing `min-width:560px` + `.main-area { overflow-x:auto }` horizontal scroll (preserves overview + cross-day drag reach).
 - **ExamBanner** becomes a slim one-line strip on phone so it doesn't eat grid height.
 
 ### 5.2 Bottom sheet
@@ -69,7 +71,7 @@ The grid stays the hero with contained scroll. A slim, always-visible **trigger 
   - Desktop (`!isMobile`): existing 3-column layout, unchanged.
   - Mobile (`isMobile`): render the trigger tab (AI pill from `$scheduleSlots.filter(s => s.isAiSuggested).length`) + `<BottomSheet bind:open>` wrapping `<MiniMonth …>` and `<ScheduleSidebar …>` with their existing props/handlers (incl. `acceptAll` / `rejectAll`, `weekSelect`).
   - On `weekSelect` from the sheet's MiniMonth: update `viewedWeekStart` and close the sheet.
-- **`WeekGrid.svelte`:** make the day-of-week row sticky and the hours area the scroll container (small structural/CSS change). Verify it doesn't regress desktop.
+- **`(app)/+layout.svelte`:** add a route-conditional `full-bleed` class to `.main-content` for `/schedule` (removes the `20px` padding and `overflow-y:auto` on that route only). **No WeekGrid change** — it already pins its header rows and scrolls its body.
 - **`ExamBanner.svelte`:** a compact one-line variant under 768px.
 - The existing `display:none` mobile rules for `.left-panel` / `.schedule-sidebar` remain (those desktop placements stay hidden on phone); their content now reappears inside the sheet.
 
@@ -85,7 +87,7 @@ No new data. The AI pending count derives from the existing `scheduleSlots` stor
 |---|---|
 | `src/lib/components/BottomSheet.svelte` | **new** — reusable bottom sheet |
 | `src/routes/(app)/schedule/+page.svelte` | mobile branch (trigger + sheet), `isMobile`, scroll-containment CSS |
-| `src/lib/components/calendar/WeekGrid.svelte` | sticky day-row + grid-body scroll container |
+| `src/routes/(app)/+layout.svelte` | full-bleed `.main-content` on the `/schedule` route (no padding / page-scroll) |
 | `src/lib/components/calendar/ExamBanner.svelte` | compact one-line mobile variant |
 | (a small `pendingAiCount` helper + test) | tested source for the pill |
 
