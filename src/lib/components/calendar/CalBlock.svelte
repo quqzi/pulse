@@ -14,7 +14,7 @@
     delete: { slotId: string };
     startFocus: { slot: ScheduleSlot };
     dragStart: { slot: ScheduleSlot };
-    dragMove: { dy: number };
+    dragMove: { dy: number; clientX: number };
     dragEnd: void;
     resizeStart: { slot: ScheduleSlot };
     resizeMove: { dy: number };
@@ -66,7 +66,7 @@
 
   const moveDrag = {
     onStart: () => { if (!showPopover) dispatch('dragStart', { slot }); },
-    onMove: (d: { dy: number }) => { if (!showPopover) dispatch('dragMove', { dy: d.dy }); },
+    onMove: (d: { dy: number; event: PointerEvent }) => { if (!showPopover) dispatch('dragMove', { dy: d.dy, clientX: d.event.clientX }); },
     onEnd: (d: { dragged: boolean; event: PointerEvent }) => {
       if (d.dragged) {
         if (d.event.type !== 'pointercancel') didDrag = true;

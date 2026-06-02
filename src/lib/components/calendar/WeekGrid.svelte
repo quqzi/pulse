@@ -339,15 +339,17 @@
     ghostVisible = true;
   }
 
-  function onBlockDragMove(e: CustomEvent<{ dy: number }>) {
+  function onBlockDragMove(e: CustomEvent<{ dy: number; clientX: number }>) {
     if (dragMode !== 'move') return;
     ghostTop = Math.max(0, Math.min(TOTAL_HEIGHT - dragSlotOrigHeight, snap(dragSlotOrigTop + e.detail.dy)));
+    // Horizontal: move follows the pointer across day columns (cross-day drag).
+    ghostDayIdx = getDayIdxFromClientX(e.detail.clientX);
   }
 
   function onBlockDragEnd() {
     if (dragMode === 'move' && dragSlot) {
-      // dragDayIdx = origin day, ghostDayIdx = target day. They're equal today
-      // (move is vertical/same-day); they would diverge only if cross-day move is added.
+      // dragDayIdx = origin day; ghostDayIdx = target day (updated as the pointer
+      // crosses columns in onBlockDragMove). Persist to the target day.
       const day = weekDays[ghostDayIdx];
       dispatch('moveSlot', {
         slotId: dragSlot.id,
