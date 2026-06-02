@@ -41,6 +41,7 @@
 		"vitest": "^4.1.7"
 	},
 	"dependencies": {
+		"@floating-ui/dom": "^1.7.6",
 		"@supabase/supabase-js": "^2.106.1",
 		"chart.js": "^4.5.1"
 	}
