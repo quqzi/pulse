@@ -11,6 +11,8 @@
   import MiniMonth from '$lib/components/calendar/MiniMonth.svelte';
   import ScheduleSidebar from '$lib/components/calendar/ScheduleSidebar.svelte';
   import ExamBanner from '$lib/components/calendar/ExamBanner.svelte';
+  import BottomSheet from '$lib/components/BottomSheet.svelte';
+  import { pendingAiCount } from '$lib/pendingAiCount';
   import type { ScheduleSlot } from '$lib/types';
 
   // ── Week navigation ───────────────────────────────────────────
@@ -51,6 +53,10 @@
 
   // ── Auto-schedule ─────────────────────────────────────────────
   let isScheduling = false;
+
+  // ── Mobile bottom sheet ───────────────────────────────────────
+  let sheetOpen = false;
+  $: aiPending = pendingAiCount($scheduleSlots);
 
   function handleAutoSchedule() {
     if (isScheduling) return;
@@ -210,6 +216,11 @@
       on:startFocus={handleStartFocus}
       on:changeSubject={handleChangeSubject}
     />
+
+    <button class="summary-tab" on:click={() => (sheetOpen = true)}>
+      <span>▴ Week summary</span>
+      {#if aiPending > 0}<span class="ai-pill">{aiPending} AI</span>{/if}
+    </button>
   </div>
 
   <ScheduleSidebar
@@ -223,6 +234,26 @@
     on:rejectAll={handleRejectAll}
   />
 </div>
+
+<BottomSheet open={sheetOpen} on:close={() => (sheetOpen = false)}>
+  <ScheduleSidebar
+    slots={$scheduleSlots}
+    subjects={$subjects}
+    topics={$topics}
+    srsCards={$srsCards}
+    settings={$settings}
+    weekStart={viewedWeekStart}
+    on:acceptAll={handleAcceptAll}
+    on:rejectAll={handleRejectAll}
+  />
+  <MiniMonth
+    currentWeekStart={viewedWeekStart}
+    sessions={$sessions}
+    tasks={$tasks}
+    subjects={$subjects}
+    on:weekSelect={(e) => { viewedWeekStart = e.detail; sheetOpen = false; }}
+  />
+</BottomSheet>
 
 <style>
   .schedule-wrap {
@@ -316,9 +347,38 @@
   .auto-btn:disabled { opacity: 0.5; cursor: not-allowed; }
   .auto-btn.loading { opacity: 0.7; }
 
+  .summary-tab { display: none; }
+
   @media (max-width: 768px) {
     .left-panel { display: none; }
     :global(.schedule-sidebar) { display: none !important; }
+    /* but show it when relocated inside the bottom sheet */
+    :global(.sheet-content .schedule-sidebar) { display: block !important; }
     .main-area { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    .summary-tab {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex-shrink: 0;
+      width: 100%;
+      padding: 10px 16px;
+      border: none;
+      border-top: 1px solid var(--border);
+      background: var(--bg2);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .ai-pill {
+      background: var(--warning, #e5a23c);
+      color: var(--bg);
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 1px 8px;
+    }
   }
 </style>
