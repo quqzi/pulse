@@ -49,7 +49,7 @@ For each flagged control, inside a `@media (max-width: 768px)` block in its own 
 - `QuickLog.svelte`: `.field-select`, `.log-btn`, `.duration-input`.
 - `tasks/+page.svelte`: `.filter-btn`.
 - `subjects/+page.svelte`: `.add-btn` (44×44 square), `.templates-link` (grow tap area via `padding` + `display: inline-flex; min-height: 44px; align-items: center`).
-- `scores/+page.svelte` (or `scores/ScoreForm.svelte` — whichever owns `.btn-add-score`): `.btn-add-score`.
+- `scores/+page.svelte` (confirmed owner of `.btn-add-score`): `.btn-add-score`.
 - `settings/+page.svelte`: `.num-input` (`min-height: 44px`); the range `<input type="range">` gets a taller hit area (wrap or `min-height: 44px` + padding so the touch zone ≥44px).
 
 Form controls (`select`, `input`) need `box-sizing: border-box` (most already inherit it globally) so `min-height` + padding don't overflow.
@@ -74,7 +74,7 @@ No unit tests (scoped CSS + a one-line toast). **Browser / mobile-emulation** ve
 | `src/lib/components/QuickLog.svelte` | `.field-select`, `.log-btn`, `.duration-input` ≥44px (mobile) |
 | `src/routes/(app)/tasks/+page.svelte` | `.filter-btn` ≥44px (mobile) |
 | `src/routes/(app)/subjects/+page.svelte` | `.add-btn` 44×44, `.templates-link` tap area (mobile) |
-| `scores` control owner (`scores/+page.svelte` or `ScoreForm.svelte`) | `.btn-add-score` ≥44px (mobile) |
+| `src/routes/(app)/scores/+page.svelte` | `.btn-add-score` ≥44px (mobile) |
 | `src/routes/(app)/settings/+page.svelte` | `.num-input` ≥44px, range hit area (mobile) |
 | `src/lib/components/TabBar.svelte` | drop inactive `opacity: 0.55`; verify/adjust contrast |
 | `src/routes/(app)/review/+page.svelte` | toast before redirect when nothing due |
