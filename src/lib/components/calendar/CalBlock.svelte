@@ -128,7 +128,7 @@
 
   {#if showPopover}
     <!-- svelte-ignore a11y-click-events-have-key-events -->
-    <div class="block-popover" use:anchored={{ anchor: blockEl, placement: 'bottom-start', gutter: 6 }} on:click|stopPropagation>
+    <div class="block-popover" use:anchored={{ anchor: blockEl, placement: 'bottom-start', gutter: 6 }} on:click|stopPropagation on:pointerdown|stopPropagation>
       {#if slot.isAiSuggested}
         <div class="pop-title">Suggested · {subject?.name ?? 'Free block'}</div>
         <div class="pop-time">{timeLabel} · {durationLabel}</div>
