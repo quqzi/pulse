@@ -9,6 +9,13 @@
 
   const dispatch = createEventDispatcher<{ confirm: void; cancel: void }>();
 
+  // Render at <body> so the dialog escapes `.main-content`'s trapped stacking
+  // context and layers above the fixed tab-bar and any (also body-portaled) sheet.
+  function portal(node: HTMLElement) {
+    document.body.appendChild(node);
+    return { destroy() { node.remove(); } };
+  }
+
   function confirm() { dispatch('confirm'); open = false; }
   function cancel() { dispatch('cancel'); open = false; }
 
@@ -26,7 +33,7 @@
 <svelte:window on:keydown={handleKey} />
 
 {#if open}
-  <div class="backdrop" on:click={handleBackdrop} role="dialog" aria-modal="true">
+  <div use:portal class="backdrop" on:click={handleBackdrop} role="dialog" aria-modal="true">
     <div class="dialog">
       <p class="dialog-title">{title}</p>
       {#if message}<p class="dialog-message">{message}</p>{/if}

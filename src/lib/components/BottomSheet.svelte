@@ -7,6 +7,15 @@
   const dispatch = createEventDispatcher<{ close: void }>();
   function close() { dispatch('close'); }
 
+  // The page lives inside `.main-content`, whose page-enter animation + scroll
+  // container traps descendant z-index. Without this the fixed `.tab-bar`
+  // (its own backdrop-filter stacking context) paints over the sheet's lower
+  // buttons. Relocating to <body> puts the sheet in the root stacking context.
+  function portal(node: HTMLElement) {
+    document.body.appendChild(node);
+    return { destroy() { node.remove(); } };
+  }
+
   let prefersReduced = false;
   onMount(() => { prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches; });
   $: dur = prefersReduced ? 0 : 240;
@@ -37,26 +46,28 @@
 <svelte:window on:keydown={onKeydown} />
 
 {#if open}
-  <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
-  <div class="sheet-backdrop" on:click={close} transition:fade={{ duration: dur }} aria-hidden="true"></div>
-  <div
-    class="sheet-panel"
-    role="dialog"
-    aria-modal="true"
-    style="transform: translateY({dragY}px);"
-    transition:fly={{ y: 400, duration: dur }}
-  >
-    <!-- svelte-ignore a11y-no-static-element-interactions -->
+  <div use:portal>
+    <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
+    <div class="sheet-backdrop" on:click={close} transition:fade={{ duration: dur }} aria-hidden="true"></div>
     <div
-      class="sheet-grip"
-      on:pointerdown={onPointerdown}
-      on:pointermove={onPointermove}
-      on:pointerup={onPointerup}
+      class="sheet-panel"
+      role="dialog"
+      aria-modal="true"
+      style="transform: translateY({dragY}px);"
+      transition:fly={{ y: 400, duration: dur }}
     >
-      <button class="sheet-handle" on:click={close} aria-label="Close"></button>
-    </div>
-    <div class="sheet-content">
-      <slot />
+      <!-- svelte-ignore a11y-no-static-element-interactions -->
+      <div
+        class="sheet-grip"
+        on:pointerdown={onPointerdown}
+        on:pointermove={onPointermove}
+        on:pointerup={onPointerup}
+      >
+        <button class="sheet-handle" on:click={close} aria-label="Close"></button>
+      </div>
+      <div class="sheet-content">
+        <slot />
+      </div>
     </div>
   </div>
 {/if}

@@ -13,6 +13,13 @@
     close: void;
   }>();
 
+  // Relocate to <body> so the sheet escapes `.main-content`'s trapped stacking
+  // context and renders above the fixed bottom tab-bar (same reason as BottomSheet).
+  function portal(node: HTMLElement) {
+    document.body.appendChild(node);
+    return { destroy() { node.remove(); } };
+  }
+
   type Swatch = (typeof SUBJECT_COLOR_PALETTE)[number];
 
   let name = '';
@@ -21,10 +28,15 @@
   let saving = false;
   let confirmOpen = false;
 
-  // seed the form exactly once on each false→true transition of `open`
+  // seed the form exactly once on each false→true transition of `open`.
+  // Kept in one reactive block: a split `$: if (open && !wasOpen)` / `$: wasOpen = open`
+  // lets Svelte order the writer before the reader, so `wasOpen` is already true
+  // when the guard runs and seed() never fires.
   let wasOpen = false;
-  $: if (open && !wasOpen) seed();
-  $: wasOpen = open;
+  $: {
+    if (open && !wasOpen) seed();
+    wasOpen = open;
+  }
 
   function seed() {
     if (subject) {
@@ -79,6 +91,7 @@
 />
 
 {#if open}
+  <div use:portal>
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <div class="sheet-overlay" on:click={close} role="presentation"></div>
   <div class="sheet" role="dialog" aria-modal="true" aria-label={subject ? 'Edit Subject' : 'New Subject'}>
@@ -117,6 +130,7 @@
       <button class="btn-cancel" on:click={close}>Cancel</button>
       <button class="btn-save" on:click={save} disabled={!name.trim() || saving}>Save</button>
     </div>
+  </div>
   </div>
 {/if}
 
