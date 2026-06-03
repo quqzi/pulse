@@ -6,6 +6,7 @@
     { label: 'Tasks',    href: '/tasks' },
     { label: 'Schedule', href: '/schedule' },
     { label: 'Scores',   href: '/scores' },
+    { label: 'Exam',     href: '/exam' },
     { label: 'Insights', href: '/insights' },
     { label: 'Journey',  href: '/journey' },
     { label: 'Settings', href: '/settings' },
