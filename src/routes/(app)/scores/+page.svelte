@@ -157,6 +157,7 @@
           tabindex="0"
           on:click={() => openActions(score)}
           on:keydown={(e) => {
+            if (e.target !== e.currentTarget) return;
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
               openActions(score);
