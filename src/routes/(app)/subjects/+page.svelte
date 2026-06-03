@@ -111,7 +111,7 @@
 
 <SubjectEditSheet bind:open={editOpen} subject={null} on:save={handleSave} />
 
-<BottomSheet bind:open={overflowOpen} on:close={() => (overflowOpen = false)}>
+<BottomSheet open={overflowOpen} on:close={() => (overflowOpen = false)}>
   <button
     class="overflow-action"
     on:click={() => {
