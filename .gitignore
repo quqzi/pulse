@@ -25,3 +25,6 @@ vite.config.ts.timestamp-*
 
 # brainstorm visual-companion artifacts
 .superpowers/
+
+# Playwright MCP debug artifacts
+.playwright-mcp/
