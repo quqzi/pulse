@@ -153,4 +153,10 @@
     font-weight: 600;
     color: var(--primary);
   }
+
+  @media (max-width: 768px) {
+    .field-select { min-height: 44px; }
+    .duration-input { min-height: 44px; }
+    .log-btn { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+  }
 </style>

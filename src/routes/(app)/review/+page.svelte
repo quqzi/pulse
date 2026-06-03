@@ -5,6 +5,7 @@
   import { topics, subjects, dueCards, loadData } from '$lib/stores/data';
   import { srsRepo } from '$lib/data/entities';
   import { reviewCard } from '$lib/srs';
+  import { toast } from '$lib/stores/toast';
   import type { SrsCard, Topic, Subject } from '$lib/types';
 
   interface RatingOption {
@@ -102,6 +103,7 @@
     await loadData($auth);
     queue = buildQueue($dueCards, $topics, $subjects);
     if (queue.length === 0) {
+      toast.info("No cards due — you're all caught up 🎉");
       goto('/dashboard');
       return;
     }

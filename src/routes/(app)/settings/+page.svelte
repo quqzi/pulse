@@ -275,4 +275,9 @@
   }
   .energy-label { font-size:13px; font-weight:600; }
   .energy-desc { font-size:11px; color:var(--muted); margin-top:1px; }
+
+  @media (max-width: 768px) {
+    .num-input { min-height: 44px; }
+    input[type='range'] { min-height: 44px; }
+  }
 </style>
