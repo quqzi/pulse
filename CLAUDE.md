@@ -499,14 +499,21 @@ All tables have RLS enabled. Policy: `auth.uid() = user_id`.
 
 ### Open (ready to implement)
 
-- `docs/superpowers/plans/2026-05-28-exam-simulation.md` — Exam Simulation (readiness score card, question bank, mock exam with timer modes)
+- _None — all written plans implemented._
 
 ### Planned (spec'd, plan not yet written)
 
-- WS2 multi-device & interaction-correctness · WS3 Thai i18n · WS4 features · WS5 polish · WS6 motion (see roadmap spec)
+- WS3 Thai i18n · WS4 features · WS5 polish · WS6 motion (see roadmap spec)
 
 ### Completed
 
+- `docs/superpowers/plans/2026-05-28-exam-simulation.md` — Exam Simulation (readiness score card on dashboard, question bank page, configurable mock exam with overall/per-question timer modes). Adapted from the pre-WS1 plan to the repo engine: `examQuestionsRepo`/`examSessionsRepo` on the `repo()` engine (guest localStorage / auth Supabase, write-through) instead of the deleted `db.ts`; `readinessScore` derived joins card→topic→subject (SrsCard.subjectId was dropped in WS1.3b). Exam tables migration written but **not yet applied** to prod (guest mode works without it). Browser-verified guest flow end-to-end (add questions → run exam → results persisted → readiness card). PR #13
+- `docs/superpowers/plans/2026-06-03-ws2.2-mobile-layouts.md` — WS2.2: scores/subjects tap→action-sheet on touch (reusing `BottomSheet`), Subjects edit relocated to its detail page via reusable `SubjectEditSheet`, header decongest. Verification found + fixed: sheets/dialogs portal to `<body>` (escape `.main-content` trapped stacking context above the fixed tab-bar), SubjectEditSheet seed reactive-ordering, scores row keyboard double-trigger. PR #11
+- `docs/superpowers/plans/2026-06-03-mobile-a11y-touch-targets.md` — WS2.1c: ≥44px touch targets on flagged controls, tab-bar inactive contrast, friendly `/review` toast. (merged)
+- `docs/superpowers/plans/2026-06-02-ws2.1b-anchored-positioning.md` — WS2.1b: anchored-positioning action for popovers/menus. (merged)
+- `docs/superpowers/plans/2026-06-02-ws2.1a-schedule-touch-drag.md` — WS2.1a: schedule touch drag/resize. (merged)
+- `docs/superpowers/plans/2026-06-02-schedule-mobile-layout.md` — Schedule mobile layout. (merged)
+- `docs/superpowers/plans/2026-05-27-qol-fixes.md` — QoL fixes. (merged)
 - `docs/superpowers/plans/2026-05-31-ws1.4-settings-sync.md` — WS1.4: settings sync via `user_settings` (JSONB per-user, RLS; new `data/settingsSync.ts` hydrate-on-login merge-over-`defaults()`, echo-guarded `set` + per-user `hydratedUserId` gate, 600ms debounced upsert; guest stays localStorage, guarded to guest-only in `settings.ts`). Unified the divergent `Settings` type onto `stores/settings.ts` (deleted stale `types.ts` copy lacking `examDate`; scheduler re-pointed). Exam date single-sourced on `settings.examDate` (onboarding writes, dashboard reads reactively; dropped `pulse_exam_date`). History window unified to `HISTORY_DAYS=112` (shared constant drives sessions load + heatmap geometry; applied to both modes — guest was uncapped). Added `$app/environment` vitest stub so store modules load under tests. 29/29 unit tests; SSR boot-checked 5 routes → 200. PR #5
 
 - `docs/superpowers/plans/2026-05-31-ws1.3c-cleanup.md` — WS1.3c: deleted orphaned `db.ts` (514 lines, zero importers; killed the dead `seedSubjectsFromNames` shim); added `UNIQUE(srs_cards.topic_id)` + `onConflict:'topic_id'` to make `topicsRepo.create` idempotent (no dupes existed — clean add); fixed AI-suggested slots persisting with `user_id=''` (RLS-hidden for auth users — `handleAutoSchedule` now stamps real userId); fixed template-applied topics all getting `orderIndex:0`; fixed `/schedule` SSR 500 (`document` in `WeekGrid.onDestroy` via `clearHoldTimer` — guarded with `browser`, verified `GET /schedule` → 200). PR #4

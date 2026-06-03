@@ -14,6 +14,7 @@
   import SubjectTile from '$lib/components/SubjectTile.svelte';
   import TodaysPlan from '$lib/components/TodaysPlan.svelte';
   import QuickLog from '$lib/components/QuickLog.svelte';
+  import ReadinessCard from '$lib/components/ReadinessCard.svelte';
   import { newId } from '$lib/id';
   import { tasksRepo, sessionsRepo } from '$lib/data/entities';
 
@@ -77,6 +78,10 @@
   <div use:cardTilt>
     <HeroCard todayHours={$todayHours} goalHours={$settings.dailyGoalHours} streak={$streak} />
   </div>
+
+  <section class="readiness-section">
+    <ReadinessCard />
+  </section>
 
   {#if $subjects.length > 0}
     <section class="subjects-section">
@@ -158,6 +163,7 @@
   .page { padding: 20px 16px 0; max-width: 600px; margin: 0 auto; }
   .greeting-row { margin-bottom: 20px; }
   .subtitle { color: var(--muted); margin-top: 3px; }
+  .readiness-section { margin-top: 16px; }
   .subjects-section { margin-top: 24px; }
   .section-label {
     font-size: 11px;

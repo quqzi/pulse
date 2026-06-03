@@ -1,12 +1,12 @@
 import { derived } from 'svelte/store';
 import type { AuthState } from '$lib/stores/auth';
 import {
-  subjects, topics, srsCards, sessions, tasks, templates, scheduleSlots, scores,
+  subjects, topics, srsCards, sessions, tasks, templates, scheduleSlots, scores, examQuestions, examSessions,
 } from '$lib/data/stores';
-import { tasksRepo, scoresRepo, templatesRepo, subjectsRepo, topicsRepo, srsRepo, sessionsRepo, scheduleRepo } from '$lib/data/entities';
+import { tasksRepo, scoresRepo, templatesRepo, subjectsRepo, topicsRepo, srsRepo, sessionsRepo, scheduleRepo, examQuestionsRepo, examSessionsRepo } from '$lib/data/entities';
 
 // Re-export so existing `import { tasks } from '$lib/stores/data'` keeps working.
-export { subjects, topics, srsCards, sessions, tasks, templates, scheduleSlots, scores };
+export { subjects, topics, srsCards, sessions, tasks, templates, scheduleSlots, scores, examQuestions, examSessions };
 export { authCtx, getAuthContext } from '$lib/data/authctx';
 
 export const todaysSessions = derived(sessions, ($s) => {
@@ -47,6 +47,45 @@ export const tasksDueToday = derived(tasks, ($tasks) => {
   return $tasks.filter(t => !t.completedAt && t.dueDate && t.dueDate <= today);
 });
 
+// Per-subject + overall exam readiness (0–100), blending SRS retention,
+// recent study hours, and mock-exam accuracy. SrsCard has no subjectId, so
+// cards are mapped to their subject through their topic.
+export const readinessScore = derived(
+  [subjects, topics, srsCards, sessions, examSessions],
+  ([$subjects, $topics, $srsCards, $sessions, $examSessions]) => {
+    if ($subjects.length === 0) return { overall: 0, bySubject: {} as Record<string, number> };
+
+    const topicSubject = new Map($topics.map(t => [t.id, t.subjectId]));
+    const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const bySubject: Record<string, number> = {};
+
+    for (const subj of $subjects) {
+      const cards = $srsCards.filter(c => topicSubject.get(c.topicId) === subj.id);
+      const srsScore = cards.length === 0 ? 0 : cards.filter(c => c.ease >= 2.5).length / cards.length;
+
+      const recentSecs = $sessions
+        .filter(s => s.subjectId === subj.id && new Date(s.startedAt) >= cutoff)
+        .reduce((sum, s) => sum + s.durationSec, 0);
+      const hoursScore = Math.min(recentSecs / 3600 / 20, 1);
+
+      const examRatios = $examSessions
+        .map(es => {
+          const sub = es.subjectScores[subj.id];
+          return sub && sub.total > 0 ? sub.correct / sub.total : null;
+        })
+        .filter((r): r is number => r !== null);
+      const examScore = examRatios.length === 0 ? 0 : examRatios.reduce((a, b) => a + b, 0) / examRatios.length;
+
+      bySubject[subj.id] = Math.round((srsScore * 0.4 + hoursScore * 0.3 + examScore * 0.3) * 100);
+    }
+
+    const overall = Math.round(
+      Object.values(bySubject).reduce((a, b) => a + b, 0) / $subjects.length
+    );
+    return { overall, bySubject };
+  }
+);
+
 export async function loadData(authState: AuthState): Promise<void> {
   if (authState.mode === 'loading') return;
   await Promise.all([
@@ -57,6 +96,8 @@ export async function loadData(authState: AuthState): Promise<void> {
     srsRepo.load(),
     sessionsRepo.load(),
     templatesRepo.load(),
+    examQuestionsRepo.load(),
+    examSessionsRepo.load(),
   ]);
 }
 

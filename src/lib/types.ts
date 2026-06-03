@@ -104,3 +104,26 @@ export interface MockScore {
   notes?: string;
   createdAt: string;    // ISO timestamp
 }
+
+export interface ExamQuestion {
+  id: string;
+  userId: string;
+  text: string;
+  choices: [string, string, string, string];
+  correctIndex: 0 | 1 | 2 | 3;
+  subject: string;      // subject name (questions are authored free-form)
+  difficulty: 'easy' | 'medium' | 'hard';
+  year?: number;
+  createdAt: string;    // ISO timestamp
+}
+
+export interface ExamSession {
+  id: string;
+  userId: string;
+  subjectScores: Record<string, { correct: number; total: number }>;  // keyed by subject id
+  totalCorrect: number;
+  totalQuestions: number;
+  durationSeconds: number;
+  timerMode: 'overall' | 'per-question';
+  createdAt: string;    // ISO timestamp
+}
