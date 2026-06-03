@@ -1,9 +1,9 @@
 import { get } from 'svelte/store';
-import type { Task, MockScore, Template, Subject, Topic, SrsCard, StudySession, ScheduleSlot } from '$lib/types';
-import { tasks, scores, templates, subjects, topics, srsCards, sessions, scheduleSlots } from '$lib/data/stores';
+import type { Task, MockScore, Template, Subject, Topic, SrsCard, StudySession, ScheduleSlot, ExamQuestion, ExamSession } from '$lib/types';
+import { tasks, scores, templates, subjects, topics, srsCards, sessions, scheduleSlots, examQuestions, examSessions } from '$lib/data/stores';
 import { repo } from '$lib/data/repository';
 import { writeThrough, loadInto } from '$lib/data/engine';
-import { taskFromRow, taskToRow, scoreFromRow, scoreToRow, templateFromRow, templateToRow, subjectFromRow, subjectToRow, topicFromRow, topicToRow, cardFromRow, cardToRow, sessionFromRow, sessionToRow, slotFromRow, slotToRow } from '$lib/data/mappers';
+import { taskFromRow, taskToRow, scoreFromRow, scoreToRow, templateFromRow, templateToRow, subjectFromRow, subjectToRow, topicFromRow, topicToRow, cardFromRow, cardToRow, sessionFromRow, sessionToRow, slotFromRow, slotToRow, examQuestionFromRow, examQuestionToRow, examSessionFromRow, examSessionToRow } from '$lib/data/mappers';
 import { getAuthContext } from '$lib/data/authctx';
 import { toast } from '$lib/stores/toast';
 import { lsWrite, lsRead } from '$lib/data/ls';
@@ -40,6 +40,28 @@ export const templatesRepo = repo<Template>({
   table: 'templates',
   toRow: templateToRow,
   fromRow: templateFromRow,
+  orderColumn: 'created_at',
+  ascending: false,
+  order: (a, b) => b.createdAt.localeCompare(a.createdAt),
+});
+
+export const examQuestionsRepo = repo<ExamQuestion>({
+  store: examQuestions,
+  lsKey: 'pulse.examQuestions',
+  table: 'exam_questions',
+  toRow: examQuestionToRow,
+  fromRow: examQuestionFromRow,
+  orderColumn: 'created_at',
+  ascending: false,
+  order: (a, b) => b.createdAt.localeCompare(a.createdAt),
+});
+
+export const examSessionsRepo = repo<ExamSession>({
+  store: examSessions,
+  lsKey: 'pulse.examSessions',
+  table: 'exam_sessions',
+  toRow: examSessionToRow,
+  fromRow: examSessionFromRow,
   orderColumn: 'created_at',
   ascending: false,
   order: (a, b) => b.createdAt.localeCompare(a.createdAt),

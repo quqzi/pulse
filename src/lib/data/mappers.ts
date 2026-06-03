@@ -1,4 +1,4 @@
-import type { Task, MockScore, Template, SubjectPreset, Subject, Topic, SrsCard, StudySession, ScheduleSlot } from '$lib/types';
+import type { Task, MockScore, Template, SubjectPreset, Subject, Topic, SrsCard, StudySession, ScheduleSlot, ExamQuestion, ExamSession } from '$lib/types';
 
 export const taskFromRow = (r: Record<string, unknown>): Task => ({
   id: r.id as string,
@@ -170,5 +170,51 @@ export const slotToRow = (s: ScheduleSlot): Record<string, unknown> => ({
   is_recurring: s.isRecurring,
   recurrence_days: s.recurrenceDays,
   recurrence_end: s.recurrenceEndDate ?? null,
+  created_at: s.createdAt,
+});
+
+export const examQuestionFromRow = (r: Record<string, unknown>): ExamQuestion => ({
+  id: r.id as string,
+  userId: r.user_id as string,
+  text: r.text as string,
+  choices: r.choices as [string, string, string, string],
+  correctIndex: r.correct_index as 0 | 1 | 2 | 3,
+  subject: r.subject as string,
+  difficulty: r.difficulty as ExamQuestion['difficulty'],
+  year: (r.year as number | null) ?? undefined,
+  createdAt: r.created_at as string,
+});
+
+export const examQuestionToRow = (q: ExamQuestion): Record<string, unknown> => ({
+  id: q.id,
+  user_id: q.userId,
+  text: q.text,
+  choices: q.choices,
+  correct_index: q.correctIndex,
+  subject: q.subject,
+  difficulty: q.difficulty,
+  year: q.year ?? null,
+  created_at: q.createdAt,
+});
+
+export const examSessionFromRow = (r: Record<string, unknown>): ExamSession => ({
+  id: r.id as string,
+  userId: r.user_id as string,
+  subjectScores: r.subject_scores as Record<string, { correct: number; total: number }>,
+  totalCorrect: r.total_correct as number,
+  totalQuestions: r.total_questions as number,
+  durationSeconds: r.duration_seconds as number,
+  timerMode: r.timer_mode as ExamSession['timerMode'],
+  createdAt: r.created_at as string,
+});
+
+export const examSessionToRow = (s: ExamSession): Record<string, unknown> => ({
+  id: s.id,
+  user_id: s.userId,
+  subject_scores: s.subjectScores,
+  total_correct: s.totalCorrect,
+  total_questions: s.totalQuestions,
+  duration_seconds: s.durationSeconds,
+  timer_mode: s.timerMode,
   created_at: s.createdAt,
 });
