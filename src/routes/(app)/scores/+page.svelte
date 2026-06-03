@@ -5,6 +5,7 @@
   import { scoresRepo } from '$lib/data/entities';
   import ScoreForm from '$lib/components/scores/ScoreForm.svelte';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
+  import BottomSheet from '$lib/components/BottomSheet.svelte';
   import type { MockScore } from '$lib/types';
 
   onMount(() => loadData($auth));
@@ -15,6 +16,13 @@
   let editingScore: MockScore | null = null;
   let activeSubjectId = 'all';
 
+  let actionSheetOpen = false;
+  let actionScore: MockScore | null = null;
+
+  function openActions(score: MockScore) {
+    actionScore = score;
+    actionSheetOpen = true;
+  }
 
   function formatDate(d: string): string {
     const date = new Date(d + 'T00:00:00');
@@ -143,7 +151,19 @@
         {@const color = subjectColor(score.subjectId)}
         {@const pct = score.maxScore > 0 ? Math.round((score.score / score.maxScore) * 100) : 0}
         {@const trend = trendData(score.subjectId)}
-        <li class="score-item card">
+        <li
+          class="score-item card"
+          role="button"
+          tabindex="0"
+          on:click={() => openActions(score)}
+          on:keydown={(e) => {
+            if (e.target !== e.currentTarget) return;
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              openActions(score);
+            }
+          }}
+        >
           <div class="score-left">
             <span class="subj-chip" style="background:{color}22;color:{color}">
               {subjectSymbol(score.subjectId)}
@@ -174,13 +194,13 @@
           </div>
 
           <div class="item-actions">
-            <button class="action-btn" on:click={() => openEdit(score)} aria-label="Edit score">
+            <button class="action-btn" on:click|stopPropagation={() => openEdit(score)} aria-label="Edit score">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
                 <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
               </svg>
             </button>
-            <button class="action-btn danger" on:click={() => promptDeleteScore(score)} aria-label="Delete score">
+            <button class="action-btn danger" on:click|stopPropagation={() => promptDeleteScore(score)} aria-label="Delete score">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M18 6L6 18M6 6l12 12"/>
               </svg>
@@ -191,6 +211,26 @@
     </ul>
   {/if}
 </div>
+
+<BottomSheet bind:open={actionSheetOpen} on:close={() => (actionSheetOpen = false)}>
+  {#if actionScore}
+    <p class="sheet-heading">{subjectName(actionScore.subjectId)} · {formatDate(actionScore.takenAt)}</p>
+    <button
+      class="sheet-action"
+      on:click={() => {
+        actionSheetOpen = false;
+        if (actionScore) openEdit(actionScore);
+      }}
+    >Edit</button>
+    <button
+      class="sheet-action danger"
+      on:click={() => {
+        actionSheetOpen = false;
+        if (actionScore) promptDeleteScore(actionScore);
+      }}
+    >Delete</button>
+  {/if}
+</BottomSheet>
 
 <style>
   .page { padding: 20px 16px 80px; max-width: 640px; margin: 0 auto; }
@@ -252,7 +292,26 @@
     display: flex; flex-direction: column; gap: 4px;
     opacity: 0; transition: opacity 120ms ease;
   }
-  .score-item:hover .item-actions { opacity: 1; }
+  @media (hover: hover) and (pointer: fine) {
+    .score-item:hover .item-actions { opacity: 1; }
+  }
+  @media (hover: none) {
+    .item-actions { display: none; }
+  }
+  .score-item { cursor: pointer; }
+  .score-item:active { background: var(--bg3); }
+
+  .sheet-heading {
+    font-size: 13px; font-weight: 600; color: var(--muted);
+    padding: 4px 8px 12px; text-align: center;
+  }
+  .sheet-action {
+    width: 100%; text-align: left; padding: 14px 8px; border: none; background: none;
+    color: var(--text); font-family: inherit; font-size: 15px; font-weight: 500; cursor: pointer;
+    border-radius: var(--radius-md); min-height: 44px;
+  }
+  .sheet-action:hover { background: var(--bg3); }
+  .sheet-action.danger { color: var(--danger); }
   .action-btn {
     background: none; border: none; cursor: pointer; padding: 3px;
     color: var(--muted); line-height: 0; border-radius: 4px;

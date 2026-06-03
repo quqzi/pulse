@@ -5,9 +5,10 @@
   import { auth } from '$lib/stores/auth';
   import { subjects, topics, srsCards, loadData } from '$lib/stores/data';
   import { newId } from '$lib/id';
-  import { topicsRepo, srsRepo } from '$lib/data/entities';
+  import { topicsRepo, srsRepo, subjectsRepo } from '$lib/data/entities';
   import { reviewCard, isDue } from '$lib/srs';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
+  import SubjectEditSheet from '$lib/components/subjects/SubjectEditSheet.svelte';
 
   $: subjectId = $page.params.id;
   $: subject = $subjects.find(s => s.id === subjectId);
@@ -20,6 +21,28 @@
   let editingTopicId: string | null = null;
   let editTopicName = '';
   let reviewingCard: { topicId: string; topicName: string } | null = null;
+
+  let subjectEditOpen = false;
+
+  async function handleSubjectSave(
+    e: CustomEvent<{ name: string; symbol: string; color: string; colorRgb: string }>
+  ) {
+    if (!subject) return;
+    const f = e.detail;
+    await subjectsRepo.save({
+      ...subject,
+      name: f.name,
+      symbol: f.symbol,
+      color: f.color,
+      colorRgb: f.colorRgb,
+    });
+  }
+
+  async function handleSubjectDelete() {
+    if (!subject) return;
+    await subjectsRepo.removeCascade(subject.id);
+    goto('/subjects');
+  }
 
   async function addTopic() {
     if (submitting || !newTopicName.trim() || !subjectId) return;
@@ -130,6 +153,7 @@
         <span class="subject-symbol">{subject.symbol}</span>
         <h1 class="text-large-title">{subject.name}</h1>
       </div>
+      <button class="subject-edit-btn" on:click={() => (subjectEditOpen = true)}>Edit</button>
     </div>
 
     <div class="section-label topics-label">TOPICS</div>
@@ -222,6 +246,13 @@
   {/if}
 </div>
 
+<SubjectEditSheet
+  bind:open={subjectEditOpen}
+  {subject}
+  on:save={handleSubjectSave}
+  on:delete={handleSubjectDelete}
+/>
+
 <style>
   .page { padding: 20px 16px; max-width: 600px; margin: 0 auto; }
   .page-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
@@ -238,7 +269,23 @@
     color: var(--text);
     flex-shrink: 0;
   }
-  .subject-header { display: flex; align-items: center; gap: 10px; }
+  .subject-header { display: flex; align-items: center; gap: 10px; margin-right: auto; }
+  .subject-edit-btn {
+    flex-shrink: 0;
+    padding: 8px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .subject-edit-btn:hover { background: var(--bg3); }
+  @media (max-width: 768px) {
+    .subject-edit-btn { min-height: 44px; }
+  }
   .subject-symbol { font-size: 22px; font-weight: 800; }
   h1 { margin: 0; }
   .section-label {
