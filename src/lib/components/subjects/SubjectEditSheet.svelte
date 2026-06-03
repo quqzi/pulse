@@ -13,7 +13,7 @@
     close: void;
   }>();
 
-  type Swatch = { hex: string; rgb: string };
+  type Swatch = (typeof SUBJECT_COLOR_PALETTE)[number];
 
   let name = '';
   let symbol = '';
@@ -81,7 +81,7 @@
 {#if open}
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <div class="sheet-overlay" on:click={close} role="presentation"></div>
-  <div class="sheet">
+  <div class="sheet" role="dialog" aria-modal="true" aria-label={subject ? 'Edit Subject' : 'New Subject'}>
     <div class="sheet-handle"></div>
     <p class="sheet-title">{subject ? 'Edit Subject' : 'New Subject'}</p>
 
