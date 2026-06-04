@@ -4,3 +4,6 @@ import { en } from './en';
 import { th } from './th';
 
 export const t = derived(settings, ($s) => $s.lang === 'th' ? th : en);
+
+export { fmt } from './format';
+export type { Formatter } from './format';
