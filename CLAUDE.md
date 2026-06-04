@@ -1,262 +1,173 @@
 # Pulse — CLAUDE.md
 
-Study tracker app for TCAS exam prep. SvelteKit 2 + TypeScript + Supabase, deployed to Vercel.
+Study tracker for TCAS exam prep. SvelteKit 2 + TypeScript + Supabase, deployed to Vercel.
 
-**Repo:** https://github.com/quqzi/pulse  
-**Live:** https://pulse-hazel-ten.vercel.app  
-**Branch:** `master` (auto-deploys to Vercel on push)
+**Repo:** https://github.com/quqzi/pulse · **Live:** https://pulse-hazel-ten.vercel.app · **Branch:** `master` (auto-deploys on push)
+
+Works two ways: **guest** (fully offline, `localStorage`) and **authenticated** (Supabase + RLS). Every data path must support both.
+
+---
+
+## Session Start — do this first, every conversation
+
+1. Read **Active Plans** at the bottom — know what's open and what's done.
+2. Figure out which plan the user's task fits, or ask if it's unclear.
+3. Never start implementing without knowing where it lands in the plan list.
 
 ---
 
 ## Commands
 
 ```bash
-npm run dev          # Dev server → localhost:5173
-npm run check        # Type-check — run before every commit
-npm run build        # Production build
-npm run preview      # Preview production build locally
+npm run dev      # dev server → localhost:5173
+npm run check    # type-check — zero errors before every commit
+npm run build    # production build
+npm run preview  # preview the production build locally
+npx vitest run   # unit tests (data engine, mappers, srs, scheduler)
 ```
 
+`.env.local` (never commit) needs `PUBLIC_SUPABASE_URL` + `PUBLIC_SUPABASE_ANON_KEY` (Supabase → Settings → API). Guest mode runs without them.
+
 ---
 
-## Environment
+## Workflow
 
-Create `.env.local` in the project root (never commit this file):
+Pick the tier by scope. The **default loop** is the floor for almost everything — don't skip its check/verify/review steps even on small changes.
+
+### Default loop — most changes
+
+1. Know where it fits (Active Plans) and follow existing patterns + the Recipes below.
+2. `npm run check` — zero type errors.
+3. **Browser-verify the exact thing you changed** (`chrome-devtools-mcp:chrome-devtools`, or the `verify` skill). Reproduce the precise scenario.
+4. Review your own diff — `code-review:code-review` for anything non-trivial.
+5. `commit-commands:commit`.
+
+### Big feature — new route, new data flow, or multi-file
+
+Wrap the default loop in design + finish steps:
+
+1. `superpowers:brainstorming` — design + spec.
+2. `superpowers:writing-plans` — write the plan to `docs/superpowers/plans/`.
+3. `ui-ux-pro-max:ui-ux-pro-max` — validate any new page/component UI before building.
+4. `superpowers:subagent-driven-development` — execute the plan task-by-task.
+5. → run the **default loop** on the result.
+6. `superpowers:verification-before-completion` → `superpowers:finishing-a-development-branch` → `commit-commands:commit-push-pr`.
+7. Move the plan **Open → Completed** in Active Plans and commit that.
+
+### Bug fix — always diagnose before touching code
+
+1. **Reproduce it** in the browser — see it yourself, note actual vs. expected.
+2. **Scan the Gotchas table** — most recurring bugs are already documented there.
+3. **Route by symptom** (table below).
+4. Make the **minimal** fix → `npm run check` → re-verify the exact scenario → `commit`.
+5. **Escalate after 2 real attempts** (root-caused + targeted fix + tested, still broken) → `superpowers:systematic-debugging`.
+
+| Symptom | Look first |
+|---|---|
+| TS error / red squiggle | `npm run check` — read the full error, jump to file:line |
+| Visual / layout wrong | `chrome-devtools-mcp:chrome-devtools` — inspect computed styles |
+| White screen / crash | `chrome-devtools-mcp:troubleshooting` — console errors |
+| Data not showing / stale | `loadData($auth)` missing in `onMount`? store accessed via `$store`? |
+| Supabase returns empty | RLS — `execute_sql` to confirm rows exist + `auth.uid() = user_id` |
+| Works in guest, broken when logged in | auth-mode branch — check `getAuthContext()` returns the right `mode` |
+| Works on load, breaks on nav | add `$: if ($auth.mode !== 'loading') loadData($auth)` |
+| CSS token missing in some themes | the token must exist in **all five** theme blocks in `app.css` |
+
+### After a merge — sync ritual
+
+When a PR merges to `master`, fast-forward the local checkout so it never drifts:
+
+```bash
+git -C "C:/Users/HP/Documents/pulse" pull --ff-only origin master
+```
+
+Then confirm the merged plan is in **Completed** (not still Open).
+
+> **Production actions need explicit go-ahead.** Merging a PR, pushing to `master`, and applying a Supabase migration affect prod. State what you're about to do and wait for the user's explicit OK before each — guest-mode work and local commits don't need it.
+
+### When in doubt — ask first
+
+One clarifying question is cheaper than a wrong implementation. Ask when the call isn't obvious: component vs. inline · i18n string vs. hardcoded · logic in a repo, a store, or the page · new writable vs. derived · which nav group (Main / Track).
+
+---
+
+## Data Layer — the repo engine (`src/lib/data/`)
+
+`db.ts` was deleted (WS1.3c). **All persistence goes through the repository engine.** One repo per entity, bound to one store. `load` / `save` / `remove` **write through to the bound store** — never manually `.set()` the store after calling them.
 
 ```
-PUBLIC_SUPABASE_URL=...       # Supabase → Project Settings → API → Project URL
-PUBLIC_SUPABASE_ANON_KEY=...  # Supabase → Project Settings → API → anon/public key
+src/lib/data/
+  stores.ts       # one writable per entity (subjects … examQuestions, examSessions)
+  mappers.ts      # xFromRow / xToRow — snake_case row ↔ camelCase type
+  entities.ts     # the repos: repo<T>({…}) + bespoke methods (cascade, windowed, log)
+  repository.ts   # repo() factory — binds the engine to authCtx + local/supabase adapters
+  engine.ts       # pure engine: createRepository, writeThrough, loadInto
+  adapters/       # local.ts (localStorage)  +  supabase.ts
+  ls.ts           # lsRead / lsWrite — bulk guest-path helpers
+  authctx.ts      # authCtx derived + getAuthContext()
 ```
 
-Guest mode works without env vars — Supabase is only contacted when authenticated.
+A plain entity is **one `repo()` call**:
 
----
+```ts
+export const thingsRepo = repo<Thing>({
+  store: things,            // the writable from stores.ts
+  lsKey: 'pulse.things',    // localStorage key — DOT namespace, NOT pulse_*
+  table: 'things',          // Supabase table
+  toRow: thingToRow,
+  fromRow: thingFromRow,
+  orderColumn: 'created_at',
+  ascending: false,
+  order: (a, b) => b.createdAt.localeCompare(a.createdAt),  // in-store sort
+});
+// → thingsRepo.load() / .save(item) / .remove(id) — all write-through, both modes
+```
 
-## Session Start — Always Do This First
-
-Before doing anything in a new conversation:
-1. Read the **Active Plans** section at the bottom of this file — know what's open and what's done
-2. Check which plan the user is likely working on, or ask if unclear
-3. Never start implementing without knowing where the task fits in the plan list
-
----
-
-## Claude's Role
-
-Claude is the primary full-stack developer on this project. Every feature goes through a deliberate workflow. Pick the right tier based on scope:
-
-### New Feature / New Page — Full Chain
-> Anything that touches multiple files, adds a route, or changes data flow.
-
-1. `superpowers:brainstorming` — design + spec
-2. `superpowers:writing-plans` — write plan to `docs/superpowers/plans/`
-3. `superpowers:subagent-driven-development` — execute plan task-by-task
-4. `ui-ux-pro-max:ui-ux-pro-max` — validate UI decisions before building (any feature with a new page or component)
-5. `verify` or `run` — confirm it works in browser
-6. `superpowers:verification-before-completion` — self-review checklist
-7. `code-review:code-review` — review the diff for bugs before pushing
-8. `superpowers:finishing-a-development-branch` — pre-PR checklist
-9. `commit-commands:commit-push-pr` — commit, push, open PR
-
-### Small Fix / Tweak — Skip Design
-> Single-file changes, CSS fixes, copy edits, bug patches.
-
-1. Route by fix type before touching code:
-   - CSS / visual fix → invoke `chrome-devtools-mcp:chrome-devtools` to inspect first
-   - Adding user-facing text → invoke `better-i18n` to add to both `en.ts` and `th.ts`
-   - Touching auth or RLS → invoke `security-review` first
-2. Implement the fix
-3. `npm run check` — zero type errors
-4. `verify` — confirm fix in browser
-5. `commit-commands:commit` — commit
-
-### Bug Fix Workflow
-> Any bug, regression, or broken behaviour. Always diagnose before touching code.
-
-**Step 1 — Reproduce it**
-Confirm you can see the bug yourself before changing anything. Open the browser, trigger the exact scenario, note what happens vs. what should happen.
-
-**Step 2 — Check the Gotchas table first**
-Scan the Pulse-Specific Gotchas section below. Most recurring bugs have a known cause already documented there.
-
-**Step 3 — Route by symptom**
-
-| Symptom | Where to look first |
-|---|---|
-| TypeScript error / red squiggles | `npm run check` — read the full error, find the file:line |
-| Visual / layout wrong | `chrome-devtools-mcp:chrome-devtools` — inspect element, check computed styles |
-| White screen / page crash | `chrome-devtools-mcp:troubleshooting` — check console for errors |
-| Data not showing / stale | Store not reactive? `loadData($auth)` missing in `onMount`? Check `data.ts` |
-| Supabase returns empty | RLS policy — run `execute_sql` to check rows exist; confirm `auth.uid() = user_id` |
-| Works in guest, broken when logged in | Auth mode difference — check `getAuthContext()` returns correct `mode` |
-| Works on first load, breaks on nav | `onMount` not re-running — add `$: if ($auth.mode !== 'loading') loadData($auth)` |
-| CSS token not applying | Missing token in one of the 5 theme blocks in `app.css` |
-
-**Step 4 — Fix and verify**
-1. Make the minimal change
-2. `npm run check` — zero type errors
-3. `verify` — confirm fix in browser, test the exact scenario from Step 1
-4. `commit-commands:commit`
-
-**Escalate after 2 real attempts**
-A real attempt = you diagnosed the root cause, made a targeted fix, and tested it. If still broken after two of those → `superpowers:systematic-debugging`
-
-### Stuck / Not Working — Escalate
-> If something isn't resolved after 2 attempts, stop and invoke the skill.
-
-→ `superpowers:systematic-debugging`
-
-### When in Doubt — Ask First
-
-Before making any non-obvious implementation call, stop and ask the user:
-
-- Should this be a component or inline code?
-- Should this string go in i18n (`en.ts`/`th.ts`) or be hardcoded?
-- Should this logic live in `db.ts`, a store, or the page?
-- Is this a new writable store or a derived from an existing one?
-- Which nav group does this page belong to (Main / Track)?
-
-One clarifying question is cheaper than a wrong implementation.
-
----
-
-## Skill Routing
-
-### SvelteKit — REQUIRED before writing code in these areas
-
-| Situation | Skill |
-|---|---|
-| Page/layout architecture | `svelte-skills:sveltekit-structure` |
-| Store design, reactivity, load functions | `svelte-skills:sveltekit-data-flow` |
-| Building a new component | `svelte-skills:svelte-components` |
-| CSS, scoped styles, theming | `svelte-skills:svelte-styling` |
-| Svelte 5 runes (`$state`, `$derived`) | `svelte-skills:svelte-runes` |
-| Template directives (`{#if}`, `{#each}`) | `svelte-skills:svelte-template-directives` |
-| API routes, server-side logic | `svelte-skills:sveltekit-remote-functions` |
-| Charts / data visualisation | `svelte-skills:svelte-layerchart` |
-| Deployment config | `svelte-skills:svelte-deployment` |
-| Choosing a library for a feature | `svelte-skills:ecosystem-guide` |
-
-> **Always use `context7` MCP** when writing library-specific code (SvelteKit APIs, Supabase JS, Chart.js) — fetch current docs before writing, don't rely on training data.
-
-### UI / Design / Animation
-
-| Situation | Skill |
-|---|---|
-| Any visual design decision, layout, spacing | `ui-ux-pro-max:ui-ux-pro-max` |
-| Theme tokens, palette, contrast ratios | `color-expert` |
-| CSS keyframe animations, transitions | `css-animations` |
-| Complex motion sequences | `animate` |
-| Adding i18n strings to `en.ts` / `th.ts` | `better-i18n` |
-| PWA: service worker, offline, install prompt | `pwa-expert` |
-
-### Database
-
-| Situation | Skill |
-|---|---|
-| Any Supabase feature (queries, auth, storage) | `supabase:supabase` |
-| Schema change, new table, new column, index | `supabase:supabase-postgres-best-practices` |
-| Read query / inspect data / debug | Use `mcp__plugin_supabase_supabase__execute_sql` directly (read-only) |
-
-> **Rule:** Never touch schema without invoking `supabase:supabase-postgres-best-practices` first.
-
-### Vercel / Deploy
-
-| Situation | Skill |
-|---|---|
-| Deploy / check deployment status | `vercel:deploy` |
-| Confirm live deploy is healthy | `vercel:verification` |
-| Auth flow / Google OAuth | `vercel:auth` |
-| Environment variables | `vercel:env` |
-
-### Browser Debugging
-
-| Situation | Skill |
-|---|---|
-| General in-browser debug | `chrome-devtools-mcp:chrome-devtools` |
-| White screen / crash / console errors | `chrome-devtools-mcp:troubleshooting` |
-| Accessibility audit | `chrome-devtools-mcp:a11y-debugging` |
-| Slow page loads / LCP | `chrome-devtools-mcp:debug-optimize-lcp` |
-| Memory leak (timer page especially) | `chrome-devtools-mcp:memory-leak-debugging` |
-
-### Code Quality / Review
-
-| Situation | Skill |
-|---|---|
-| Full diff review before PR | `code-review:code-review` |
-| Cleanup after a big feature | `code-simplifier:code-simplifier` |
-| Auth, RLS, input validation audit | `security-review` |
-| Update this file after learning something | `claude-md-management:claude-md-improver` |
-
-### Meta / Process
-
-| Situation | Skill |
-|---|---|
-| Design a feature from scratch | `superpowers:brainstorming` |
-| Write implementation plan | `superpowers:writing-plans` |
-| Execute a plan file | `superpowers:subagent-driven-development` |
-| Debug a bug (after 2 failed attempts) | `superpowers:systematic-debugging` |
-| Verify feature works in browser | `verify` |
-| Start dev server to test UI | `run` |
-| Before marking any task done | `superpowers:verification-before-completion` |
-| Finishing branch, pre-PR | `superpowers:finishing-a-development-branch` |
-| Code review requested | `superpowers:requesting-code-review` |
-| Review feedback received | `superpowers:receiving-code-review` |
-| Two independent tasks at once | `superpowers:dispatching-parallel-agents` |
-| Two features in parallel safely | `superpowers:using-git-worktrees` |
-| Commit only | `commit-commands:commit` |
-| Commit + push + open PR | `commit-commands:commit-push-pr` |
-| Clean stale local branches | `commit-commands:clean_gone` |
+- **Mode switch lives in the engine.** Guest → localStorage (`pulse.*`); authenticated → Supabase (RLS `auth.uid() = user_id`). Repo callers never branch on mode.
+- **Errors** are caught in the engine and surfaced via `toast.error` — no try/catch in pages.
+- **Bespoke methods** (cascade delete, windowed load, insert-only log) wrap `writeThrough` / `loadInto` with an explicit snapshot/rollback — see `subjectsRepo.removeCascade`, `topicsRepo.create`, `srsRepo.update`, `sessionsRepo.log`/`load`, `scheduleRepo.loadWeek`/`confirmAll`. Multi-store atomic rollback can't go through single-store `writeThrough`, so those snapshot each store manually.
+- DB columns are `snake_case`, TS fields `camelCase` — every entity needs a mapper pair in `mappers.ts`.
+- IDs come from `newId()` in `$lib/id` (not from any `db.*` helper).
 
 ---
 
 ## Recipes
 
-Exact patterns for the four most repeated tasks. Follow these precisely — don't invent variations.
+Exact patterns for the most repeated tasks. Follow them — don't invent variations.
 
 ### New Page
 
-0. Invoke `svelte-skills:sveltekit-structure` before creating the file
-1. Create `src/routes/(app)/pagename/+page.svelte`
-   - Import `onMount` from `'svelte'`
-   - Import `auth` from `'$lib/stores/auth'`
-   - Import `loadData` (+ any stores needed) from `'$lib/stores/data'`
-   - Call `loadData($auth)` inside `onMount`
-2. Add nav entry to `src/lib/components/Sidebar.svelte` groups array:
-   ```ts
-   { label: 'PageName', href: '/pagename', d: '<SVG path d string>' }
-   ```
-   - **Main group:** dashboard, timer, subjects
-   - **Track group:** analytics, journey, tasks, schedule, scores
-3. Add i18n key to **both** `src/lib/i18n/en.ts` and `src/lib/i18n/th.ts`
+0. `svelte-skills:sveltekit-structure` before creating the file.
+1. `src/routes/(app)/pagename/+page.svelte` — import `onMount` (svelte), `auth` (`$lib/stores/auth`), `loadData` + needed stores (`$lib/stores/data`); call `loadData($auth)` in `onMount`, and add `$: if ($auth.mode !== 'loading') loadData($auth)`.
+2. Nav entry in `src/lib/components/Sidebar.svelte` groups array: `{ label, href, d: '<SVG path d>' }`. Also `src/lib/components/MoreDrawer.svelte` for mobile.
+   - **Main:** dashboard, timer, subjects · **Track:** analytics, journey, tasks, schedule, scores, exam
+3. i18n key in **both** `src/lib/i18n/en.ts` and `th.ts`.
 
 ### New DB Feature
 
-0. Invoke `supabase:supabase-postgres-best-practices` before touching any schema
-1. **`src/lib/types.ts`** — add `interface MyThing { ... }` and any mapper types
-2. **`src/lib/db.ts`** — add dual-mode methods (guest → `lsGet`, auth → supabase query + mapper)
-3. **`src/lib/stores/data.ts`** — add `export const myThings = writable<MyThing[]>([])`, populate in `loadData()`
-4. **Supabase migration** — invoke `supabase:supabase` skill, create table + RLS policy (`auth.uid() = user_id`)
-5. **Page/component** — build the UI
+0. `supabase:supabase-postgres-best-practices` before any schema.
+1. **`types.ts`** — `interface MyThing { id; userId; …; createdAt }`.
+2. **`data/mappers.ts`** — `myThingFromRow` / `myThingToRow` (snake ↔ camel).
+3. **`data/stores.ts`** — `export const myThings = writable<MyThing[]>([])`.
+4. **`data/entities.ts`** — `export const myThingsRepo = repo<MyThing>({ store: myThings, lsKey: 'pulse.myThings', table: 'my_things', toRow, fromRow, orderColumn, ascending, order })`.
+5. **`stores/data.ts`** — re-export the store; add `myThingsRepo.load()` to `loadData`'s `Promise.all`.
+6. **Migration** — `supabase:supabase`; create the table + RLS `auth.uid() = user_id` + a `user_id` index. *Applying to prod is a production action — get explicit go-ahead.*
+7. **Page** — call `myThingsRepo.save/remove`; the UI updates via the bound store.
 
 ### New Component
 
-- Shared across features → `src/lib/components/ComponentName.svelte`
-- Feature-specific (2+ components for same feature) → `src/lib/components/featurename/`
-- Props: `export let propName: Type`
-- Events: `createEventDispatcher<{ eventName: PayloadType }>()`
-- No barrel `index.ts` files, no default exports
+- Shared → `src/lib/components/Name.svelte`. Feature-specific (2+ for one feature) → `src/lib/components/feature/`.
+- Props `export let propName: Type`; events `createEventDispatcher<{ event: Payload }>()`.
+- No barrel `index.ts`, no default exports.
+- **Modals/sheets must portal to `<body>`** to escape the trapped stacking context — see the portal gotcha.
 
 ### New Setting
 
-1. **`src/lib/stores/settings.ts`** — add field to `Settings` interface
-2. **`src/lib/stores/settings.ts`** — add default value in `defaults()` function
-   *(auto-persists to `localStorage` via the existing `subscribe` — no extra work needed)*
-3. **`src/routes/(app)/settings/+page.svelte`** — add UI control in the relevant section
+1. `src/lib/stores/settings.ts` — add field to `Settings` interface.
+2. Same file — default value in `defaults()`. *(auto-persists to localStorage; auth users sync via `data/settingsSync.ts`.)*
+3. `src/routes/(app)/settings/+page.svelte` — add the UI control.
 
 ### Standard Empty State
-
-Use this exact markup and CSS on every page that can have no data:
 
 ```svelte
 {#if $items.length === 0}
@@ -268,226 +179,150 @@ Use this exact markup and CSS on every page that can have no data:
   <!-- content -->
 {/if}
 ```
-
 ```css
 .empty-state { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 32px 16px; text-align: center; }
 .empty-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
 .empty-sub   { font-size: 13px; color: var(--muted); }
 ```
 
-No loading spinners needed — stores start empty and fill fast from localStorage or Supabase. No explicit error states — db errors are caught silently in `db.ts`.
+No loading spinners — stores start empty and fill fast. No explicit error states — the repo engine catches errors and shows a toast.
 
 ---
 
-## Definition of Done
+## Gotchas
 
-Before declaring any task complete, all steps must pass in order:
-
-1. **`npm run check`** — zero type errors
-2. **`verify` skill** (or `run` + manual browser check) — feature works visually in browser
-3. **`superpowers:verification-before-completion`** — self-review checklist passes
-4. **`code-review:code-review`** — review the diff, fix any findings
-5. **`commit-commands:commit`** (or `commit-push-pr` if ready to push)
-6. **If completing a plan:** move it from **Open → Completed** in the Active Plans section of this file and commit the change
-
----
-
-## Pulse-Specific Gotchas
-
-| Symptom | Cause & Fix |
+| Symptom | Cause & fix |
 |---|---|
-| Store value stale / not reactive | Access via `$store` in templates, `.subscribe()` in scripts — never `.value` |
-| Data not loading on page | Must call `loadData($auth)` in `onMount`, not module scope |
-| New CSS token not working in some themes | All five theme blocks in `app.css` need the token — check all of them |
-| Supabase query returns empty | RLS — all tables require `auth.uid() = user_id`; guest mode never hits Supabase |
-| Type error in `db.ts` | DB returns `snake_case` — always add a mapper function, never use raw DB field names in components |
-| Chart.js color wrong in dark mode | Read via `getComputedStyle(document.body).getPropertyValue('--primary').trim()` — use `document.body`, NOT `document.documentElement`. Theme classes are on `<body>`, so `:root` vars don't reflect the active theme. |
-| Transition causes layout thrash | Never use `transition: width` or `transition: height` — use `transform: scaleX/scaleY` |
-| `loadScheduleSlots` gets stale `_userId` | Must call `loadData($auth)` reactive BEFORE `loadScheduleSlots` reactive in file declaration order — `_userId` is set inside `loadData`, so ordering matters |
-| CSS specificity beats `:global()` | Scoped Svelte styles `.class.svelte-xxx` (0,2,0) override `:global(.class)` (0,1,0) — use `!important` when a global rule must win |
-| SVG `d` attribute can't contain HTML | Never embed `" /><polyline points="..."` inside a `d` string — Svelte HTML-encodes it. Use proper multi-subpath syntax with `M` commands instead |
-| Text invisible on primary background in dark themes | Never use `color: white` or `color: #fff` on `background: var(--primary)` — use `color: var(--bg)` which is always the contrasting color regardless of theme |
+| Store value stale / not reactive | Read via `$store` in templates, `get(store)` / `.subscribe()` in scripts — never `.value` |
+| Data not loading on a page | Call `loadData($auth)` in `onMount`, not module scope |
+| UI didn't update after save | `repo.save/remove` already write through to the store — don't also `.set()` it (double update / fights the engine) |
+| Wrong localStorage key | Keys are `pulse.thing` (DOT), e.g. `pulse.examQuestions` — not `pulse_thing` |
+| New CSS token missing in some themes | All **five** theme blocks in `app.css` need it — check every one |
+| Supabase query empty | RLS — every table needs `auth.uid() = user_id`; guest mode never hits Supabase |
+| Type error in a repo / mapper | DB returns `snake_case` — map to camelCase in `mappers.ts`, never use raw DB fields in components |
+| Chart.js color wrong in dark mode | `getComputedStyle(document.body).getPropertyValue('--primary').trim()` — **`document.body`, NOT `documentElement`**; theme classes live on `<body>`, so `:root` vars don't reflect the active theme |
+| Transition causes layout thrash | Never `transition: width/height` — use `transform: scaleX/scaleY` |
+| Modal/sheet hidden behind tab-bar | Portal it to `<body>` — page content is trapped in `.main-content`'s stacking context, below the fixed tab-bar. See `BottomSheet`/`ConfirmDialog`/`SubjectEditSheet` `use:portal` |
+| Popover button click does the wrong thing | A `setPointerCapture` ancestor redirects the `click` to the capture target — add `on:pointerdown\|stopPropagation` to the popover (see `CalBlock`) |
+| Reactive "on open" runs before its writer | Don't split `$: if (open && !was) seed()` / `$: was = open` — combine into one `$: { if (open && !was) seed(); was = open; }` |
+| `loadScheduleSlots` gets stale `_userId` | Its reactive must run AFTER `loadData($auth)` in file declaration order — `_userId` is set inside `loadData` |
+| Scoped style beats `:global()` | `.cls.svelte-xxx` (0,2,0) > `:global(.cls)` (0,1,0) — use `!important` when a global rule must win |
+| SVG `d` can't contain HTML | Don't embed `"/><polyline…` inside a `d` string (Svelte HTML-encodes it) — use multi-subpath `M` commands |
+| Text invisible on `--primary` bg in dark | Never `color: white/#fff` on `background: var(--primary)` — use `color: var(--bg)` (always contrasting) |
 
-> If a gotcha isn't resolved in 2 attempts → `superpowers:systematic-debugging`
-
----
-
-## Stack
-
-- **Framework:** SvelteKit 2, TypeScript
-- **Backend:** Supabase JS v2 (PostgreSQL + Auth)
-- **Styling:** Plain CSS with custom property tokens (no Tailwind)
-- **Font:** Geist (Vercel), SF Pro (Apple), Inter (Resend) — loaded via `app.html`
-- **Deploy:** Vercel, auto-deploy from `master`
+> Unresolved after 2 attempts → `superpowers:systematic-debugging`.
 
 ---
 
-## Project Structure
+## CSS & Theming
+
+**Never hardcode colors** — use these tokens (defined per-theme in `app.css`):
+
+```
+--bg --bg2 --bg3        page / card / hover backgrounds
+--border --text --muted borders · primary text · secondary text
+--primary --primary-dark --primary-l --primary-rgb   brand accent (varies by theme)
+--nav-main --nav-track   sidebar group label colors
+--radius-md --font-sans --font-mono
+```
+
+For Chart.js, read the computed value off **`document.body`** (theme classes live there):
+```js
+getComputedStyle(document.body).getPropertyValue('--primary').trim()
+```
+
+**Five themes**, one `theme` field in settings; `+layout.svelte` sets body classes `design-vercel|apple|resend` + `theme-dark`:
+
+| Value | Design / mode | `--primary` |
+|---|---|---|
+| `vercel-light` / `vercel-dark` | Vercel light / dark | `#171717` / `#ededed` |
+| `apple-light` / `apple-dark` | Apple light / dark | `#0066cc` / `#2997ff` |
+| `resend` | Resend, always dark | `#fcfdff` on true black |
+
+Design language refs: `docs/design/{vercel,apple,resend}.md`.
+
+---
+
+## Skill Index
+
+> Always use **`context7` MCP** for library-specific code (SvelteKit, Supabase JS, Chart.js) — fetch current docs, don't trust training data.
+> Never touch schema without **`supabase:supabase-postgres-best-practices`** first.
+
+- **Process** — `superpowers:brainstorming` (design) → `:writing-plans` → `:subagent-driven-development` (execute) → `:verification-before-completion` → `:finishing-a-development-branch`. Stuck after 2 attempts → `:systematic-debugging`. Parallel work → `:dispatching-parallel-agents` / `:using-git-worktrees`.
+- **Svelte/Kit** (before writing in an unfamiliar area) — `svelte-skills:sveltekit-structure` (pages/layout), `:sveltekit-data-flow` (stores/load), `:svelte-components`, `:svelte-styling`, `:svelte-runes`, `:svelte-template-directives`, `:svelte-layerchart` (charts), `:ecosystem-guide` (picking a lib).
+- **UI / design** — `ui-ux-pro-max:ui-ux-pro-max` (any visual decision), `color-expert` (palette/contrast), `css-animations` / `animate` (motion), `better-i18n` (en.ts + th.ts), `pwa-expert`.
+- **Data / deploy** — `supabase:supabase` (any Supabase feature), `:supabase-postgres-best-practices` (schema); `execute_sql` MCP directly for read-only inspection. `vercel:deploy` / `:verification` / `:auth` / `:env`.
+- **Browser** — `chrome-devtools-mcp:chrome-devtools` (general), `:troubleshooting` (white screen/console), `:a11y-debugging`, `:debug-optimize-lcp`, `:memory-leak-debugging` (timer page).
+- **Review** — `code-review:code-review` (diff before PR), `security-review` (auth/RLS/input), `code-simplifier:code-simplifier` (post-feature cleanup).
+- **Git** — `commit-commands:commit` / `:commit-push-pr` / `:clean_gone`. Verify in browser → `verify` · start dev server → `run`.
+
+---
+
+## Reference
+
+### Stack
+
+SvelteKit 2 + TypeScript (Svelte 4 idiom: `export let`, `createEventDispatcher`, scoped CSS) · Supabase JS v2 (Postgres + Auth) · plain CSS custom-property tokens (no Tailwind) · fonts Geist/SF Pro/Inter via `app.html` · Vercel, auto-deploy from `master`.
+
+### Project Structure
 
 ```
 src/
-  app.css                  # Global styles, design tokens, theme overrides
+  app.css                 # global styles, design tokens, theme blocks
   lib/
-    components/            # Shared UI components (Sidebar, HeroCard, etc.)
+    components/           # shared UI (Sidebar, HeroCard, BottomSheet, …) + feature subfolders
+    data/                 # repo engine — see Data Layer section
     stores/
-      auth.ts              # Auth state (guest | authenticated | loading)
-      data.ts              # All data stores + loadData()
-      settings.ts          # Theme + study settings, persisted to localStorage
-      timer.ts             # Timer state
-    db.ts                  # Data access layer — routes to localStorage or Supabase
-    types.ts               # All shared TypeScript types
-    constants.ts           # TCAS_SUBJECTS and template definitions
-    i18n/
-      en.ts                # English strings
-      th.ts                # Thai strings
-    srs.ts                 # SM-2 spaced repetition algorithm
-    supabase.ts            # Supabase client
+      auth.ts             # auth state (loading | guest | authenticated)
+      data.ts             # re-exports entity stores + derived stores + loadData()
+      settings.ts         # theme + study settings (localStorage; auth sync via data/settingsSync.ts)
+      timer.ts            # timer state
+    types.ts              # all shared TS types
+    constants.ts          # TCAS_SUBJECTS, templates, HISTORY_DAYS
+    id.ts                 # newId()
+    srs.ts                # SM-2 spaced repetition
+    supabase.ts           # Supabase client
+    i18n/{en,th}.ts
   routes/
-    (app)/                 # Main app layout (sidebar + content)
-      dashboard/
-      timer/
-      subjects/
-      tasks/
-      analytics/
-      schedule/
-      scores/
-      journey/
-      insights/
-      settings/
-    auth/                  # Login / signup pages
-    onboarding/            # (planned)
+    (app)/                # sidebar + content shell
+      dashboard/ timer/ subjects/ tasks/ analytics/ schedule/ scores/ journey/ insights/ exam/ settings/
+    auth/ onboarding/
 ```
 
----
-
-## CSS Token System
-
-Never hardcode colors. Always use these CSS custom properties:
-
-```css
---bg          /* page background */
---bg2         /* card / sidebar background */
---bg3         /* hover state */
---border      /* borders and dividers */
---text        /* primary text */
---muted       /* secondary text */
---primary     /* brand accent (varies by theme) */
---primary-dark
---primary-l   /* light tint of primary */
---primary-rgb /* r,g,b values for rgba() */
---nav-main    /* sidebar "Main" group label color */
---nav-track   /* sidebar "Track" group label color */
---radius-md   /* standard border radius */
---font-sans
---font-mono
-```
-
-For Chart.js colors, always read from computed style:
-```js
-getComputedStyle(document.documentElement).getPropertyValue('--primary').trim()
-```
-
----
-
-## Theme System
-
-Five named themes stored as a single `theme` field in settings:
-
-| Value | Design | Mode |
-|-------|--------|------|
-| `vercel-light` | Vercel | Light |
-| `vercel-dark` | Vercel | Dark |
-| `apple-light` | Apple | Light |
-| `apple-dark` | Apple | Dark |
-| `resend` | Resend | Always dark |
-
-Body classes are set in `src/routes/+layout.svelte`:
-- `design-vercel` / `design-apple` / `design-resend`
-- `theme-dark` (when dark)
-
-Theme CSS blocks live in `src/app.css`. Each design theme sets its own `--primary`, `--nav-main`, `--nav-track`, etc.
-
-**Vercel:** ink black `#171717` primary (light), `#ededed` (dark)  
-**Apple:** action blue `#0066cc` (light), sky blue `#2997ff` (dark)  
-**Resend:** white `#fcfdff` on true black, always dark
-
----
-
-## Data Layer (`src/lib/db.ts`)
-
-Single `db` object. Every method takes `mode: 'guest' | 'authenticated'`:
-- `guest` → reads/writes `localStorage` with `pulse_*` keys
-- `authenticated` → reads/writes Supabase
-
-Pattern:
-```ts
-async getSomething(userId: string, mode: Mode): Promise<Something[]> {
-  if (mode === 'guest') return lsGet<Something>('pulse_something');
-  const { data } = await supabase.from('something').select('*').eq('user_id', userId);
-  return (data ?? []).map(mapSomethingFromDb);
-}
-```
-
-DB column names are `snake_case`; TypeScript fields are `camelCase`. Always add a mapper function.
-
----
-
-## Stores (`src/lib/stores/data.ts`)
+### Stores (`src/lib/stores/data.ts`)
 
 ```ts
-subjects, topics, srsCards, sessions, tasks, scores, scheduleSlots  // writables
-todaysSessions, dueCards, todayHours, streak, tasksDueToday          // derived
-loadData(authState)   // call on page mount to populate all stores
-getAuthContext()      // returns { userId, mode } for db calls
+// writables (defined in data/stores.ts, re-exported here)
+subjects topics srsCards sessions tasks templates scheduleSlots scores examQuestions examSessions
+// derived
+todaysSessions dueCards todayHours streak tasksDueToday readinessScore
+// functions
+loadData(authState)        // populate all stores — call in onMount
+loadScheduleSlots(ws, we)  // windowed week load (separate from loadData)
+getAuthContext()           // { userId, mode }
 ```
 
-Always call `loadData($auth)` in `onMount` on pages that need data.
-
----
-
-## Auth (`src/lib/stores/auth.ts`)
+### Auth (`src/lib/stores/auth.ts`)
 
 ```ts
 type AuthState =
   | { mode: 'loading' }
-  | { mode: 'guest';         user: null;      name: string }
-  | { mode: 'authenticated'; user: User;      name: string }
+  | { mode: 'guest';         user: null; name: string }
+  | { mode: 'authenticated'; user: User; name: string }
 ```
+Guest mode is fully offline (localStorage); no account required.
 
-Guest mode works fully offline with localStorage. No account required.
+### Supabase Tables — all RLS-enabled, policy `auth.uid() = user_id`
 
----
+`subjects` · `topics` (FK → subject, cascade) · `srs_cards` (one per topic, `UNIQUE(topic_id)`, SM-2 state) · `study_sessions` · `tasks` · `mock_scores` · `templates` · `schedule_slots` · `user_settings` (JSONB per-user) · `exam_questions` · `exam_sessions`.
 
-## Supabase Tables
+### Coding Rules
 
-| Table | Notes |
-|-------|-------|
-| `subjects` | Per-user subjects |
-| `topics` | Belong to a subject |
-| `srs_cards` | One per topic, SM-2 state |
-| `study_sessions` | Timer sessions |
-| `tasks` | Tasks with priority/due date |
-| `templates` | User custom templates (planned) |
-
-All tables have RLS enabled. Policy: `auth.uid() = user_id`.
-
----
-
-## Coding Rules
-
-- **No hardcoded hex colors** — always use CSS vars or `getComputedStyle`
-- **No `transition: width/height`** — causes layout thrash. Use `transform: scaleX/scaleY`
-- **No comments** unless the WHY is non-obvious
-- **No extra features** beyond what's asked — YAGNI
-- **Follow existing patterns** — db methods, store structure, component style
-
----
-
-## Design References
-
-- `docs/design/vercel.md` — Vercel design language
-- `docs/design/apple.md` — Apple design language
-- `docs/design/resend.md` — Resend design language
+- No hardcoded hex — CSS vars or `getComputedStyle`.
+- No `transition: width/height` — `transform: scaleX/scaleY`.
+- No comments unless the WHY is non-obvious.
+- No extra features beyond what's asked — YAGNI.
+- Follow existing patterns — repo methods, store structure, component style.
 
 ---
 
@@ -504,10 +339,11 @@ All tables have RLS enabled. Policy: `auth.uid() = user_id`.
 ### Planned (spec'd, plan not yet written)
 
 - WS3 Thai i18n · WS4 features · WS5 polish · WS6 motion (see roadmap spec)
+- Exam label / tag on topics under a subject (deferred — surfaced 2026-06-04)
 
 ### Completed
 
-- `docs/superpowers/plans/2026-05-28-exam-simulation.md` — Exam Simulation (readiness score card on dashboard, question bank page, configurable mock exam with overall/per-question timer modes). Adapted from the pre-WS1 plan to the repo engine: `examQuestionsRepo`/`examSessionsRepo` on the `repo()` engine (guest localStorage / auth Supabase, write-through) instead of the deleted `db.ts`; `readinessScore` derived joins card→topic→subject (SrsCard.subjectId was dropped in WS1.3b). Exam tables migration written but **not yet applied** to prod (guest mode works without it). Browser-verified guest flow end-to-end (add questions → run exam → results persisted → readiness card). PR #13
+- `docs/superpowers/plans/2026-05-28-exam-simulation.md` — Exam Simulation (readiness score card on dashboard, question bank page, configurable mock exam with overall/per-question timer modes). Adapted from the pre-WS1 plan to the repo engine: `examQuestionsRepo`/`examSessionsRepo` on the `repo()` engine (guest localStorage / auth Supabase, write-through) instead of the deleted `db.ts`; `readinessScore` derived joins card→topic→subject (SrsCard.subjectId was dropped in WS1.3b). Exam tables migration **applied to prod** (2026-06-04). Browser-verified guest flow end-to-end (add questions → run exam → results persisted → readiness card). PR #13
 - `docs/superpowers/plans/2026-06-03-ws2.2-mobile-layouts.md` — WS2.2: scores/subjects tap→action-sheet on touch (reusing `BottomSheet`), Subjects edit relocated to its detail page via reusable `SubjectEditSheet`, header decongest. Verification found + fixed: sheets/dialogs portal to `<body>` (escape `.main-content` trapped stacking context above the fixed tab-bar), SubjectEditSheet seed reactive-ordering, scores row keyboard double-trigger. PR #11
 - `docs/superpowers/plans/2026-06-03-mobile-a11y-touch-targets.md` — WS2.1c: ≥44px touch targets on flagged controls, tab-bar inactive contrast, friendly `/review` toast. (merged)
 - `docs/superpowers/plans/2026-06-02-ws2.1b-anchored-positioning.md` — WS2.1b: anchored-positioning action for popovers/menus. (merged)
@@ -515,7 +351,6 @@ All tables have RLS enabled. Policy: `auth.uid() = user_id`.
 - `docs/superpowers/plans/2026-06-02-schedule-mobile-layout.md` — Schedule mobile layout. (merged)
 - `docs/superpowers/plans/2026-05-27-qol-fixes.md` — QoL fixes. (merged)
 - `docs/superpowers/plans/2026-05-31-ws1.4-settings-sync.md` — WS1.4: settings sync via `user_settings` (JSONB per-user, RLS; new `data/settingsSync.ts` hydrate-on-login merge-over-`defaults()`, echo-guarded `set` + per-user `hydratedUserId` gate, 600ms debounced upsert; guest stays localStorage, guarded to guest-only in `settings.ts`). Unified the divergent `Settings` type onto `stores/settings.ts` (deleted stale `types.ts` copy lacking `examDate`; scheduler re-pointed). Exam date single-sourced on `settings.examDate` (onboarding writes, dashboard reads reactively; dropped `pulse_exam_date`). History window unified to `HISTORY_DAYS=112` (shared constant drives sessions load + heatmap geometry; applied to both modes — guest was uncapped). Added `$app/environment` vitest stub so store modules load under tests. 29/29 unit tests; SSR boot-checked 5 routes → 200. PR #5
-
 - `docs/superpowers/plans/2026-05-31-ws1.3c-cleanup.md` — WS1.3c: deleted orphaned `db.ts` (514 lines, zero importers; killed the dead `seedSubjectsFromNames` shim); added `UNIQUE(srs_cards.topic_id)` + `onConflict:'topic_id'` to make `topicsRepo.create` idempotent (no dupes existed — clean add); fixed AI-suggested slots persisting with `user_id=''` (RLS-hidden for auth users — `handleAutoSchedule` now stamps real userId); fixed template-applied topics all getting `orderIndex:0`; fixed `/schedule` SSR 500 (`document` in `WeekGrid.onDestroy` via `clearHoldTimer` — guarded with `browser`, verified `GET /schedule` → 200). PR #4
 - `docs/superpowers/plans/2026-05-29-ws1.1-test-harness-characterization.md` — WS1.1: Vitest harness + srs/scheduler characterization tests (PR #1)
 - `docs/superpowers/plans/2026-05-29-ws1.2-repository-engine.md` — WS1.2: repository engine + local/mock adapters + toast + `id` helper (PR #1)
