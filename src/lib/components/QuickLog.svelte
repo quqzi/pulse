@@ -1,5 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
+  import { t } from '$lib/i18n';
   import type { Subject, Topic } from '$lib/types';
 
   export let subjects: Subject[] = [];
@@ -15,7 +16,7 @@
   let submitting = false;
   let done = false;
 
-  $: subjectTopics = topics.filter(t => t.subjectId === selectedSubjectId);
+  $: subjectTopics = topics.filter(tp => tp.subjectId === selectedSubjectId);
   $: selectedSubject = subjects.find(s => s.id === selectedSubjectId);
 
   async function submit() {
@@ -38,27 +39,27 @@
 </script>
 
 <section class="quick-section">
-  <div class="section-label">LOG SESSION</div>
+  <div class="section-label">{$t.dashboard.quickLog}</div>
   <div class="quick-card card" class:done>
     {#if done}
       <div class="done-state">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20 6L9 17l-5-5"/>
         </svg>
-        <span>Logged!</span>
+        <span>{$t.dashboard.logged}</span>
       </div>
     {:else}
       <div class="form-row">
         <select bind:value={selectedSubjectId} class="field-select" style={selectedSubject ? `color: ${selectedSubject.color}` : ''}>
-          <option value="">Subject</option>
+          <option value="">{$t.dashboard.subjectField}</option>
           {#each subjects as sub}
             <option value={sub.id}>{sub.name}</option>
           {/each}
         </select>
         <select bind:value={selectedTopicId} class="field-select" disabled={!selectedSubjectId}>
-          <option value="">Topic (opt.)</option>
-          {#each subjectTopics as t}
-            <option value={t.id}>{t.name}</option>
+          <option value="">{$t.dashboard.topicField}</option>
+          {#each subjectTopics as tp}
+            <option value={tp.id}>{tp.name}</option>
           {/each}
         </select>
       </div>
@@ -71,14 +72,14 @@
             bind:value={durationMin}
             class="field-input duration-input"
           />
-          <span class="dur-label">min</span>
+          <span class="dur-label">{$t.common.minutes}</span>
         </div>
         <button
           class="log-btn btn-primary"
           disabled={!selectedSubjectId || durationMin < 1 || submitting}
           on:click={submit}
         >
-          Log
+          {$t.dashboard.logBtn}
         </button>
       </div>
     {/if}

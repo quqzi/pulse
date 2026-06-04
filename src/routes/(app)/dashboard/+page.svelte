@@ -17,16 +17,16 @@
   import ReadinessCard from '$lib/components/ReadinessCard.svelte';
   import { newId } from '$lib/id';
   import { tasksRepo, sessionsRepo } from '$lib/data/entities';
+  import { t, fmt } from '$lib/i18n';
 
   $: name = $auth.name;
-  $: greeting = getGreeting();
+  $: greetingKey = greetingKeyFor(new Date().getHours());
   $: daysToExam = daysToExamFrom($settings.examDate);
 
-  function getGreeting(): string {
-    const h = new Date().getHours();
-    if (h < 12) return 'Good morning';
-    if (h < 17) return 'Good afternoon';
-    return 'Good evening';
+  function greetingKeyFor(h: number): 'goodMorning' | 'goodAfternoon' | 'goodEvening' {
+    if (h < 12) return 'goodMorning';
+    if (h < 17) return 'goodAfternoon';
+    return 'goodEvening';
   }
 
   function daysToExamFrom(examDate: string | null): number | null {
@@ -65,11 +65,11 @@
 <div class="page">
   <div class="greeting-row">
     <div>
-      <h1 class="text-large-title">{greeting}, {name}</h1>
+      <h1 class="text-large-title">{$t.dashboard[greetingKey]}, {name}</h1>
       <p class="text-body subtitle">
-        {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+        {$fmt.date(new Date().toISOString(), { weekday: 'long', month: 'long', day: 'numeric' })}
         {#if daysToExam !== null}
-          · <strong>{daysToExam}d</strong> to TCAS
+          · {$t.dashboard.daysToExam(daysToExam)}
         {/if}
       </p>
     </div>
@@ -85,7 +85,7 @@
 
   {#if $subjects.length > 0}
     <section class="subjects-section">
-      <div class="section-label">SUBJECTS</div>
+      <div class="section-label">{$t.dashboard.subjects}</div>
       <div class="subjects-grid">
         {#each $subjects as subject (subject.id)}
           <SubjectTile
@@ -106,7 +106,7 @@
           <path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/>
           <path d="M12 6v6l4 2"/>
         </svg>
-        Review {$dueCards.length} due card{$dueCards.length === 1 ? '' : 's'}
+        {$t.dashboard.reviewDue($dueCards.length)}
       </button>
     </section>
   {/if}
@@ -120,7 +120,7 @@
 
   {#if $tasksDueToday.length > 0}
     <section class="tasks-section">
-      <div class="section-label">TASKS DUE</div>
+      <div class="section-label">{$t.tasks.dueToday}</div>
       <div class="card tasks-card">
         {#each $tasksDueToday.slice(0, 5) as task (task.id)}
           <div class="task-row">
@@ -135,7 +135,7 @@
             <span class="dash-task-title">{task.title}</span>
             {#if task.dueDate}
               <span class="dash-due" class:overdue={task.dueDate < new Date().toISOString().split('T')[0]}>
-                {new Date(task.dueDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                {$fmt.date(task.dueDate + 'T00:00:00', { month: 'short', day: 'numeric' })}
               </span>
             {/if}
           </div>
@@ -144,7 +144,7 @@
           {/if}
         {/each}
         {#if $tasksDueToday.length > 5}
-          <a href="/tasks" class="see-more">+{$tasksDueToday.length - 5} more</a>
+          <a href="/tasks" class="see-more">{$t.tasks.seeMore($tasksDueToday.length - 5)}</a>
         {/if}
       </div>
     </section>

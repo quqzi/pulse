@@ -1,11 +1,12 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { readinessScore, subjects } from '$lib/stores/data';
+  import { t } from '$lib/i18n';
 </script>
 
 <div class="card">
   <div class="card-header">
-    <span class="card-label">Exam Readiness</span>
+    <span class="card-label">{$t.readiness.title}</span>
   </div>
 
   <div class="score-big">{$readinessScore.overall}<span class="score-pct">%</span></div>
@@ -19,11 +20,11 @@
       </div>
     {/each}
     {#if $subjects.length === 0}
-      <span class="no-data">Add subjects to see readiness</span>
+      <span class="no-data">{$t.readiness.noData}</span>
     {/if}
   </div>
 
-  <button class="start-btn" on:click={() => goto('/exam')}>Start Mock Exam →</button>
+  <button class="start-btn" on:click={() => goto('/exam')}>{$t.readiness.startExam}</button>
 </div>
 
 <style>
