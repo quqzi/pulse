@@ -102,6 +102,12 @@ export const en = {
     symbolHint: '(2 chars)',
     namePlaceholder: 'e.g. Physics',
     symbolPlaceholder: 'Ph',
+    deleteTemplateTitle: 'Delete template?',
+    deleteTemplateLabel: 'Delete template',
+    templateName: 'Template name',
+    templateNamePlaceholder: 'e.g. International Bac',
+    addTopicPlaceholder: 'Add topic…',
+    subjectNamePlaceholder: 'Subject name…',
   },
   settings: {
     title: 'Settings',
@@ -158,6 +164,8 @@ export const en = {
     hours: 'h',
     minutes: 'min',
     perDay: '/ day',
+    cannotUndo: 'This cannot be undone.',
+    remove: 'Remove',
   },
   onboarding: {
     step0Title: 'When is your TCAS exam?',

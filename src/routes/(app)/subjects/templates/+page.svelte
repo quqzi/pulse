@@ -8,6 +8,7 @@
   import { newId } from '$lib/id';
   import type { Template, SubjectPreset } from '$lib/types';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
+  import { t } from '$lib/i18n';
 
   onMount(() => loadData($auth));
 
@@ -84,28 +85,28 @@
 
 <div class="page-enter page">
   <div class="header-row">
-    <button class="back-btn" on:click={() => goto('/subjects')} aria-label="Back">
+    <button class="back-btn" on:click={() => goto('/subjects')} aria-label={$t.common.back}>
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M19 12H5M12 19l-7-7 7-7"/>
       </svg>
     </button>
-    <h1 class="text-large-title">Templates</h1>
+    <h1 class="text-large-title">{$t.subjects.templates}</h1>
   </div>
 
-  <p class="section-label">BUILT-IN</p>
+  <p class="section-label">{$t.subjects.builtIn}</p>
   <div class="template-list">
-    {#each BUILTIN_TEMPLATES as t}
-      <a href="/subjects/templates/{t.id}" class="template-row card">
+    {#each BUILTIN_TEMPLATES as tp}
+      <a href="/subjects/templates/{tp.id}" class="template-row card">
         <div class="template-info">
-          <span class="template-name">{t.name}</span>
-          <span class="template-count">{t.presets.length} subjects</span>
+          <span class="template-name">{tp.name}</span>
+          <span class="template-count">{$t.subjects.subjectsCount(tp.presets.length)}</span>
         </div>
         <div class="preview-dots">
-          {#each t.presets.slice(0, 5) as p}
+          {#each tp.presets.slice(0, 5) as p}
             <span class="dot" style="background:{p.color}"></span>
           {/each}
-          {#if t.presets.length > 5}
-            <span class="dot-more">+{t.presets.length - 5}</span>
+          {#if tp.presets.length > 5}
+            <span class="dot-more">+{tp.presets.length - 5}</span>
           {/if}
         </div>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chevron">
@@ -116,17 +117,17 @@
   </div>
 
   {#if $templates.length > 0}
-    <p class="section-label" style="margin-top:20px">CUSTOM</p>
+    <p class="section-label" style="margin-top:20px">{$t.subjects.custom}</p>
     <div class="template-list">
-      {#each $templates as t}
+      {#each $templates as tp}
         <div class="template-row card custom-row">
-          <a href="/subjects/templates/{t.id}" class="template-link">
+          <a href="/subjects/templates/{tp.id}" class="template-link">
             <div class="template-info">
-              <span class="template-name">{t.name}</span>
-              <span class="template-count">{t.presets.length} subjects</span>
+              <span class="template-name">{tp.name}</span>
+              <span class="template-count">{$t.subjects.subjectsCount(tp.presets.length)}</span>
             </div>
           </a>
-          <button class="delete-tpl-btn" on:click={() => promptDeleteTemplate(t)} aria-label="Delete template">
+          <button class="delete-tpl-btn" on:click={() => promptDeleteTemplate(tp)} aria-label={$t.subjects.deleteTemplateLabel}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M18 6L6 18M6 6l12 12"/>
             </svg>
@@ -138,26 +139,26 @@
 
   <ConfirmDialog
     bind:open={templateConfirmOpen}
-    title="Delete template?"
-    message="This cannot be undone."
+    title={$t.subjects.deleteTemplateTitle}
+    message={$t.common.cannotUndo}
     on:confirm={doDeleteTemplate}
   />
 
   {#if creating}
     <div class="create-form card" style="margin-top:20px">
-      <p class="sheet-title">New Template</p>
+      <p class="sheet-title">{$t.subjects.newTemplate}</p>
       <div class="field">
-        <label class="field-label">Template name</label>
-        <input class="field-input" bind:value={newName} placeholder="e.g. International Bac" />
+        <label class="field-label">{$t.subjects.templateName}</label>
+        <input class="field-input" bind:value={newName} placeholder={$t.subjects.templateNamePlaceholder} />
       </div>
       <div class="field">
-        <label class="field-label">Subjects</label>
+        <label class="field-label">{$t.subjects.title}</label>
         <div class="preset-list">
           {#each newPresets as preset, i}
             <div class="preset-row">
               <span class="preset-dot" style="background:{preset.color}"></span>
               <span class="preset-name">{preset.name}</span>
-              <button class="remove-preset" on:click={() => removePreset(i)} aria-label="Remove">×</button>
+              <button class="remove-preset" on:click={() => removePreset(i)} aria-label={$t.common.remove}>×</button>
             </div>
             {#if preset.topics && preset.topics.length > 0}
               <div class="topic-chips">
@@ -172,7 +173,7 @@
             <div class="topic-input-row">
               <input
                 class="topic-input"
-                placeholder="Add topic…"
+                placeholder={$t.subjects.addTopicPlaceholder}
                 bind:value={topicInputs[i]}
                 on:keydown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTopic(i, topicInputs[i]); topicInputs[i] = ''; } }}
               />
@@ -184,20 +185,20 @@
           <input
             class="field-input preset-input"
             bind:value={newSubjectName}
-            placeholder="Subject name…"
+            placeholder={$t.subjects.subjectNamePlaceholder}
             on:keydown={handlePresetKeydown}
           />
-          <button class="add-preset-btn" on:click={addPresetRow} disabled={!newSubjectName.trim()}>Add</button>
+          <button class="add-preset-btn" on:click={addPresetRow} disabled={!newSubjectName.trim()}>{$t.common.add}</button>
         </div>
       </div>
       <div class="form-actions">
-        <button class="btn-cancel" on:click={() => { creating = false; newName = ''; newPresets = []; }}>Cancel</button>
-        <button class="btn-save" on:click={saveTemplate} disabled={!newName.trim() || newPresets.length === 0}>Save</button>
+        <button class="btn-cancel" on:click={() => { creating = false; newName = ''; newPresets = []; }}>{$t.common.cancel}</button>
+        <button class="btn-save" on:click={saveTemplate} disabled={!newName.trim() || newPresets.length === 0}>{$t.common.save}</button>
       </div>
     </div>
   {:else}
     <button class="new-tpl-btn" on:click={() => creating = true} style="margin-top:20px">
-      + New template
+      + {$t.subjects.newTemplate}
     </button>
   {/if}
 </div>

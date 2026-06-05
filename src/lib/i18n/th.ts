@@ -104,6 +104,12 @@ export const th: I18n = {
     symbolHint: '(2 ตัวอักษร)',
     namePlaceholder: 'เช่น ฟิสิกส์',
     symbolPlaceholder: 'ฟ',
+    deleteTemplateTitle: 'ลบเทมเพลตนี้?',
+    deleteTemplateLabel: 'ลบเทมเพลต',
+    templateName: 'ชื่อเทมเพลต',
+    templateNamePlaceholder: 'เช่น สายสากล',
+    addTopicPlaceholder: 'เพิ่มหัวข้อ…',
+    subjectNamePlaceholder: 'ชื่อวิชา…',
   },
   settings: {
     title: 'ตั้งค่า',
@@ -160,6 +166,8 @@ export const th: I18n = {
     hours: 'ชม',
     minutes: 'นาที',
     perDay: '/ วัน',
+    cannotUndo: 'ไม่สามารถย้อนกลับได้',
+    remove: 'ลบออก',
   },
   onboarding: {
     step0Title: 'วันสอบ TCAS ของคุณคือเมื่อไหร่?',
