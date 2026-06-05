@@ -1,5 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
+  import { t } from '$lib/i18n';
   import type { Subject, Topic, SrsCard } from '$lib/types';
 
   export let subjects: Subject[] = [];
@@ -17,7 +18,7 @@
   $: items = dueCards
     .slice(0, 8)
     .reduce<PlanItem[]>((acc, card) => {
-      const topic = topics.find(t => t.id === card.topicId);
+      const topic = topics.find(tp => tp.id === card.topicId);
       if (!topic) return acc;
       const subject = subjects.find(s => s.id === topic.subjectId);
       if (!subject) return acc;
@@ -28,7 +29,7 @@
 
 {#if items.length > 0}
   <section class="plan-section">
-    <div class="section-label">TODAY'S PLAN</div>
+    <div class="section-label">{$t.dashboard.todaysPlan}</div>
     <div class="plan-card card">
       {#each items as item, i}
         <div class="plan-row" class:divider={i > 0}>
@@ -45,7 +46,7 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
               <polygon points="5,3 19,12 5,21"/>
             </svg>
-            Start
+            {$t.timer.start}
           </button>
         </div>
       {/each}

@@ -1,15 +1,18 @@
 <script lang="ts">
+  import { t } from '$lib/i18n';
+  import type { I18n } from '$lib/i18n/en';
   export let open = false;
   export let onClose: () => void = () => {};
 
-  const items = [
-    { label: 'Tasks',    href: '/tasks' },
-    { label: 'Schedule', href: '/schedule' },
-    { label: 'Scores',   href: '/scores' },
-    { label: 'Exam',     href: '/exam' },
-    { label: 'Insights', href: '/insights' },
-    { label: 'Journey',  href: '/journey' },
-    { label: 'Settings', href: '/settings' },
+  type NavKey = keyof I18n['nav'];
+  const items: { key: NavKey; href: string }[] = [
+    { key: 'tasks',    href: '/tasks' },
+    { key: 'schedule', href: '/schedule' },
+    { key: 'scores',   href: '/scores' },
+    { key: 'exam',     href: '/exam' },
+    { key: 'insights', href: '/insights' },
+    { key: 'journey',  href: '/journey' },
+    { key: 'settings', href: '/settings' },
   ];
 </script>
 
@@ -17,14 +20,14 @@
   <button class="backdrop" on:click={onClose} aria-label="Close"></button>
   <div class="drawer" role="dialog">
     <div class="drawer-header">
-      <span style="font-size:17px;font-weight:700">More</span>
+      <span style="font-size:17px;font-weight:700">{$t.nav.more}</span>
       <button class="close-btn" on:click={onClose} aria-label="Close">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
     <nav>
       {#each items as item}
-        <a href={item.href} class="drawer-item" on:click={onClose}>{item.label}</a>
+        <a href={item.href} class="drawer-item" on:click={onClose}>{$t.nav[item.key]}</a>
       {/each}
     </nav>
   </div>

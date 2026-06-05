@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from '$lib/i18n';
   export let todayHours: number = 0;
   export let goalHours: number = 4;
   export let streak: number = 0;
@@ -10,7 +11,7 @@
 <div class="hero-card">
   <div class="hero-top">
     <div>
-      <div class="hero-label">Today's study</div>
+      <div class="hero-label">{$t.dashboard.todaysStudy}</div>
       <div class="hero-stat">
         <span class="hero-num">{hoursDisplay}</span>
         <span class="hero-denom">/{goalHours}h</span>
@@ -21,14 +22,14 @@
         <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
       </svg>
       <span class="streak-num">{streak}</span>
-      <span class="streak-label">day streak</span>
+      <span class="streak-label">{$t.dashboard.streak}</span>
     </div>
   </div>
   <div class="progress-track">
     <div class="progress-fill" style="transform: scaleX({pct}); transform-origin: left;"></div>
   </div>
   <div class="hero-footer">
-    <span>{Math.round(pct * 100)}% of daily goal</span>
+    <span>{$t.dashboard.ofDailyGoal(Math.round(pct * 100))}</span>
   </div>
 </div>
 

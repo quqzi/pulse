@@ -13,6 +13,9 @@ export const th: I18n = {
     insights: 'วิเคราะห์',
     journey: 'ความก้าวหน้า',
     settings: 'ตั้งค่า',
+    dashboard: 'แดชบอร์ด',
+    analytics: 'สถิติ',
+    exam: 'ข้อสอบ',
   },
   dashboard: {
     goodMorning: 'อรุณสวัสดิ์',
@@ -25,6 +28,18 @@ export const th: I18n = {
     quickLog: 'บันทึกการเรียน',
     subjects: 'วิชา',
     noSubjects: 'ยังไม่มีวิชา',
+    todaysStudy: 'เรียนวันนี้',
+    ofDailyGoal: (n: number) => `${n}% ของเป้าหมายวันนี้`,
+    reviewDue: (n: number) => `ทบทวน ${n} การ์ดที่ถึงกำหนด`,
+    logged: 'บันทึกแล้ว!',
+    subjectField: 'วิชา',
+    topicField: 'หัวข้อ (ไม่บังคับ)',
+    logBtn: 'บันทึก',
+  },
+  readiness: {
+    title: 'ความพร้อมสอบ',
+    noData: 'เพิ่มวิชาเพื่อดูความพร้อม',
+    startExam: 'เริ่มทำข้อสอบ →',
   },
   timer: {
     pomodoro: 'โพโมโดโร',

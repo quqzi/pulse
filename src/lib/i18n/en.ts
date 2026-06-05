@@ -11,6 +11,9 @@ export const en = {
     insights: 'Insights',
     journey: 'Journey',
     settings: 'Settings',
+    dashboard: 'Dashboard',
+    analytics: 'Analytics',
+    exam: 'Exam',
   },
   dashboard: {
     goodMorning: 'Good morning',
@@ -23,6 +26,18 @@ export const en = {
     quickLog: 'Log session',
     subjects: 'Subjects',
     noSubjects: 'No subjects yet.',
+    todaysStudy: "Today's study",
+    ofDailyGoal: (n: number) => `${n}% of daily goal`,
+    reviewDue: (n: number) => `Review ${n} due card${n !== 1 ? 's' : ''}`,
+    logged: 'Logged!',
+    subjectField: 'Subject',
+    topicField: 'Topic (opt.)',
+    logBtn: 'Log',
+  },
+  readiness: {
+    title: 'Exam Readiness',
+    noData: 'Add subjects to see readiness',
+    startExam: 'Start Mock Exam →',
   },
   timer: {
     pomodoro: 'Pomodoro',

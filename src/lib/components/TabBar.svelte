@@ -1,13 +1,16 @@
 <script lang="ts">
   import { page } from '$app/stores';
+  import { t } from '$lib/i18n';
+  import type { I18n } from '$lib/i18n/en';
   export let onMore: () => void = () => {};
 
-  const tabs = [
-    { label: 'Home',     href: '/dashboard', d: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22v-10h6v10' },
-    { label: 'Timer',    href: '/timer',     d: 'M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z M12 6v6l4 2' },
-    { label: 'Subjects', href: '/subjects',  d: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20 M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z' },
-    { label: 'Stats',    href: '/analytics', d: 'M18 20V10M12 20V4M6 20v-6' },
-    { label: 'More',     href: '#more',      d: 'M12 12m-1 0a1 1 0 1 0 2 0 1 1 0 1 0-2 0M19 12m-1 0a1 1 0 1 0 2 0 1 1 0 1 0-2 0M5 12m-1 0a1 1 0 1 0 2 0 1 1 0 1 0-2 0' },
+  type NavKey = keyof I18n['nav'];
+  const tabs: { key: NavKey; href: string; d: string }[] = [
+    { key: 'home',     href: '/dashboard', d: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22v-10h6v10' },
+    { key: 'timer',    href: '/timer',     d: 'M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z M12 6v6l4 2' },
+    { key: 'subjects', href: '/subjects',  d: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20 M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z' },
+    { key: 'stats',    href: '/analytics', d: 'M18 20V10M12 20V4M6 20v-6' },
+    { key: 'more',     href: '#more',      d: 'M12 12m-1 0a1 1 0 1 0 2 0 1 1 0 1 0-2 0M19 12m-1 0a1 1 0 1 0 2 0 1 1 0 1 0-2 0M5 12m-1 0a1 1 0 1 0 2 0 1 1 0 1 0-2 0' },
   ];
   $: path = $page.url.pathname;
 </script>
@@ -15,14 +18,14 @@
 <nav class="tab-bar">
   {#each tabs as tab}
     {#if tab.href === '#more'}
-      <button class="tab-item" on:click={onMore} aria-label="More">
+      <button class="tab-item" on:click={onMore} aria-label={$t.nav.more}>
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{tab.d}" /></svg>
-        <span class="tab-label">{tab.label}</span>
+        <span class="tab-label">{$t.nav[tab.key]}</span>
       </button>
     {:else}
       <a href={tab.href} class="tab-item" class:active={path.startsWith(tab.href)}>
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{tab.d}" /></svg>
-        <span class="tab-label">{tab.label}</span>
+        <span class="tab-label">{$t.nav[tab.key]}</span>
       </a>
     {/if}
   {/each}

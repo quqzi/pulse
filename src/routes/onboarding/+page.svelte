@@ -70,6 +70,12 @@
 
 <div class="ob-page">
   <div class="ob-card card">
+    <div class="lang-pills">
+      <button class="lang-pill" class:active={$settings.lang === 'en'}
+        on:click={() => settings.update(s => ({ ...s, lang: 'en' }))}>English</button>
+      <button class="lang-pill" class:active={$settings.lang === 'th'}
+        on:click={() => settings.update(s => ({ ...s, lang: 'th' }))}>ไทย</button>
+    </div>
     <div class="dots">
       {#each Array(TOTAL + 1) as _, i}
         <div class="dot" class:active={i === step} class:done={i < step}></div>
@@ -171,6 +177,13 @@
   .dot { width:6px; height:6px; border-radius:999px; background:var(--border); transition:background 200ms ease, width 200ms ease; }
   .dot.active { background:var(--primary); width:18px; }
   .dot.done   { background:var(--primary); opacity:.4; }
+  .lang-pills { display:flex; gap:6px; justify-content:flex-end; }
+  .lang-pill {
+    padding:5px 12px; border-radius:999px; border:1.5px solid var(--border);
+    background:var(--bg); color:var(--muted); font-family:inherit; font-size:13px;
+    font-weight:600; cursor:pointer;
+  }
+  .lang-pill.active { border-color:var(--primary); background:var(--primary-l); color:var(--primary); }
   .sub { margin-top:-8px; }
   .field-input { padding:11px 14px; border-radius:var(--radius-sm); border:1.5px solid var(--border); background:var(--bg); color:var(--text); font-family:inherit; font-size:15px; width:100%; outline:none; }
   .field-input:focus { border-color:var(--primary); }

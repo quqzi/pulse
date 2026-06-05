@@ -46,6 +46,18 @@
     </div>
   </div>
 
+  <div class="card section-card" style="margin-top:8px">
+    <div class="setting-row">
+      <span class="text-body">Language</span>
+      <div class="lang-pills">
+        <button class="lang-pill" class:active={$settings.lang === 'en'}
+          on:click={() => settings.update(s => ({ ...s, lang: 'en' }))}>English</button>
+        <button class="lang-pill" class:active={$settings.lang === 'th'}
+          on:click={() => settings.update(s => ({ ...s, lang: 'th' }))}>ไทย</button>
+      </div>
+    </div>
+  </div>
+
   <p class="section-label" style="margin-top:20px">Study</p>
   <div class="card section-card">
     <div class="setting-row">
@@ -196,6 +208,15 @@
   .divider { height:1px; background:var(--border); }
   .num-input { width:58px; padding:6px 10px; border-radius:8px; border:1.5px solid var(--border); background:var(--bg); color:var(--text); font-family:inherit; font-size:15px; text-align:center; outline:none; }
   .num-input:focus { border-color:var(--primary); }
+
+  .lang-pills { display:flex; gap:6px; }
+  .lang-pill {
+    padding:7px 14px; border-radius:999px; border:1.5px solid var(--border);
+    background:var(--bg); color:var(--muted); font-family:inherit; font-size:14px;
+    font-weight:600; cursor:pointer; min-height:36px;
+  }
+  .lang-pill.active { border-color:var(--primary); background:var(--primary-l); color:var(--primary); }
+  @media (max-width: 768px) { .lang-pill { min-height: 44px; } }
 
   .theme-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
   @media (max-width:360px) { .theme-grid { grid-template-columns:repeat(2,1fr); } }
