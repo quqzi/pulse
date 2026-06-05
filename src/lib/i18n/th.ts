@@ -87,6 +87,10 @@ export const th: I18n = {
     alreadyAdded: 'เพิ่มแล้ว',
     selectHint: 'เลือกวิชาที่ต้องการเพิ่ม วิชาที่มีอยู่แล้วจะเป็นสีเทา',
     templateNotFound: 'ไม่พบเทมเพลต',
+    moreOptions: 'ตัวเลือกเพิ่มเติม',
+    addSubject: 'เพิ่มวิชา',
+    browseTemplates: 'เลือกเทมเพลต',
+    saveAsTemplate: 'บันทึกวิชาปัจจุบันเป็นเทมเพลต',
   },
   settings: {
     title: 'ตั้งค่า',

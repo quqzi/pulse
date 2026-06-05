@@ -85,6 +85,10 @@ export const en = {
     alreadyAdded: 'Added',
     selectHint: 'Select subjects to add to your list. Already-added subjects are greyed out.',
     templateNotFound: 'Template not found.',
+    moreOptions: 'More options',
+    addSubject: 'Add subject',
+    browseTemplates: 'Browse templates',
+    saveAsTemplate: 'Save current subjects as template',
   },
   settings: {
     title: 'Settings',
