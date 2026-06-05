@@ -76,6 +76,7 @@ export const en = {
     good: 'Good',
     easy: 'Easy',
     noSubjects: 'No subjects yet. Complete onboarding to get started.',
+    emptyTitle: 'No subjects yet.',
     templates: 'Templates',
     newTemplate: 'New template',
     builtIn: 'BUILT-IN',

@@ -86,7 +86,7 @@
 
   {#if $subjects.length === 0}
     <div class="empty-state">
-      <p class="text-body empty">{$t.subjects.noSubjects}</p>
+      <p class="text-body empty">{$t.subjects.emptyTitle}</p>
       <a href="/subjects/templates" class="btn-primary-link">{$t.subjects.browseTemplates}</a>
     </div>
   {:else}

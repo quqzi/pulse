@@ -78,6 +78,7 @@ export const th: I18n = {
     good: 'จำได้',
     easy: 'จำได้ดี',
     noSubjects: 'ยังไม่มีวิชา เริ่มต้นด้วยการตั้งค่า',
+    emptyTitle: 'ยังไม่มีวิชา',
     templates: 'เทมเพลต',
     newTemplate: 'เทมเพลตใหม่',
     builtIn: 'มาตรฐาน',
