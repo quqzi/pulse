@@ -9,10 +9,11 @@
   import { reviewCard, isDue } from '$lib/srs';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
   import SubjectEditSheet from '$lib/components/subjects/SubjectEditSheet.svelte';
+  import { t } from '$lib/i18n';
 
   $: subjectId = $page.params.id;
   $: subject = $subjects.find(s => s.id === subjectId);
-  $: subjectTopics = $topics.filter(t => t.subjectId === subjectId);
+  $: subjectTopics = $topics.filter(tp => tp.subjectId === subjectId);
   $: cardForTopic = (topicId: string) => $srsCards.find(c => c.topicId === topicId);
 
   let newTopicName = '';
@@ -113,26 +114,26 @@
 
 <ConfirmDialog
   bind:open={topicConfirmOpen}
-  title="Delete topic?"
-  message="Its SRS cards will also be deleted. This cannot be undone."
+  title={$t.subjects.deleteTopicTitle}
+  message={$t.subjects.deleteTopicMessage}
   on:confirm={doDeleteTopic}
 />
 
 {#if reviewingCard}
   <div class="overlay" on:click|self={() => reviewingCard = null}>
     <div class="review-card card">
-      <p class="section-label" style="text-align:center; margin-bottom:12px;">REVIEW</p>
+      <p class="section-label" style="text-align:center; margin-bottom:12px;">{$t.subjects.review.toUpperCase()}</p>
       <h3 class="text-heading" style="text-align:center; margin-bottom:4px;">{reviewingCard.topicName}</h3>
-      <p class="text-body" style="color: var(--muted); text-align: center; margin-bottom:24px;">How well did you recall this?</p>
+      <p class="text-body" style="color: var(--muted); text-align: center; margin-bottom:24px;">{$t.subjects.howWell}</p>
       <div class="rating-row">
         {#each ([1,2,3,4] as const) as r}
-          {@const labels = {1:'Again',2:'Hard',3:'Good',4:'Easy'}}
+          {@const ratingLabels = {1:$t.subjects.again,2:$t.subjects.hard,3:$t.subjects.good,4:$t.subjects.easy}}
           {@const colors = {1:'var(--srs-again)',2:'var(--srs-hard)',3:'var(--srs-good)',4:'var(--srs-easy)'}}
           <button
             class="rating-btn"
             style="background: {colors[r]};"
             on:click={() => handleReview(r)}
-          >{labels[r]}</button>
+          >{ratingLabels[r]}</button>
         {/each}
       </div>
     </div>
@@ -141,7 +142,7 @@
 
 <div class="page">
   {#if !subject}
-    <p class="text-body" style="color:var(--muted)">Subject not found.</p>
+    <p class="text-body" style="color:var(--muted)">{$t.subjects.notFound}</p>
   {:else}
     <div class="page-header">
       <button class="back-btn" on:click={() => goto('/subjects')}>
@@ -153,13 +154,13 @@
         <span class="subject-symbol">{subject.symbol}</span>
         <h1 class="text-large-title">{subject.name}</h1>
       </div>
-      <button class="subject-edit-btn" on:click={() => (subjectEditOpen = true)}>Edit</button>
+      <button class="subject-edit-btn" on:click={() => (subjectEditOpen = true)}>{$t.common.edit}</button>
     </div>
 
-    <div class="section-label topics-label">TOPICS</div>
+    <div class="section-label topics-label">{$t.subjects.topics.toUpperCase()}</div>
 
     {#if subjectTopics.length === 0}
-      <p class="text-body empty">No topics yet. Add your first topic below.</p>
+      <p class="text-body empty">{$t.subjects.noTopics}</p>
     {:else}
       <div class="topics-list card">
         {#each subjectTopics as topic, i (topic.id)}
@@ -182,11 +183,11 @@
               {#if card && editingTopicId !== topic.id}
                 <span class="srs-status" class:due={isDue(card.dueDate)} class:reviewed={card.reps > 0}>
                   {#if isDue(card.dueDate)}
-                    Due today
+                    {$t.subjects.dueToday}
                   {:else if card.reps === 0}
-                    New
+                    {$t.subjects.new}
                   {:else}
-                    Due {card.dueDate}
+                    {$t.subjects.dueLabel(card.dueDate)}
                   {/if}
                 </span>
               {/if}
@@ -197,10 +198,10 @@
                   class="review-btn"
                   style="background: color-mix(in srgb, {subject.color} 12%, transparent); color: {subject.color};"
                   on:click={() => reviewingCard = { topicId: topic.id, topicName: topic.name }}
-                >Review</button>
+                >{$t.subjects.review}</button>
               {/if}
               {#if editingTopicId !== topic.id}
-                <button class="icon-btn edit-icon" on:click={() => startEditTopic(topic)} aria-label="Edit topic">
+                <button class="icon-btn edit-icon" on:click={() => startEditTopic(topic)} aria-label={$t.subjects.editTopicLabel}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -222,14 +223,14 @@
       <div class="add-row">
         <input
           type="text"
-          placeholder="Topic name"
+          placeholder={$t.subjects.topicName}
           bind:value={newTopicName}
           class="field-input"
           autofocus
           on:keydown={e => e.key === 'Enter' && addTopic()}
         />
-        <button class="btn-primary add-btn" on:click={addTopic} disabled={!newTopicName.trim() || submitting}>Add</button>
-        <button class="cancel-btn" on:click={() => { adding = false; newTopicName = ''; }}>Cancel</button>
+        <button class="btn-primary add-btn" on:click={addTopic} disabled={!newTopicName.trim() || submitting}>{$t.common.add}</button>
+        <button class="cancel-btn" on:click={() => { adding = false; newTopicName = ''; }}>{$t.common.cancel}</button>
       </div>
     {:else}
       <button
@@ -240,7 +241,7 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 5v14M5 12h14"/>
         </svg>
-        Add topic
+        {$t.subjects.addTopic}
       </button>
     {/if}
   {/if}

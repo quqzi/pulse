@@ -3,6 +3,7 @@
   import { SUBJECT_COLOR_PALETTE } from '$lib/constants';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
   import type { Subject } from '$lib/types';
+  import { t } from '$lib/i18n';
 
   export let open = false;
   export let subject: Subject | null = null;
@@ -85,8 +86,8 @@
 
 <ConfirmDialog
   bind:open={confirmOpen}
-  title="Delete subject?"
-  message="All its topics and SRS cards will also be deleted. This cannot be undone."
+  title={$t.subjects.deleteSubjectTitle}
+  message={$t.subjects.deleteSubjectMessage}
   on:confirm={doDelete}
 />
 
@@ -94,22 +95,22 @@
   <div use:portal>
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <div class="sheet-overlay" on:click={close} role="presentation"></div>
-  <div class="sheet" role="dialog" aria-modal="true" aria-label={subject ? 'Edit Subject' : 'New Subject'}>
+  <div class="sheet" role="dialog" aria-modal="true" aria-label={subject ? $t.subjects.editSubject : $t.subjects.newSubject}>
     <div class="sheet-handle"></div>
-    <p class="sheet-title">{subject ? 'Edit Subject' : 'New Subject'}</p>
+    <p class="sheet-title">{subject ? $t.subjects.editSubject : $t.subjects.newSubject}</p>
 
     <div class="field">
-      <label class="field-label" for="subj-name">Name</label>
-      <input id="subj-name" class="field-input" bind:value={name} placeholder="e.g. Physics" />
+      <label class="field-label" for="subj-name">{$t.subjects.subjectName}</label>
+      <input id="subj-name" class="field-input" bind:value={name} placeholder={$t.subjects.namePlaceholder} />
     </div>
 
     <div class="field">
-      <label class="field-label" for="subj-symbol">Symbol <span class="field-hint">(2 chars)</span></label>
+      <label class="field-label" for="subj-symbol">{$t.subjects.subjectSymbol} <span class="field-hint">{$t.subjects.symbolHint}</span></label>
       <input id="subj-symbol" class="field-input sym-input" bind:value={symbol} maxlength="2" placeholder="Ph" />
     </div>
 
     <div class="field">
-      <span class="field-label">Color</span>
+      <span class="field-label">{$t.settings.color}</span>
       <div class="color-swatches">
         {#each SUBJECT_COLOR_PALETTE as c}
           <button
@@ -125,10 +126,10 @@
 
     <div class="sheet-actions">
       {#if subject}
-        <button class="btn-delete" on:click={requestDelete}>Delete</button>
+        <button class="btn-delete" on:click={requestDelete}>{$t.common.delete}</button>
       {/if}
-      <button class="btn-cancel" on:click={close}>Cancel</button>
-      <button class="btn-save" on:click={save} disabled={!name.trim() || saving}>Save</button>
+      <button class="btn-cancel" on:click={close}>{$t.common.cancel}</button>
+      <button class="btn-save" on:click={save} disabled={!name.trim() || saving}>{$t.common.save}</button>
     </div>
   </div>
   </div>
