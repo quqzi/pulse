@@ -1,5 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
+  import { t } from '$lib/i18n';
   import type { Subject, Priority } from '$lib/types';
 
   export let subjects: Subject[] = [];
@@ -40,7 +41,7 @@
     class="title-input"
     class:error={titleError}
     bind:value={titleInput}
-    placeholder="Task title…"
+    placeholder={$t.tasks.addPlaceholder}
     on:keydown={handleKeydown}
     on:input={() => titleError = false}
     autofocus
@@ -58,15 +59,15 @@
     </div>
     <input type="date" class="date-input" bind:value={dueDateInput} />
     <select class="subject-select" bind:value={subjectIdInput}>
-      <option value="">No subject</option>
+      <option value="">{$t.tasks.noSubject}</option>
       {#each subjects as s}
         <option value={s.id}>{s.name}</option>
       {/each}
     </select>
   </div>
   <div class="form-actions">
-    <button class="btn-cancel" on:click={() => dispatch('cancel')}>Cancel</button>
-    <button class="btn-add" on:click={handleSubmit}>Add task</button>
+    <button class="btn-cancel" on:click={() => dispatch('cancel')}>{$t.common.cancel}</button>
+    <button class="btn-add" on:click={handleSubmit}>{$t.tasks.addTask}</button>
   </div>
 </div>
 
