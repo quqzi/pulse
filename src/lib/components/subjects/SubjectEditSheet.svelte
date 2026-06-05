@@ -106,7 +106,7 @@
 
     <div class="field">
       <label class="field-label" for="subj-symbol">{$t.subjects.subjectSymbol} <span class="field-hint">{$t.subjects.symbolHint}</span></label>
-      <input id="subj-symbol" class="field-input sym-input" bind:value={symbol} maxlength="2" placeholder="Ph" />
+      <input id="subj-symbol" class="field-input sym-input" bind:value={symbol} maxlength="2" placeholder={$t.subjects.symbolPlaceholder} />
     </div>
 
     <div class="field">

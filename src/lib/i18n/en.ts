@@ -101,6 +101,7 @@ export const en = {
     subjectSymbol: 'Symbol',
     symbolHint: '(2 chars)',
     namePlaceholder: 'e.g. Physics',
+    symbolPlaceholder: 'Ph',
   },
   settings: {
     title: 'Settings',

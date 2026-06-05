@@ -9,7 +9,7 @@
   import { reviewCard, isDue } from '$lib/srs';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
   import SubjectEditSheet from '$lib/components/subjects/SubjectEditSheet.svelte';
-  import { t } from '$lib/i18n';
+  import { t, fmt } from '$lib/i18n';
 
   $: subjectId = $page.params.id;
   $: subject = $subjects.find(s => s.id === subjectId);
@@ -187,7 +187,7 @@
                   {:else if card.reps === 0}
                     {$t.subjects.new}
                   {:else}
-                    {$t.subjects.dueLabel(card.dueDate)}
+                    {$t.subjects.dueLabel($fmt.date(card.dueDate, { day: 'numeric', month: 'short' }))}
                   {/if}
                 </span>
               {/if}

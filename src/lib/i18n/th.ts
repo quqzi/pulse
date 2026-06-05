@@ -103,6 +103,7 @@ export const th: I18n = {
     subjectSymbol: 'สัญลักษณ์',
     symbolHint: '(2 ตัวอักษร)',
     namePlaceholder: 'เช่น ฟิสิกส์',
+    symbolPlaceholder: 'ฟ',
   },
   settings: {
     title: 'ตั้งค่า',
