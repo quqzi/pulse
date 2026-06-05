@@ -9,13 +9,14 @@
   } from '$lib/stores/timer';
   import { newId } from '$lib/id';
   import { sessionsRepo } from '$lib/data/entities';
+  import { t } from '$lib/i18n';
 
   let showSummary = false;
   let lastSession: { durationSec: number; subjectName: string; topicName: string | null } | null = null;
 
   $: selectedSubject = $subjects.find(s => s.id === $timerStore.subjectId) ?? null;
-  $: subjectTopics = $timerStore.subjectId ? $topics.filter(t => t.subjectId === $timerStore.subjectId) : [];
-  $: selectedTopic = $topics.find(t => t.id === $timerStore.topicId) ?? null;
+  $: subjectTopics = $timerStore.subjectId ? $topics.filter(tp => tp.subjectId === $timerStore.subjectId) : [];
+  $: selectedTopic = $topics.find(tp => tp.id === $timerStore.topicId) ?? null;
 
   $: displayTime = formatTime($remaining);
   $: canStart = $timerStore.subjectId !== null;
@@ -30,8 +31,8 @@
 
   function setMode(mode: TimerMode) {
     if ($timerStore.status !== 'idle') return;
-    timerStore.update(t => ({
-      ...t,
+    timerStore.update(tp => ({
+      ...tp,
       mode,
       elapsed: 0,
       phase: 'work',
@@ -96,51 +97,51 @@
           <path d="M20 6L9 17l-5-5"/>
         </svg>
       </div>
-      <h2 class="text-heading" style="margin-bottom:4px">Session logged</h2>
+      <h2 class="text-heading" style="margin-bottom:4px">{$t.timer.sessionLogged}</h2>
       <p class="text-body" style="color: var(--muted); margin-bottom:16px;">
         {formatTime(lastSession.durationSec)} · {lastSession.subjectName}
         {#if lastSession.topicName} · {lastSession.topicName}{/if}
       </p>
-      <button class="btn-primary done-btn" on:click={dismissSummary}>Done</button>
+      <button class="btn-primary done-btn" on:click={dismissSummary}>{$t.timer.done}</button>
     </div>
   </div>
 {/if}
 
 <div class="page" class:focus={$timerStore.focusMode}>
-  <h1 class="text-large-title page-title">Timer</h1>
+  <h1 class="text-large-title page-title">{$t.nav.timer}</h1>
 
   <div class="mode-tabs">
-    <button class="mode-tab" class:active={$timerStore.mode === 'pomodoro'} on:click={() => setMode('pomodoro')} disabled={isRunning || isPaused}>Pomodoro</button>
-    <button class="mode-tab" class:active={$timerStore.mode === 'free'} on:click={() => setMode('free')} disabled={isRunning || isPaused}>Free</button>
+    <button class="mode-tab" class:active={$timerStore.mode === 'pomodoro'} on:click={() => setMode('pomodoro')} disabled={isRunning || isPaused}>{$t.timer.pomodoro}</button>
+    <button class="mode-tab" class:active={$timerStore.mode === 'free'} on:click={() => setMode('free')} disabled={isRunning || isPaused}>{$t.timer.free}</button>
   </div>
 
   <div class="timer-display" class:running={isRunning}>
     <div class="time-text">{displayTime}</div>
     {#if $timerStore.mode === 'pomodoro'}
-      <div class="phase-label">{$timerStore.phase === 'work' ? 'Focus' : 'Break'} · Round {$timerStore.pomodoroRound}</div>
+      <div class="phase-label">{$timerStore.phase === 'work' ? $t.timer.focus : $t.timer.breakLabel} · {$t.timer.round} {$timerStore.pomodoroRound}</div>
     {:else}
-      <div class="phase-label">{isRunning ? 'Studying' : 'Ready'}</div>
+      <div class="phase-label">{isRunning ? $t.timer.studying : $t.timer.ready}</div>
     {/if}
   </div>
 
   <div class="selector-row">
     <select
       bind:value={$timerStore.subjectId}
-      on:change={() => timerStore.update(t => ({ ...t, topicId: null }))}
+      on:change={() => timerStore.update(tp => ({ ...tp, topicId: null }))}
       class="field-select"
       disabled={isRunning || isPaused}
       style={selectedSubject ? `color: ${selectedSubject.color}; border-color: ${selectedSubject.color};` : ''}
     >
-      <option value={null}>Select subject</option>
+      <option value={null}>{$t.timer.selectSubject}</option>
       {#each $subjects as sub}
         <option value={sub.id}>{sub.name}</option>
       {/each}
     </select>
     {#if subjectTopics.length > 0}
       <select bind:value={$timerStore.topicId} class="field-select" disabled={isRunning || isPaused}>
-        <option value={null}>No topic</option>
-        {#each subjectTopics as t}
-          <option value={t.id}>{t.name}</option>
+        <option value={null}>{$t.timer.selectTopic}</option>
+        {#each subjectTopics as tp}
+          <option value={tp.id}>{tp.name}</option>
         {/each}
       </select>
     {/if}
@@ -150,21 +151,21 @@
     {#if !isRunning && !isPaused}
       <button class="btn-start btn-primary" disabled={!canStart} on:click={handleStart}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
-        Start
+        {$t.timer.start}
       </button>
     {:else}
       <button class="btn-ctrl" on:click={() => isRunning ? pauseTimer() : startTimer(onPomodoroComplete)}>
         {#if isRunning}
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-          Pause
+          {$t.timer.pause}
         {:else}
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
-          Resume
+          {$t.timer.resume}
         {/if}
       </button>
       <button class="btn-stop" on:click={handleStop}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
-        Stop
+        {$t.timer.stop}
       </button>
     {/if}
   </div>
@@ -172,9 +173,9 @@
   {#if !isRunning && !isPaused}
     <button
       class="focus-toggle"
-      on:click={() => timerStore.update(t => ({ ...t, focusMode: !t.focusMode }))}
+      on:click={() => timerStore.update(tp => ({ ...tp, focusMode: !tp.focusMode }))}
     >
-      {$timerStore.focusMode ? 'Exit focus mode' : 'Enter focus mode'}
+      {$timerStore.focusMode ? $t.timer.exitFocus : $t.timer.focusMode}
     </button>
   {/if}
 </div>
