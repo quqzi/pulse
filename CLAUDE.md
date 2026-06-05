@@ -338,9 +338,10 @@ Guest mode is fully offline (localStorage); no account required.
 
 ### Planned (spec'd, plan not yet written)
 
-- WS3 Thai i18n · WS4 features · WS5 polish · WS6 motion (see roadmap spec)
+- WS3 Thai i18n **fan-out** — pilot (infra + nav + dashboard) done & in CHANGELOG; remaining ~11 pages still to convert to `$t`/`$fmt`
+- WS4 features · WS5 polish · WS6 motion (see roadmap spec)
 - Exam label / tag on topics under a subject (deferred — surfaced 2026-06-04)
 
 ### Completed
 
-→ **`docs/CHANGELOG.md`** — full history, newest first (24 plans through Exam Simulation, PR #13).
+→ **`docs/CHANGELOG.md`** — full history, newest first (25 plans through WS3 Thai i18n pilot).
