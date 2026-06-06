@@ -1,5 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
+  import { t } from '$lib/i18n';
   import type { ScheduleSlot, Subject, SrsCard, Topic } from '$lib/types';
   import type { Settings } from '$lib/stores/settings';
 
@@ -26,11 +27,13 @@
   $: weeklyGoalMinutes = settings ? settings.dailyGoalHours * 7 * 60 : 0;
   $: plannedRatio = weeklyGoalMinutes > 0 ? Math.min(totalPlannedMinutes / weeklyGoalMinutes, 1) : 0;
 
-  function minutesToLabel(min: number): string {
+  $: minutesToLabel = (min: number): string => {
     const h = Math.floor(min / 60);
     const m = Math.round(min % 60);
-    return h > 0 ? `${h}h${m > 0 ? ` ${m}m` : ''}` : `${m}m`;
-  }
+    return h > 0
+      ? `${h}${$t.schedule.unitH}${m > 0 ? ` ${m}${$t.schedule.unitM}` : ''}`
+      : `${m}${$t.schedule.unitM}`;
+  };
 
   $: subjectStats = subjects.map(subject => {
     const mins = confirmedSlots
@@ -41,8 +44,8 @@
 
   $: maxSubjectMins = Math.max(...subjectStats.map(x => x.mins), 1);
 
-  $: topicToSubject = topics.reduce<Record<string, string>>((acc, t) => {
-    acc[t.id] = t.subjectId;
+  $: topicToSubject = topics.reduce<Record<string, string>>((acc, tp) => {
+    acc[tp.id] = tp.subjectId;
     return acc;
   }, {});
 
@@ -57,10 +60,10 @@
 
 <aside class="schedule-sidebar">
   <section class="sidebar-section">
-    <div class="section-label">THIS WEEK</div>
+    <div class="section-label">{$t.schedule.thisWeek}</div>
     <div class="week-stat">
       <span class="stat-big">{minutesToLabel(totalPlannedMinutes)}</span>
-      <span class="stat-goal">/ {settings ? `${settings.dailyGoalHours * 7}h` : '—'} goal</span>
+      <span class="stat-goal">{settings ? $t.schedule.goalSuffix(`${settings.dailyGoalHours * 7}${$t.schedule.unitH}`) : '—'}</span>
     </div>
     <div class="progress-bar">
       <div class="progress-fill" style="width: {plannedRatio * 100}%;"></div>
@@ -69,7 +72,7 @@
 
   {#if subjectStats.length > 0}
   <section class="sidebar-section">
-    <div class="section-label">BY SUBJECT</div>
+    <div class="section-label">{$t.schedule.bySubject}</div>
     {#each subjectStats as { subject, mins }}
       <div class="subject-row">
         <span class="subject-dot" style="background: {subject.color};"></span>
@@ -85,8 +88,8 @@
 
   {#if srsDueCount > 0}
   <section class="sidebar-section">
-    <div class="section-label">SRS DUE THIS WEEK</div>
-    <div class="srs-count">{srsDueCount} cards</div>
+    <div class="section-label">{$t.schedule.srsDueThisWeek}</div>
+    <div class="srs-count">{$t.schedule.cardsCount(srsDueCount)}</div>
     {#each srsBySubject as { subject, count }}
       <div class="srs-row">
         <span class="subject-dot" style="background: {subject.color};"></span>
@@ -99,11 +102,11 @@
 
   {#if suggestedSlots.length > 0}
   <section class="sidebar-section">
-    <div class="section-label">AI SUGGESTIONS</div>
-    <div class="suggestion-count">{suggestedSlots.length} block{suggestedSlots.length !== 1 ? 's' : ''} pending</div>
+    <div class="section-label">{$t.schedule.aiSuggestions}</div>
+    <div class="suggestion-count">{$t.schedule.blocksPending(suggestedSlots.length)}</div>
     <div class="suggestion-actions">
-      <button class="action-btn accept-all" on:click={() => dispatch('acceptAll')}>✓ Accept all</button>
-      <button class="action-btn reject-all" on:click={() => dispatch('rejectAll')}>✕ Reject all</button>
+      <button class="action-btn accept-all" on:click={() => dispatch('acceptAll')}>{$t.schedule.acceptAll}</button>
+      <button class="action-btn reject-all" on:click={() => dispatch('rejectAll')}>{$t.schedule.rejectAll}</button>
     </div>
   </section>
   {/if}

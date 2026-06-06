@@ -5,6 +5,7 @@
   import { anchored } from '$lib/actions/anchored';
   import CalBlock from './CalBlock.svelte';
   import BlockPopover from './BlockPopover.svelte';
+  import { t, fmt } from '$lib/i18n';
   import type { ScheduleSlot, Subject, Topic, Task } from '$lib/types';
   import type { Settings } from '$lib/stores/settings';
 
@@ -32,8 +33,6 @@
   const GAP_HOURS = 1;   // 12am–1am and 11pm–12am shown as dimmed gaps
   const TOTAL_HEIGHT = END_HOUR * HOUR_HEIGHT; // 1440px (full day)
   const HOURS = Array.from({ length: END_HOUR }, (_, i) => i); // 0..23
-
-  const DAY_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   $: weekDays = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(weekStart);
@@ -128,14 +127,15 @@
     return Math.min(100, (planned / goal) * 100);
   }
 
-  function loadBarTooltip(dayIdx: number): string {
+  $: loadBarTooltip = (dayIdx: number): string => {
     const planned = plannedMinutesByDay.get(dayIdx) ?? 0;
     const h = Math.floor(planned / 60);
     const m = planned % 60;
-    const label = h > 0 ? `${h}h${m > 0 ? ` ${m}m` : ''}` : `${m}m`;
-    const goal = settings ? `${settings.dailyGoalHours}h goal` : '';
-    return `${label} planned · ${goal}`;
-  }
+    const label = h > 0 ? `${h}${$t.schedule.unitH}${m > 0 ? ` ${m}${$t.schedule.unitM}` : ''}` : `${m}${$t.schedule.unitM}`;
+    if (!settings) return label;
+    const goal = `${settings.dailyGoalHours}${$t.schedule.unitH}`;
+    return $t.schedule.loadBarTooltip(label, goal);
+  };
 
   function schoolHoursBounds(dayIdx: number): { top: number; height: number } | null {
     if (!settings?.schoolHoursEnabled) return null;
@@ -155,14 +155,14 @@
   }
 
   function getTopic(id: string | undefined): Topic | undefined {
-    return id ? topics.find(t => t.id === id) : undefined;
+    return id ? topics.find(tp => tp.id === id) : undefined;
   }
 
   function isToday(d: Date): boolean {
-    const t = new Date();
-    return d.getFullYear() === t.getFullYear()
-      && d.getMonth() === t.getMonth()
-      && d.getDate() === t.getDate();
+    const now = new Date();
+    return d.getFullYear() === now.getFullYear()
+      && d.getMonth() === now.getMonth()
+      && d.getDate() === now.getDate();
   }
 
   // ── Snap & time utils ─────────────────────────────────────────
@@ -258,8 +258,8 @@
 
   function onHoldMoveCancel(e: TouchEvent) {
     if (!e.touches.length) return;
-    const t = e.touches[0];
-    if (Math.abs(t.clientX - holdStartClientX) > 10 || Math.abs(t.clientY - holdStartClientY) > 10) {
+    const touch = e.touches[0];
+    if (Math.abs(touch.clientX - holdStartClientX) > 10 || Math.abs(touch.clientY - holdStartClientY) > 10) {
       clearHoldTimer();
     }
   }
@@ -464,12 +464,11 @@
     document.removeEventListener('touchend', onTouchend);
   });
 
-  function formatHour(h: number): string {
-    if (h === 0) return '12am';
-    if (h < 12) return `${h}am`;
-    if (h === 12) return '12pm';
-    return `${h - 12}pm`;
-  }
+  $: formatHour = (h: number): string => {
+    const d = new Date(weekStart);
+    d.setHours(h, 0, 0, 0);
+    return $fmt.date(d.toISOString(), { hour: 'numeric' });
+  };
 
   function dayDateLabel(d: Date): string {
     return String(d.getDate());
@@ -487,7 +486,7 @@
     <div class="time-gutter"></div>
     {#each weekDays as day, i}
       <div class="day-header-cell" class:today={isToday(day)}>
-        <span class="day-name">{DAY_SHORT[i]}</span>
+        <span class="day-name">{$fmt.date(day.toISOString(), { weekday: 'short' })}</span>
         <span class="day-date" class:today-date={isToday(day)}>{dayDateLabel(day)}</span>
       </div>
     {/each}
@@ -527,7 +526,7 @@
         {#each HOURS as hour}
           <div class="hour-label" style="top: {(hour - START_HOUR) * HOUR_HEIGHT}px;">{formatHour(hour)}</div>
         {/each}
-        <div class="hour-label" style="top: {TOTAL_HEIGHT}px;">12am</div>
+        <div class="hour-label" style="top: {TOTAL_HEIGHT}px;">{formatHour(0)}</div>
       </div>
 
       <!-- Day columns -->

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
+  import { t, fmt } from '$lib/i18n';
   import type { StudySession, Task, Subject } from '$lib/types';
 
   export let currentWeekStart: Date;
@@ -14,8 +15,6 @@
 
   $: calendarDays = buildCalendar(displayMonth);
   $: upcomingTasks = getUpcomingTasks();
-
-  const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
   function buildCalendar(monthStart: Date) {
     const year = monthStart.getFullYear();
@@ -36,8 +35,8 @@
 
   function isToday(d: Date | null): boolean {
     if (!d) return false;
-    const t = new Date();
-    return d.getFullYear() === t.getFullYear() && d.getMonth() === t.getMonth() && d.getDate() === t.getDate();
+    const now = new Date();
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
   }
 
   function isInCurrentWeek(d: Date | null): boolean {
@@ -73,7 +72,7 @@
     displayMonth = new Date(displayMonth.getFullYear(), displayMonth.getMonth() + 1, 1);
   }
 
-  $: monthLabel = displayMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  $: monthLabel = $fmt.date(displayMonth.toISOString(), { month: 'long', year: 'numeric' });
 
   function getUpcomingTasks() {
     const today = new Date();
@@ -81,25 +80,25 @@
     const inTwoWeeks = new Date(today);
     inTwoWeeks.setDate(today.getDate() + 14);
     return tasks
-      .filter(t => !t.completedAt && t.dueDate)
-      .filter(t => {
-        const due = new Date(t.dueDate!);
+      .filter(tp => !tp.completedAt && tp.dueDate)
+      .filter(tp => {
+        const due = new Date(tp.dueDate!);
         return due >= today && due <= inTwoWeeks;
       })
       .sort((a, b) => a.dueDate!.localeCompare(b.dueDate!))
       .slice(0, 5);
   }
 
-  function taskDayLabel(task: Task): string {
+  $: taskDayLabel = (task: Task): string => {
     if (!task.dueDate) return '';
     const due = new Date(task.dueDate);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const diff = Math.round((due.getTime() - today.getTime()) / 86400000);
-    if (diff === 0) return 'Today';
-    if (diff === 1) return 'Tomorrow';
-    return due.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-  }
+    if (diff === 0) return $t.schedule.today;
+    if (diff === 1) return $t.schedule.tomorrow;
+    return $fmt.date(due.toISOString(), { weekday: 'short', month: 'short', day: 'numeric' });
+  };
 </script>
 
 <div class="mini-month">
@@ -110,7 +109,7 @@
   </div>
 
   <div class="day-headers">
-    {#each DAY_LABELS as label}
+    {#each $t.settings.weekdays as label}
       <div class="day-header">{label}</div>
     {/each}
   </div>
@@ -139,7 +138,7 @@
 
   {#if upcomingTasks.length > 0}
     <div class="upcoming-section">
-      <div class="upcoming-label">UPCOMING</div>
+      <div class="upcoming-label">{$t.schedule.upcoming}</div>
       {#each upcomingTasks as task}
         <div class="upcoming-task">
           <span class="task-title">{task.title}</span>
