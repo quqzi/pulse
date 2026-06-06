@@ -1,5 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
+  import { t } from '$lib/i18n';
   import type { Subject, MockScore } from '$lib/types';
 
   export let subjects: Subject[];
@@ -56,7 +57,7 @@
 <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 <div class="form card" on:keydown={handleKeydown} role="form">
   <div class="form-row">
-    <label class="field-label" for="sf-subject">Subject</label>
+    <label class="field-label" for="sf-subject">{$t.scores.subjectLabel}</label>
     <select id="sf-subject" class="field-select" bind:value={subjectId}>
       {#each subjects as s}
         <option value={s.id}>{s.name}</option>
@@ -65,7 +66,7 @@
   </div>
 
   <div class="form-row score-row">
-    <label class="field-label" for="sf-score">Score</label>
+    <label class="field-label" for="sf-score">{$t.scores.scoreLabel}</label>
     <div class="score-inputs" class:error={scoreError}>
       <input
         id="sf-score"
@@ -87,25 +88,25 @@
   </div>
 
   <div class="form-row">
-    <label class="field-label" for="sf-date">Date</label>
+    <label class="field-label" for="sf-date">{$t.scores.dateLabel}</label>
     <input id="sf-date" class="field-input date-input" type="date" bind:value={takenAt} />
   </div>
 
   <div class="form-row">
-    <label class="field-label" for="sf-notes">Notes</label>
+    <label class="field-label" for="sf-notes">{$t.scores.notesLabel}</label>
     <input
       id="sf-notes"
       class="field-input notes-input"
       type="text"
       bind:value={notes}
-      placeholder="Optional notes…"
+      placeholder={$t.scores.notesPlaceholder}
     />
   </div>
 
   <div class="form-actions">
-    <button class="btn-cancel" on:click={handleCancel}>Cancel</button>
+    <button class="btn-cancel" on:click={handleCancel}>{$t.common.cancel}</button>
     <button class="btn-save" on:click={handleSave}>
-      {initial ? 'Save changes' : 'Add score'}
+      {initial ? $t.scores.saveChanges : $t.scores.addScoreShort}
     </button>
   </div>
 </div>

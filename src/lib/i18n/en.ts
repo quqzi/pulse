@@ -277,6 +277,24 @@ export const en = {
     acceptAll: '✓ Accept all',
     rejectAll: '✕ Reject all',
   },
+  scores: {
+    title: 'Scores',
+    addScore: 'Add Score',
+    addScoreShort: 'Add score',
+    saveChanges: 'Save changes',
+    all: 'All',
+    deleteTitle: 'Delete score?',
+    emptyNone: 'No scores yet. Tap "Add Score" to record your first mock exam result.',
+    emptyForSubject: 'No scores for this subject.',
+    unknownSubject: 'Unknown',
+    editScore: 'Edit score',
+    deleteScore: 'Delete score',
+    subjectLabel: 'Subject',
+    scoreLabel: 'Score',
+    dateLabel: 'Date',
+    notesLabel: 'Notes',
+    notesPlaceholder: 'Optional notes…',
+  },
 };
 
 export type I18n = typeof en;
