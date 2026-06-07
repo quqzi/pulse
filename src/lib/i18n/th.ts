@@ -110,6 +110,11 @@ export const th: I18n = {
     templateNamePlaceholder: 'เช่น สายสากล',
     addTopicPlaceholder: 'เพิ่มหัวข้อ…',
     subjectNamePlaceholder: 'ชื่อวิชา…',
+    markCovered: 'ทำเครื่องหมายว่าเรียนแล้ว',
+    unmarkCovered: 'ยกเลิกเครื่องหมายว่าเรียนแล้ว',
+    addNote: 'เพิ่มโน้ต',
+    editNote: 'แก้ไขโน้ต',
+    notePlaceholder: 'เพิ่มโน้ต…',
   },
   settings: {
     title: 'ตั้งค่า',
