@@ -224,11 +224,11 @@
                 <span class="topic-name topic-name-text">{topic.name}</span>
               {/if}
               {#if card && editingTopicId !== topic.id}
-                <span class="srs-status" class:due={isDue(card.dueDate)} class:reviewed={card.reps > 0}>
-                  {#if isDue(card.dueDate)}
-                    {$t.subjects.dueToday}
-                  {:else if card.reps === 0}
+                <span class="srs-status" class:due={card.reps > 0 && isDue(card.dueDate)} class:reviewed={card.reps > 0 && !isDue(card.dueDate)}>
+                  {#if card.reps === 0}
                     {$t.subjects.new}
+                  {:else if isDue(card.dueDate)}
+                    {$t.subjects.dueToday}
                   {:else}
                     {$t.subjects.dueLabel($fmt.date(card.dueDate, { day: 'numeric', month: 'short' }))}
                   {/if}
@@ -383,7 +383,9 @@
   }
   .done-checkbox.checked { color: var(--primary); }
   .done-checkbox:hover { background: var(--bg3); }
-  @media (max-width: 768px) { .done-checkbox { min-width: 44px; min-height: 44px; } }
+  @media (max-width: 768px) {
+    .done-checkbox, .icon-btn, .del-btn { min-width: 44px; min-height: 44px; }
+  }
   .topic-note { font-size: 12px; color: var(--muted); margin: 2px 0 0; line-height: 1.4; }
   .note-input {
     width: 100%; margin-top: 4px; padding: 4px 8px;
@@ -439,11 +441,15 @@
     align-items: center;
     justify-content: center;
   }
+  /* Always visible on touch; the hover-fade is a desktop-only nicety. */
   .edit-icon {
-    opacity: 0;
+    opacity: 1;
     transition: opacity 140ms ease;
   }
-  .topic-row:hover .edit-icon { opacity: 1; }
+  @media (hover: hover) {
+    .edit-icon { opacity: 0; }
+    .topic-row:hover .edit-icon { opacity: 1; }
+  }
   .edit-input {
     flex: 1;
     min-width: 0;
