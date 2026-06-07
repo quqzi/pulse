@@ -4,6 +4,9 @@ import {
   subjects, topics, srsCards, sessions, tasks, templates, scheduleSlots, scores, examQuestions, examSessions,
 } from '$lib/data/stores';
 import { tasksRepo, scoresRepo, templatesRepo, subjectsRepo, topicsRepo, srsRepo, sessionsRepo, scheduleRepo, examQuestionsRepo, examSessionsRepo } from '$lib/data/entities';
+import { computeInsights } from '$lib/insights';
+import { localDateStr } from '$lib/utils';
+import { settings } from '$lib/stores/settings';
 
 // Re-export so existing `import { tasks } from '$lib/stores/data'` keeps working.
 export { subjects, topics, srsCards, sessions, tasks, templates, scheduleSlots, scores, examQuestions, examSessions };
@@ -84,6 +87,26 @@ export const readinessScore = derived(
     );
     return { overall, bySubject };
   }
+);
+
+// Study-coach feed: runs the pure insight generators over current store state.
+// Purely derived — no persistence, identical in guest and authenticated mode.
+export const insights = derived(
+  [subjects, topics, srsCards, sessions, scores, examSessions, readinessScore, streak, settings],
+  ([$subjects, $topics, $srsCards, $sessions, $scores, $examSessions, $readiness, $streak, $settings]) =>
+    computeInsights({
+      subjects: $subjects,
+      topics: $topics,
+      srsCards: $srsCards,
+      sessions: $sessions,
+      scores: $scores,
+      examSessions: $examSessions,
+      readiness: $readiness,
+      streak: $streak,
+      dailyGoalHours: $settings.dailyGoalHours,
+      examDate: $settings.examDate,
+      today: localDateStr(new Date()),
+    }),
 );
 
 export async function loadData(authState: AuthState): Promise<void> {

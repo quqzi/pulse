@@ -390,7 +390,6 @@ export const en = {
   },
   insights: {
     title: 'Insights',
-    comingSoon: 'Coming soon',
     sub: 'What to focus on next',
     emptyTitle: 'No insights yet',
     emptySub: 'Study a few sessions and tips will show up here.',
