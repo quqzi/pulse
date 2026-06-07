@@ -1,10 +1,11 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
+  import { t } from '$lib/i18n';
 
   export let open = false;
-  export let title = 'Are you sure?';
+  export let title: string | null = null;
   export let message = '';
-  export let confirmLabel = 'Delete';
+  export let confirmLabel: string | null = null;
   export let danger = true;
 
   const dispatch = createEventDispatcher<{ confirm: void; cancel: void }>();
@@ -35,11 +36,11 @@
 {#if open}
   <div use:portal class="backdrop" on:click={handleBackdrop} role="dialog" aria-modal="true">
     <div class="dialog">
-      <p class="dialog-title">{title}</p>
+      <p class="dialog-title">{title ?? $t.common.areYouSure}</p>
       {#if message}<p class="dialog-message">{message}</p>{/if}
       <div class="dialog-actions">
-        <button class="btn-cancel" on:click={cancel}>Cancel</button>
-        <button class="btn-confirm" class:danger on:click={confirm}>{confirmLabel}</button>
+        <button class="btn-cancel" on:click={cancel}>{$t.common.cancel}</button>
+        <button class="btn-confirm" class:danger on:click={confirm}>{confirmLabel ?? $t.common.delete}</button>
       </div>
     </div>
   </div>

@@ -1,11 +1,12 @@
 import { get } from 'svelte/store';
 import type { Task, MockScore, Template, Subject, Topic, SrsCard, StudySession, ScheduleSlot, ExamQuestion, ExamSession } from '$lib/types';
 import { tasks, scores, templates, subjects, topics, srsCards, sessions, scheduleSlots, examQuestions, examSessions } from '$lib/data/stores';
-import { repo } from '$lib/data/repository';
+import { repo, reportError } from '$lib/data/repository';
 import { writeThrough, loadInto } from '$lib/data/engine';
 import { taskFromRow, taskToRow, scoreFromRow, scoreToRow, templateFromRow, templateToRow, subjectFromRow, subjectToRow, topicFromRow, topicToRow, cardFromRow, cardToRow, sessionFromRow, sessionToRow, slotFromRow, slotToRow, examQuestionFromRow, examQuestionToRow, examSessionFromRow, examSessionToRow } from '$lib/data/mappers';
 import { getAuthContext } from '$lib/data/authctx';
 import { toast } from '$lib/stores/toast';
+import { t } from '$lib/i18n';
 import { lsWrite, lsRead } from '$lib/data/ls';
 import { supabase } from '$lib/supabase';
 import { newId } from '$lib/id';
@@ -94,10 +95,10 @@ export const subjectsRepo = {
     const snapSub = get(subjects);
     const snapTop = get(topics);
     const snapCard = get(srsCards);
-    const removedTopicIds = new Set(snapTop.filter(t => t.subjectId === id).map(t => t.id));
+    const removedTopicIds = new Set(snapTop.filter(tp => tp.subjectId === id).map(tp => tp.id));
 
     subjects.set(snapSub.filter(s => s.id !== id));
-    topics.set(snapTop.filter(t => t.subjectId !== id));
+    topics.set(snapTop.filter(tp => tp.subjectId !== id));
     srsCards.set(snapCard.filter(c => !removedTopicIds.has(c.topicId)));
 
     try {
@@ -113,7 +114,7 @@ export const subjectsRepo = {
       subjects.set(snapSub);
       topics.set(snapTop);
       srsCards.set(snapCard);
-      toast.error("Couldn't delete — try again");
+      toast.error(get(t).common.errDelete);
     }
   },
 };
@@ -142,7 +143,7 @@ export const topicsRepo = {
     const { userId, mode } = getAuthContext();
     await writeThrough(
       topics,
-      (arr) => arr.map(t => (t.id === topic.id ? topic : t)),
+      (arr) => arr.map(tp => (tp.id === topic.id ? topic : tp)),
       async () => {
         if (mode === 'guest') lsWrite('pulse.topics', get(topics));
         else {
@@ -150,7 +151,7 @@ export const topicsRepo = {
           if (error) throw error;
         }
       },
-      { order: topicOrder, onError: toast.error },
+      { order: topicOrder, onError: reportError },
     );
   },
 
@@ -162,7 +163,7 @@ export const topicsRepo = {
 
     const snapTop = get(topics);
     const snapCard = get(srsCards);
-    topics.set([...snapTop.filter(t => t.id !== topic.id), topic].sort(topicOrder));
+    topics.set([...snapTop.filter(tp => tp.id !== topic.id), topic].sort(topicOrder));
     if (!existing) srsCards.set([...snapCard, card]);
 
     try {
@@ -182,7 +183,7 @@ export const topicsRepo = {
     } catch {
       topics.set(snapTop);
       srsCards.set(snapCard);
-      toast.error("Couldn't save — try again");
+      toast.error(get(t).common.errSave);
     }
     return card;
   },
@@ -192,7 +193,7 @@ export const topicsRepo = {
     const { mode } = getAuthContext();
     const snapTop = get(topics);
     const snapCard = get(srsCards);
-    topics.set(snapTop.filter(t => t.id !== id));
+    topics.set(snapTop.filter(tp => tp.id !== id));
     srsCards.set(snapCard.filter(c => c.topicId !== id));
     try {
       if (mode === 'guest') {
@@ -205,7 +206,7 @@ export const topicsRepo = {
     } catch {
       topics.set(snapTop);
       srsCards.set(snapCard);
-      toast.error("Couldn't delete — try again");
+      toast.error(get(t).common.errDelete);
     }
   },
 };
@@ -240,7 +241,7 @@ export const srsRepo = {
           if (error) throw error;
         }
       },
-      { onError: toast.error },
+      { onError: reportError },
     );
   },
 };
@@ -294,7 +295,7 @@ export const sessionsRepo = {
           if (error) throw error;
         }
       },
-      { order: sessionOrder, onError: toast.error },
+      { order: sessionOrder, onError: reportError },
     );
   },
 };
@@ -352,7 +353,7 @@ export const scheduleRepo = {
           if (error) throw error;
         }
       },
-      { order: slotOrder, onError: toast.error },
+      { order: slotOrder, onError: reportError },
     );
   },
 };

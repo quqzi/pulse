@@ -6,20 +6,22 @@
   import { srsRepo } from '$lib/data/entities';
   import { reviewCard } from '$lib/srs';
   import { toast } from '$lib/stores/toast';
+  import { t } from '$lib/i18n';
   import type { SrsCard, Topic, Subject } from '$lib/types';
 
   interface RatingOption {
     rating: 1 | 2 | 3 | 4;
-    label: string;
     color: string;
   }
 
   const RATINGS: RatingOption[] = [
-    { rating: 1, label: 'Again', color: 'var(--srs-again)' },
-    { rating: 2, label: 'Hard',  color: 'var(--srs-hard)' },
-    { rating: 3, label: 'Good',  color: 'var(--srs-good)' },
-    { rating: 4, label: 'Easy',  color: 'var(--srs-easy)' },
+    { rating: 1, color: 'var(--srs-again)' },
+    { rating: 2, color: 'var(--srs-hard)' },
+    { rating: 3, color: 'var(--srs-good)' },
+    { rating: 4, color: 'var(--srs-easy)' },
   ];
+
+  $: ratingLabels = { 1: $t.subjects.again, 2: $t.subjects.hard, 3: $t.subjects.good, 4: $t.subjects.easy };
 
   interface QueueItem {
     card: SrsCard;
@@ -48,20 +50,20 @@
     }, []);
   }
 
-  function dueLabel(dueDate: string): string {
+  $: dueLabel = (dueDate: string): string => {
     const today = new Date().toISOString().split('T')[0];
-    if (dueDate === today) return 'Due today';
+    if (dueDate === today) return $t.review.dueToday;
     const diff = Math.round(
       (new Date(today).getTime() - new Date(dueDate).getTime()) / 86400000
     );
-    return diff === 1 ? '1 day overdue' : `${diff} days overdue`;
-  }
+    return $t.review.overdue(diff);
+  };
 
-  function intervalPreview(card: SrsCard, rating: 1 | 2 | 3 | 4): string {
+  $: intervalPreview = (card: SrsCard, rating: 1 | 2 | 3 | 4): string => {
     const result = reviewCard(card.ease, card.intervalDays, rating);
-    if (result.intervalDays === 1) return 'tomorrow';
-    return `${result.intervalDays} days`;
-  }
+    if (result.intervalDays === 1) return $t.review.intervalTomorrow;
+    return $t.review.intervalDays(result.intervalDays);
+  };
 
   async function rate(rating: 1 | 2 | 3 | 4) {
     if (!current) return;
@@ -103,7 +105,7 @@
     await loadData($auth);
     queue = buildQueue($dueCards, $topics, $subjects);
     if (queue.length === 0) {
-      toast.info("No cards due — you're all caught up 🎉");
+      toast.info($t.review.allCaughtUp);
       goto('/dashboard');
       return;
     }
@@ -117,7 +119,7 @@
 
 <div class="page">
   {#if loading}
-    <p class="loading-text">Loading…</p>
+    <p class="loading-text">{$t.review.loading}</p>
   {:else if done}
     <div class="summary">
       <div class="summary-icon">
@@ -126,13 +128,13 @@
           <polyline points="22 4 12 14.01 9 11.01"/>
         </svg>
       </div>
-      <h1 class="summary-title">Review complete</h1>
-      <p class="summary-count">{queue.length} card{queue.length === 1 ? '' : 's'} reviewed</p>
+      <h1 class="summary-title">{$t.review.complete}</h1>
+      <p class="summary-count">{$t.review.cardsReviewed(queue.length)}</p>
       <div class="summary-breakdown">
         {#each RATINGS as r}
           {#if ratingCounts[r.rating] > 0}
             <div class="breakdown-row">
-              <span class="breakdown-label" style="color: {r.color};">{r.label}</span>
+              <span class="breakdown-label" style="color: {r.color};">{ratingLabels[r.rating]}</span>
               <span class="breakdown-bar-wrap">
                 <span
                   class="breakdown-bar"
@@ -145,12 +147,12 @@
         {/each}
       </div>
       <button class="back-btn" on:click={() => goto('/dashboard')}>
-        Back to Dashboard
+        {$t.review.backToDashboard}
       </button>
     </div>
   {:else if current}
     <div class="top-bar">
-      <button class="back-arrow" on:click={() => goto('/dashboard')} aria-label="Exit review">
+      <button class="back-arrow" on:click={() => goto('/dashboard')} aria-label={$t.review.exitReview}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="15 18 9 12 15 6"/>
         </svg>
@@ -171,11 +173,11 @@
       <div class="card-topic">{current.topic.name}</div>
       <div class="card-meta">
         <span class="due-badge">{dueLabel(current.card.dueDate)}</span>
-        <span class="interval-info">Current interval: {current.card.intervalDays}d</span>
+        <span class="interval-info">{$t.review.currentInterval(current.card.intervalDays)}</span>
       </div>
       {#if !revealed}
         <button class="reveal-btn" on:click={() => (revealed = true)}>
-          Show ratings
+          {$t.review.showRatings}
         </button>
       {:else}
         <div class="ratings-row">
@@ -185,7 +187,7 @@
               style="--rating-color: {r.color};"
               on:click={() => rate(r.rating)}
             >
-              <span class="rating-label">{r.label}</span>
+              <span class="rating-label">{ratingLabels[r.rating]}</span>
               <span class="rating-preview">{intervalPreview(current.card, r.rating)}</span>
             </button>
           {/each}

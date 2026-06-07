@@ -189,6 +189,9 @@ export const en = {
     perDay: '/ day',
     cannotUndo: 'This cannot be undone.',
     remove: 'Remove',
+    areYouSure: 'Are you sure?',
+    errSave: "Couldn't save — try again",
+    errDelete: "Couldn't delete — try again",
   },
   onboarding: {
     step2Title: 'Daily study goal',
@@ -384,6 +387,24 @@ export const en = {
     emptyAddFirst: 'Add your first question to get started.',
     emptyTryDifferent: 'Try a different search or filter.',
     deleteQuestionAria: 'Delete question',
+  },
+  insights: {
+    title: 'Insights',
+    comingSoon: 'Coming soon',
+  },
+  review: {
+    loading: 'Loading…',
+    dueToday: 'Due today',
+    overdue: (n: number) => (n === 1 ? '1 day overdue' : `${n} days overdue`),
+    intervalTomorrow: 'tomorrow',
+    intervalDays: (n: number) => `${n} days`,
+    allCaughtUp: "No cards due — you're all caught up 🎉",
+    complete: 'Review complete',
+    cardsReviewed: (n: number) => `${n} card${n === 1 ? '' : 's'} reviewed`,
+    backToDashboard: 'Back to Dashboard',
+    exitReview: 'Exit review',
+    currentInterval: (d: number) => `Current interval: ${d}d`,
+    showRatings: 'Show ratings',
   },
 };
 

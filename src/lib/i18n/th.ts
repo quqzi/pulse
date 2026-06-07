@@ -191,6 +191,9 @@ export const th: I18n = {
     perDay: '/ วัน',
     cannotUndo: 'ไม่สามารถย้อนกลับได้',
     remove: 'ลบออก',
+    areYouSure: 'แน่ใจหรือไม่?',
+    errSave: 'บันทึกไม่สำเร็จ — ลองอีกครั้ง',
+    errDelete: 'ลบไม่สำเร็จ — ลองอีกครั้ง',
   },
   onboarding: {
     step2Title: 'เป้าหมายการเรียนต่อวัน',
@@ -386,5 +389,23 @@ export const th: I18n = {
     emptyAddFirst: 'เพิ่มคำถามแรกเพื่อเริ่มต้น',
     emptyTryDifferent: 'ลองค้นหาหรือกรองแบบอื่น',
     deleteQuestionAria: 'ลบคำถาม',
+  },
+  insights: {
+    title: 'อินไซต์',
+    comingSoon: 'เร็วๆ นี้',
+  },
+  review: {
+    loading: 'กำลังโหลด…',
+    dueToday: 'ครบกำหนดวันนี้',
+    overdue: (n: number) => (n === 1 ? 'เลยกำหนด 1 วัน' : `เลยกำหนด ${n} วัน`),
+    intervalTomorrow: 'พรุ่งนี้',
+    intervalDays: (n: number) => `${n} วัน`,
+    allCaughtUp: 'ไม่มีการ์ดที่ต้องทบทวน — เรียบร้อยหมดแล้ว 🎉',
+    complete: 'ทบทวนเสร็จแล้ว',
+    cardsReviewed: (n: number) => `ทบทวนแล้ว ${n} การ์ด`,
+    backToDashboard: 'กลับหน้าหลัก',
+    exitReview: 'ออกจากการทบทวน',
+    currentInterval: (d: number) => `ระยะปัจจุบัน: ${d} วัน`,
+    showRatings: 'แสดงตัวเลือกการให้คะแนน',
   },
 };

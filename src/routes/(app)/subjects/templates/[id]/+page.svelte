@@ -7,6 +7,7 @@
   import { BUILTIN_TEMPLATES } from '$lib/constants';
   import { newId } from '$lib/id';
   import { subjectsRepo, topicsRepo } from '$lib/data/entities';
+  import { t } from '$lib/i18n';
   import type { Subject, Topic } from '$lib/types';
 
   onMount(() => loadData($auth));
@@ -75,7 +76,7 @@
 
 <div class="page-enter page">
   <div class="header-row">
-    <button class="back-btn" on:click={() => goto('/subjects/templates')} aria-label="Back">
+    <button class="back-btn" on:click={() => goto('/subjects/templates')} aria-label={$t.common.back}>
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M19 12H5M12 19l-7-7 7-7"/>
       </svg>
@@ -84,9 +85,9 @@
   </div>
 
   {#if !template}
-    <p class="text-body text-muted">Template not found.</p>
+    <p class="text-body text-muted">{$t.subjects.templateNotFound}</p>
   {:else}
-    <p class="hint">Select subjects to add to your list. Already-added subjects are greyed out.</p>
+    <p class="hint">{$t.subjects.selectHint}</p>
 
     <ul class="preset-list">
       {#each template.presets as preset}
@@ -101,7 +102,7 @@
             <span class="preset-symbol" style="color:{preset.color}">{preset.symbol}</span>
             <span class="preset-name">{preset.name}</span>
             {#if alreadyAdded}
-              <span class="already-label">Added</span>
+              <span class="already-label">{$t.subjects.alreadyAdded}</span>
             {:else}
               <span class="check-circle" class:checked={checked.has(preset.name)}>
                 {#if checked.has(preset.name)}
@@ -123,7 +124,7 @@
 
     <div class="sticky-footer">
       <button class="btn-add" on:click={addSelected} disabled={selectedCount === 0}>
-        Add {selectedCount > 0 ? selectedCount : ''} subject{selectedCount !== 1 ? 's' : ''}
+        {$t.subjects.addSelected(selectedCount)}
       </button>
     </div>
   {/if}
