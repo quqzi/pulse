@@ -4,7 +4,10 @@
   import { examQuestions, subjects, loadData, getAuthContext } from '$lib/stores/data';
   import { examSessionsRepo } from '$lib/data/entities';
   import { newId } from '$lib/id';
+  import { t } from '$lib/i18n';
   import type { ExamQuestion, ExamSession } from '$lib/types';
+
+  $: diffLabels = { easy: $t.exam.diffEasy, medium: $t.exam.diffMedium, hard: $t.exam.diffHard };
 
   onMount(() => loadData($auth));
   $: if ($auth.mode !== 'loading') loadData($auth);
@@ -38,16 +41,16 @@
   $: canStart = selectedSubjects.length > 0 && selectedDifficulties.length > 0 && filteredPool.length > 0;
 
   $: summaryLine = canStart
-    ? `${totalQuestions} question${totalQuestions !== 1 ? 's' : ''} · ${selectedSubjects.join(' + ')} · ${selectedDifficulties
-        .map((d) => d.charAt(0).toUpperCase() + d.slice(1))
+    ? `${$t.exam.questionCount(totalQuestions)} · ${selectedSubjects.join(' + ')} · ${selectedDifficulties
+        .map((d) => diffLabels[d])
         .join(' + ')} · ${
         timerMode === 'overall'
           ? noOverallLimit
-            ? 'No time limit'
-            : `${overallMinutes} min overall`
-          : `${secondsPerQuestion}s per question`
+            ? $t.exam.noTimeLimit
+            : $t.exam.minOverall(overallMinutes)
+          : $t.exam.secPerQuestion(secondsPerQuestion)
       }`
-    : 'No questions match this selection — add questions first.';
+    : $t.exam.noMatch;
 
   function toggleSubject(s: string) {
     selectedSubjects = selectedSubjects.includes(s)
@@ -216,59 +219,59 @@
   <div class="page">
     <div class="page-header">
       <div>
-        <h1 class="page-title">Mock Exam</h1>
-        <p class="page-sub">Configure your session</p>
+        <h1 class="page-title">{$t.exam.title}</h1>
+        <p class="page-sub">{$t.exam.configureSession}</p>
       </div>
-      <a href="/exam/questions" class="btn-secondary">Manage Questions →</a>
+      <a href="/exam/questions" class="btn-secondary">{$t.exam.manageQuestions}</a>
     </div>
 
     <div class="setup-card">
       <div class="section">
-        <div class="section-label">Subjects</div>
+        <div class="section-label">{$t.exam.subjects}</div>
         <div class="pill-group">
           {#each availableSubjects as s}
             <button class="pill" class:active={selectedSubjects.includes(s)} on:click={() => toggleSubject(s)}>{s}</button>
           {/each}
           {#if availableSubjects.length === 0}
-            <span class="empty-hint">No questions in bank yet — <a href="/exam/questions">add some first</a></span>
+            <span class="empty-hint">{$t.exam.noQuestionsHint}<a href="/exam/questions">{$t.exam.addSomeFirst}</a></span>
           {/if}
         </div>
       </div>
 
       <div class="section">
-        <div class="section-label">Difficulty</div>
+        <div class="section-label">{$t.exam.difficulty}</div>
         <div class="pill-group">
           {#each ['easy', 'medium', 'hard'] as const as d}
             <button class="pill" class:active={selectedDifficulties.includes(d)} on:click={() => toggleDifficulty(d)}>
-              {d.charAt(0).toUpperCase() + d.slice(1)}
+              {diffLabels[d]}
             </button>
           {/each}
         </div>
       </div>
 
       <div class="section">
-        <div class="section-label">Questions per subject</div>
+        <div class="section-label">{$t.exam.questionsPerSubject}</div>
         <div class="number-row">
-          <input class="number-input" type="number" min={1} bind:value={questionsPerSubject} disabled={useAllQuestions} aria-label="Questions per subject" />
+          <input class="number-input" type="number" min={1} bind:value={questionsPerSubject} disabled={useAllQuestions} aria-label={$t.exam.questionsPerSubject} />
           <label class="toggle-label">
-            <input type="checkbox" bind:checked={useAllQuestions} /> use all available
+            <input type="checkbox" bind:checked={useAllQuestions} /> {$t.exam.useAllAvailable}
           </label>
         </div>
       </div>
 
       <div class="section">
-        <div class="section-label">Timer mode</div>
+        <div class="section-label">{$t.exam.timerMode}</div>
         <div class="timer-cards">
           <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
           <div class="timer-card" class:selected={timerMode === 'overall'} on:click={() => (timerMode = 'overall')}>
-            <div class="timer-card-title">Overall time limit</div>
-            <div class="timer-card-sub">One countdown for the whole exam</div>
+            <div class="timer-card-title">{$t.exam.overallLimit}</div>
+            <div class="timer-card-sub">{$t.exam.overallLimitSub}</div>
             {#if timerMode === 'overall'}
               <div class="number-row" style="margin-top:10px">
-                <input class="number-input" type="number" min={1} bind:value={overallMinutes} disabled={noOverallLimit} aria-label="Overall minutes" />
-                <span class="unit">minutes</span>
+                <input class="number-input" type="number" min={1} bind:value={overallMinutes} disabled={noOverallLimit} aria-label={$t.exam.overallMinutesAria} />
+                <span class="unit">{$t.exam.minutes}</span>
                 <label class="toggle-label">
-                  <input type="checkbox" bind:checked={noOverallLimit} /> no limit
+                  <input type="checkbox" bind:checked={noOverallLimit} /> {$t.exam.noLimit}
                 </label>
               </div>
             {/if}
@@ -276,12 +279,12 @@
 
           <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
           <div class="timer-card" class:selected={timerMode === 'per-question'} on:click={() => (timerMode = 'per-question')}>
-            <div class="timer-card-title">Per question time limit</div>
-            <div class="timer-card-sub">Each question has its own countdown — auto-advances on timeout</div>
+            <div class="timer-card-title">{$t.exam.perQuestionLimit}</div>
+            <div class="timer-card-sub">{$t.exam.perQuestionLimitSub}</div>
             {#if timerMode === 'per-question'}
               <div class="number-row" style="margin-top:10px">
-                <input class="number-input" type="number" min={5} bind:value={secondsPerQuestion} aria-label="Seconds per question" />
-                <span class="unit">seconds per question</span>
+                <input class="number-input" type="number" min={5} bind:value={secondsPerQuestion} aria-label={$t.exam.secondsPerQuestionAria} />
+                <span class="unit">{$t.exam.secondsPerQuestionUnit}</span>
               </div>
             {/if}
           </div>
@@ -290,14 +293,14 @@
 
       <div class="summary-line" class:warn={!canStart}>{summaryLine}</div>
 
-      <button class="btn-start" disabled={!canStart} on:click={startExam}>Start Exam →</button>
+      <button class="btn-start" disabled={!canStart} on:click={startExam}>{$t.exam.startExam}</button>
     </div>
   </div>
 
 {:else if phase === 'running' && current}
   <div class="page page-exam">
     <div class="exam-header">
-      <div class="progress-label">Question {currentIndex + 1} / {queue.length}</div>
+      <div class="progress-label">{$t.exam.questionProgress(currentIndex + 1, queue.length)}</div>
       {#if timerMode === 'overall' && !noOverallLimit}
         <div class="timer" class:urgent={overallSecondsLeft < 60}>⏱ {formatTime(overallSecondsLeft)}</div>
       {:else if timerMode === 'per-question'}
@@ -323,7 +326,7 @@
       </div>
 
       <button class="btn-next" disabled={answers[currentIndex] === null} on:click={advance}>
-        {currentIndex < queue.length - 1 ? 'Next →' : 'Finish Exam →'}
+        {currentIndex < queue.length - 1 ? $t.exam.next : $t.exam.finishExam}
       </button>
     </div>
   </div>
@@ -334,7 +337,7 @@
       <div class="result-score">
         {resultSession.totalCorrect}<span class="result-denom">/{resultSession.totalQuestions}</span>
       </div>
-      <div class="result-sub">Mock Exam · {Math.round(resultSession.durationSeconds / 60)} min</div>
+      <div class="result-sub">{$t.exam.resultSummary(Math.round(resultSession.durationSeconds / 60))}</div>
 
       <div class="breakdown">
         {#each Object.entries(resultSession.subjectScores) as [subjId, val]}
@@ -352,13 +355,13 @@
 
       {#if weakestSubject}
         <div class="weakest">
-          Weakest area: <strong>{weakestSubject}</strong> — <a href="/review">review SRS cards</a>
+          {$t.exam.weakestArea} <strong>{weakestSubject}</strong> — <a href="/review">{$t.exam.reviewSrs}</a>
         </div>
       {/if}
 
       <div class="result-actions">
-        <button class="btn-primary" on:click={tryAgain}>Try again</button>
-        <a href="/dashboard" class="btn-secondary">Back to dashboard</a>
+        <button class="btn-primary" on:click={tryAgain}>{$t.exam.tryAgain}</button>
+        <a href="/dashboard" class="btn-secondary">{$t.exam.backToDashboard}</a>
       </div>
     </div>
   </div>
