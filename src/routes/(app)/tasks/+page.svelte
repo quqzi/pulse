@@ -8,6 +8,7 @@
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
   import TaskForm from '$lib/components/tasks/TaskForm.svelte';
   import TaskItem from '$lib/components/tasks/TaskItem.svelte';
+  import { t } from '$lib/i18n';
 
   type Filter = 'active' | 'all' | 'done';
 
@@ -17,9 +18,9 @@
   let undoTask: Task | null = null;
   let undoTimer: ReturnType<typeof setTimeout> | null = null;
 
-  $: filtered = $tasks.filter(t => {
-    if (filter === 'active') return !t.completedAt;
-    if (filter === 'done')   return !!t.completedAt;
+  $: filtered = $tasks.filter(tp => {
+    if (filter === 'active') return !tp.completedAt;
+    if (filter === 'done')   return !!tp.completedAt;
     return true;
   }).sort((a, b) => {
     if (!a.completedAt && !b.completedAt) {
@@ -32,7 +33,7 @@
     return (b.completedAt ?? '').localeCompare(a.completedAt ?? '');
   });
 
-  $: activeCount = $tasks.filter(t => !t.completedAt).length;
+  $: activeCount = $tasks.filter(tp => !tp.completedAt).length;
 
   onMount(() => loadData($auth));
 
@@ -75,7 +76,7 @@
     const task = pendingDeleteTask;
     pendingDeleteTask = null;
     if (undoTimer) clearTimeout(undoTimer);
-    tasks.update(all => all.filter(t => t.id !== task.id));
+    tasks.update(all => all.filter(tp => tp.id !== task.id));
     undoTask = task;
     undoTimer = setTimeout(async () => {
       undoTask = null;
@@ -90,7 +91,7 @@
     const restored = undoTask;
     undoTask = null;
     tasks.update(all => {
-      const exists = all.find(t => t.id === restored.id);
+      const exists = all.find(tp => tp.id === restored.id);
       if (exists) return all;
       return [restored, ...all];
     });
@@ -104,14 +105,14 @@
 
 <ConfirmDialog
   bind:open={taskConfirmOpen}
-  title="Delete task?"
-  message="This cannot be undone."
+  title={$t.tasks.deleteTitle}
+  message={$t.tasks.deleteMessage}
   on:confirm={doDeleteTask}
 />
 
 <div class="page-enter page">
   <div class="header-row">
-    <h1 class="text-large-title">Tasks</h1>
+    <h1 class="text-large-title">{$t.tasks.title}</h1>
     {#if activeCount > 0}
       <span class="count-badge">{activeCount}</span>
     {/if}
@@ -121,25 +122,21 @@
     <TaskForm subjects={$subjects} on:add={handleAdd} on:cancel={() => adding = false} />
   {:else}
     <button class="add-trigger" on:click={() => { adding = true; }}>
-      <span class="plus">+</span> New task
+      <span class="plus">+</span> {$t.tasks.newTask}
     </button>
   {/if}
 
   <div class="filter-row">
-    {#each (['active','all','done'] as Filter[]) as f}
-      <button
-        class="filter-btn"
-        class:active={filter === f}
-        on:click={() => filter = f}
-      >{f[0].toUpperCase() + f.slice(1)}</button>
-    {/each}
+    <button class="filter-btn" class:active={filter === 'active'} on:click={() => filter = 'active'}>{$t.tasks.filterActive}</button>
+    <button class="filter-btn" class:active={filter === 'all'}    on:click={() => filter = 'all'}>{$t.tasks.filterAll}</button>
+    <button class="filter-btn" class:active={filter === 'done'}   on:click={() => filter = 'done'}>{$t.tasks.filterDone}</button>
   </div>
 
   {#if filtered.length === 0}
     <div class="empty">
-      {#if filter === 'active'}No active tasks — you're all caught up!
-      {:else if filter === 'done'}No completed tasks yet.
-      {:else}No tasks yet. Add one above.{/if}
+      {#if filter === 'active'}{$t.tasks.noActive}
+      {:else if filter === 'done'}{$t.tasks.noDone}
+      {:else}{$t.tasks.noAll}{/if}
     </div>
   {:else}
     <ul class="task-list">
@@ -158,8 +155,8 @@
 
 {#if undoTask}
   <div class="toast">
-    <span>Task deleted</span>
-    <button class="undo-btn" on:click={undoDelete}>Undo</button>
+    <span>{$t.tasks.deleted}</span>
+    <button class="undo-btn" on:click={undoDelete}>{$t.tasks.undo}</button>
   </div>
 {/if}
 

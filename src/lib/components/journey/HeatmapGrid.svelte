@@ -2,6 +2,7 @@
   import type { StudySession } from '$lib/types';
   import { formatDuration, localDateStr } from '$lib/utils';
   import { HISTORY_WEEKS } from '$lib/constants';
+  import { t, fmt } from '$lib/i18n';
 
   export let sessions: StudySession[] = [];
 
@@ -54,12 +55,12 @@
         const totalSec = daySessions.reduce((s, x) => s + x.durationSec, 0);
         const hours = totalSec / 3600;
         const level = isFuture ? 0 : intensityLevel(hours);
-        const dayLabel = cell.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        const dayLabel = $fmt.date(dateStr + 'T00:00:00', { weekday: 'short', month: 'short', day: 'numeric' });
         const tooltip = isFuture
           ? ''
           : daySessions.length === 0
-          ? `${dayLabel} · No study`
-          : `${dayLabel} · ${formatDuration(totalSec)} · ${daySessions.length} session${daySessions.length === 1 ? '' : 's'}`;
+          ? `${dayLabel} · ${$t.journey.heatNoStudy}`
+          : `${dayLabel} · ${formatDuration(totalSec, { h: $t.journey.unitH, m: $t.journey.unitM })} · ${$t.journey.heatSessions(daySessions.length)}`;
         col.push({ dateStr, level, tooltip, inRange: !isFuture });
       }
       cols.push(col);
@@ -72,7 +73,7 @@
       const mondayStr = col[0].dateStr;
       const mondayDate = new Date(mondayStr + 'T00:00:00');
       if (mondayDate.getDate() <= 7) {
-        return mondayDate.toLocaleDateString('en-US', { month: 'short' });
+        return $fmt.date(mondayStr + 'T00:00:00', { month: 'short' });
       }
       return '';
     });
@@ -98,11 +99,11 @@
   </div>
 
   <div class="legend">
-    <span class="legend-label">Less</span>
+    <span class="legend-label">{$t.journey.heatLess}</span>
     {#each [0, 1, 2, 3, 4] as lvl}
       <div class="legend-cell level-{lvl}"></div>
     {/each}
-    <span class="legend-label">More</span>
+    <span class="legend-label">{$t.journey.heatMore}</span>
   </div>
 </div>
 

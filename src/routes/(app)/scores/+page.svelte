@@ -6,6 +6,7 @@
   import ScoreForm from '$lib/components/scores/ScoreForm.svelte';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
   import BottomSheet from '$lib/components/BottomSheet.svelte';
+  import { t, fmt } from '$lib/i18n';
   import type { MockScore } from '$lib/types';
 
   onMount(() => loadData($auth));
@@ -25,8 +26,7 @@
   }
 
   function formatDate(d: string): string {
-    const date = new Date(d + 'T00:00:00');
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return $fmt.date(d + 'T00:00:00', { month: 'short', day: 'numeric', year: 'numeric' });
   }
 
   $: filteredScores = (activeSubjectId === 'all'
@@ -42,7 +42,7 @@
   }
 
   function subjectName(subjectId: string): string {
-    return $subjects.find(s => s.id === subjectId)?.name ?? 'Unknown';
+    return $subjects.find(s => s.id === subjectId)?.name ?? $t.scores.unknownSubject;
   }
 
   function subjectColor(subjectId: string): string {
@@ -97,16 +97,16 @@
 
 <ConfirmDialog
   bind:open={scoreConfirmOpen}
-  title="Delete score?"
-  message="This cannot be undone."
+  title={$t.scores.deleteTitle}
+  message={$t.common.cannotUndo}
   on:confirm={doDeleteScore}
 />
 
 <div class="page">
   <div class="header-row">
-    <h1 class="page-title">Scores</h1>
+    <h1 class="page-title">{$t.scores.title}</h1>
     {#if !adding}
-      <button class="btn-add-score" on:click={openAdd}>+ Add Score</button>
+      <button class="btn-add-score" on:click={openAdd}>+ {$t.scores.addScore}</button>
     {/if}
   </div>
 
@@ -125,7 +125,7 @@
         class="tab-btn"
         class:active={activeSubjectId === 'all'}
         on:click={() => activeSubjectId = 'all'}
-      >All</button>
+      >{$t.scores.all}</button>
       {#each scoredSubjectIds as sid}
         <button
           class="tab-btn"
@@ -140,9 +140,9 @@
   {#if filteredScores.length === 0}
     <div class="empty">
       {#if $scores.length === 0}
-        No scores yet. Tap "Add Score" to record your first mock exam result.
+        {$t.scores.emptyNone}
       {:else}
-        No scores for this subject.
+        {$t.scores.emptyForSubject}
       {/if}
     </div>
   {:else}
@@ -194,13 +194,13 @@
           </div>
 
           <div class="item-actions">
-            <button class="action-btn" on:click|stopPropagation={() => openEdit(score)} aria-label="Edit score">
+            <button class="action-btn" on:click|stopPropagation={() => openEdit(score)} aria-label={$t.scores.editScore}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
                 <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
               </svg>
             </button>
-            <button class="action-btn danger" on:click|stopPropagation={() => promptDeleteScore(score)} aria-label="Delete score">
+            <button class="action-btn danger" on:click|stopPropagation={() => promptDeleteScore(score)} aria-label={$t.scores.deleteScore}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M18 6L6 18M6 6l12 12"/>
               </svg>
@@ -221,14 +221,14 @@
         actionSheetOpen = false;
         if (actionScore) openEdit(actionScore);
       }}
-    >Edit</button>
+    >{$t.common.edit}</button>
     <button
       class="sheet-action danger"
       on:click={() => {
         actionSheetOpen = false;
         if (actionScore) promptDeleteScore(actionScore);
       }}
-    >Delete</button>
+    >{$t.common.delete}</button>
   {/if}
 </BottomSheet>
 

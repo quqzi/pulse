@@ -2,6 +2,7 @@
   import { onMount, onDestroy, tick } from 'svelte';
   import { sessions } from '$lib/stores/data';
   import { settings } from '$lib/stores/settings';
+  import { t, fmt } from '$lib/i18n';
 
   $: dailyData = (() => {
     const days: { label: string; hours: number; isToday: boolean }[] = [];
@@ -13,20 +14,21 @@
         .filter(s => s.startedAt.startsWith(dateStr))
         .reduce((sum, s) => sum + s.durationSec / 3600, 0);
       const label = i === 0
-        ? 'Today'
-        : d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' });
+        ? $t.analytics.today
+        : $fmt.date(d.toISOString(), { weekday: 'short', day: 'numeric' });
       days.push({ label, hours, isToday: i === 0 });
     }
     return days;
   })();
 
-  function fmtH(h: number): string {
-    if (h === 0) return '0h';
-    if (h < 1) return `${Math.round(h * 60)}m`;
+  $: fmtH = (h: number): string => {
+    const { unitH, unitM } = $t.analytics;
+    if (h === 0) return `0${unitH}`;
+    if (h < 1) return `${Math.round(h * 60)}${unitM}`;
     const hh = Math.floor(h);
     const mm = Math.round((h - hh) * 60);
-    return mm ? `${hh}h ${mm}m` : `${hh}h`;
-  }
+    return mm ? `${hh}${unitH} ${mm}${unitM}` : `${hh}${unitH}`;
+  };
 
   let canvas: HTMLCanvasElement;
   let chart: any = null; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -42,6 +44,7 @@
     const primaryRgb = cs.getPropertyValue('--primary-rgb').trim() || '23,23,23';
     const mutedColor = cs.getPropertyValue('--muted').trim();
     const borderColor = cs.getPropertyValue('--border').trim();
+    const unitH = $t.analytics.unitH;
 
     chart = new Chart(canvas, {
       type: 'bar',
@@ -73,7 +76,7 @@
             beginAtZero: true,
             grid: { color: borderColor },
             border: { display: false },
-            ticks: { color: mutedColor, font: { size: 10 }, callback: (v: any) => `${v}h` }, // eslint-disable-line @typescript-eslint/no-explicit-any
+            ticks: { color: mutedColor, font: { size: 10 }, callback: (v: any) => `${v}${unitH}` }, // eslint-disable-line @typescript-eslint/no-explicit-any
           },
         },
       },
@@ -83,6 +86,7 @@
   onMount(() => buildChart());
 
   $: $settings.theme, canvas && buildChart();
+  $: $settings.lang, canvas && buildChart();
 
   onDestroy(() => { chart?.destroy(); });
 

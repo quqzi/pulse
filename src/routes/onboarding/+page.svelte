@@ -7,6 +7,7 @@
   import { newId } from '$lib/id';
   import { subjectsRepo } from '$lib/data/entities';
   import type { Subject, Template } from '$lib/types';
+  import { t } from '$lib/i18n';
 
   let step = 0;
   let examDate = '';
@@ -59,7 +60,7 @@
       try {
         await Promise.all(subjectRecords.map(s => subjectsRepo.save(s)));
       } catch {
-        saveError = 'Failed to save your subjects. Please try again.';
+        saveError = $t.onboarding.saveError;
         return;
       }
     }
@@ -83,27 +84,27 @@
     </div>
 
     {#if step === 0}
-      <h2 class="text-heading">When is your exam?</h2>
-      <p class="text-body text-muted sub">We'll show a countdown and pace your study plan.</p>
+      <h2 class="text-heading">{$t.onboarding.examDateTitle}</h2>
+      <p class="text-body text-muted sub">{$t.onboarding.examDateSub}</p>
       <input type="date" bind:value={examDate} class="field-input" />
 
     {:else if step === 1}
       {#if !pickedTemplate}
-        <h2 class="text-heading">What are you studying?</h2>
-        <p class="text-body text-muted sub">Pick a template to get started.</p>
+        <h2 class="text-heading">{$t.onboarding.whatStudying}</h2>
+        <p class="text-body text-muted sub">{$t.onboarding.pickTemplate}</p>
         <div class="template-list">
-          {#each BUILTIN_TEMPLATES as t}
-            <button class="template-card" on:click={() => pickedTemplate = t}>
+          {#each BUILTIN_TEMPLATES as tp}
+            <button class="template-card" on:click={() => pickedTemplate = tp}>
               <div class="tpl-info">
-                <span class="tpl-name">{t.name}</span>
-                <span class="tpl-count">{t.presets.length} subjects</span>
+                <span class="tpl-name">{tp.name}</span>
+                <span class="tpl-count">{$t.onboarding.subjectsCount(tp.presets.length)}</span>
               </div>
               <div class="tpl-dots">
-                {#each t.presets.slice(0, 5) as p}
+                {#each tp.presets.slice(0, 5) as p}
                   <span class="color-dot" style="background:{p.color}"></span>
                 {/each}
-                {#if t.presets.length > 5}
-                  <span class="dot-more">+{t.presets.length - 5}</span>
+                {#if tp.presets.length > 5}
+                  <span class="dot-more">+{tp.presets.length - 5}</span>
                 {/if}
               </div>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -114,10 +115,10 @@
         </div>
       {:else}
         <div class="checklist-header">
-          <button class="back-link" on:click={() => pickedTemplate = null}>← Change template</button>
+          <button class="back-link" on:click={() => pickedTemplate = null}>{$t.onboarding.changeTemplate}</button>
           <h2 class="text-heading">{pickedTemplate.name}</h2>
         </div>
-        <p class="text-body text-muted sub">Uncheck any subjects you don't need.</p>
+        <p class="text-body text-muted sub">{$t.onboarding.uncheckSubs}</p>
         <div class="preset-list">
           {#each pickedTemplate.presets as preset}
             <label class="preset-row">
@@ -130,15 +131,15 @@
       {/if}
 
     {:else if step === 2}
-      <h2 class="text-heading">Daily study goal</h2>
-      <p class="text-body text-muted sub">How many hours per day?</p>
+      <h2 class="text-heading">{$t.onboarding.step2Title}</h2>
+      <p class="text-body text-muted sub">{$t.onboarding.step2Sub}</p>
       <div class="goal-num text-mono-stat text-primary">{dailyGoalHours}h</div>
       <input type="range" min="1" max="8" step="0.5" bind:value={dailyGoalHours} class="slider" />
       <div class="slider-ends"><span>1h</span><span>8h</span></div>
 
     {:else if step === 3}
-      <h2 class="text-heading">Target scores <span class="text-muted" style="font-weight:400">(optional)</span></h2>
-      <p class="text-body text-muted sub">Used in Analytics to show progress toward your goal.</p>
+      <h2 class="text-heading">{$t.onboarding.step3Title} <span class="text-muted" style="font-weight:400">({$t.onboarding.optional})</span></h2>
+      <p class="text-body text-muted sub">{$t.onboarding.step3AnalyticsSub}</p>
       <div class="score-list">
         {#each selectedPresets as preset}
           <div class="score-row">
@@ -149,8 +150,8 @@
       </div>
 
     {:else}
-      <h2 class="text-heading">You're all set!</h2>
-      <p class="text-body text-muted sub">Your study tracker is ready. Let's go.</p>
+      <h2 class="text-heading">{$t.onboarding.step4Title}</h2>
+      <p class="text-body text-muted sub">{$t.onboarding.step4Sub}</p>
     {/if}
 
     {#if saveError}
@@ -158,14 +159,14 @@
     {/if}
 
     <div class="actions">
-      {#if step > 0}<button class="btn btn-secondary" on:click={() => step--}>Back</button>{/if}
+      {#if step > 0}<button class="btn btn-secondary" on:click={() => step--}>{$t.common.back}</button>{/if}
       <button class="btn btn-primary" style="flex:1" on:click={next} disabled={nextDisabled}>
-        {step === TOTAL ? 'Get started' : 'Next'}
+        {step === TOTAL ? $t.onboarding.getStarted : $t.common.next}
       </button>
     </div>
 
     {#if step === 0 && !isAuthenticated}
-      <button class="skip-btn" on:click={finish}>Skip setup</button>
+      <button class="skip-btn" on:click={finish}>{$t.onboarding.skipSetup}</button>
     {/if}
   </div>
 </div>

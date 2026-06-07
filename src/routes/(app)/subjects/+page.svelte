@@ -9,13 +9,14 @@
   import { templatesRepo, subjectsRepo } from '$lib/data/entities';
   import { newId } from '$lib/id';
   import type { Subject, Template, SubjectPreset } from '$lib/types';
+  import { t } from '$lib/i18n';
 
   onMount(() => loadData($auth));
 
   $: if ($auth.mode !== 'loading') loadData($auth);
 
   $: dueBySubject = (subjectId: string) => {
-    const subjectTopicIds = new Set($topics.filter((t) => t.subjectId === subjectId).map((t) => t.id));
+    const subjectTopicIds = new Set($topics.filter((tp) => tp.subjectId === subjectId).map((tp) => tp.id));
     return $dueCards.filter((c) => subjectTopicIds.has(c.topicId)).length;
   };
 
@@ -54,7 +55,7 @@
       symbol: sub.symbol,
       color: sub.color,
       colorRgb: sub.colorRgb,
-      topics: $topics.filter((t) => t.subjectId === sub.id).map((t) => t.name),
+      topics: $topics.filter((tp) => tp.subjectId === sub.id).map((tp) => tp.name),
     }));
     const template: Template = {
       id: newId(),
@@ -69,24 +70,24 @@
 
 <div class="page">
   <div class="header-row">
-    <h1 class="text-large-title">Subjects</h1>
+    <h1 class="text-large-title">{$t.subjects.title}</h1>
     <div class="header-actions">
-      <a href="/subjects/templates" class="templates-link">Templates</a>
+      <a href="/subjects/templates" class="templates-link">{$t.subjects.templates}</a>
       {#if $subjects.length > 0}
-        <button class="overflow-btn" on:click={() => (overflowOpen = true)} aria-label="More options">
+        <button class="overflow-btn" on:click={() => (overflowOpen = true)} aria-label={$t.subjects.moreOptions}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
             <circle cx="5" cy="12" r="1.6" /><circle cx="12" cy="12" r="1.6" /><circle cx="19" cy="12" r="1.6" />
           </svg>
         </button>
       {/if}
-      <button class="add-btn" on:click={openAdd} aria-label="Add subject">+</button>
+      <button class="add-btn" on:click={openAdd} aria-label={$t.subjects.addSubject}>+</button>
     </div>
   </div>
 
   {#if $subjects.length === 0}
     <div class="empty-state">
-      <p class="text-body empty">No subjects yet.</p>
-      <a href="/subjects/templates" class="btn-primary-link">Browse templates</a>
+      <p class="text-body empty">{$t.subjects.emptyTitle}</p>
+      <a href="/subjects/templates" class="btn-primary-link">{$t.subjects.browseTemplates}</a>
     </div>
   {:else}
     <div class="subjects-grid">
@@ -119,7 +120,7 @@
       saveCurrentAsTemplate();
     }}
   >
-    Save current subjects as template
+    {$t.subjects.saveAsTemplate}
   </button>
 </BottomSheet>
 

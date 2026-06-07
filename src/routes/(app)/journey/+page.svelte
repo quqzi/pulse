@@ -5,22 +5,23 @@
   import HeatmapGrid from '$lib/components/journey/HeatmapGrid.svelte';
   import { formatDuration, localDateStr } from '$lib/utils';
   import { HISTORY_WEEKS } from '$lib/constants';
+  import { t, fmt } from '$lib/i18n';
 
   const TIMELINE_PAGE_SIZE = 30;
 
   $: totalHours = $sessions.reduce((sum, s) => sum + s.durationSec / 3600, 0);
   $: totalSessions = $sessions.length;
 
-  function formatHours(h: number): string {
-    if (h < 1) return `${Math.round(h * 60)}m`;
+  $: formatHours = (h: number): string => {
+    if (h < 1) return `${Math.round(h * 60)}${$t.journey.unitM}`;
     const hh = Math.floor(h);
     const mm = Math.round((h - hh) * 60);
-    return mm ? `${hh}h ${mm}m` : `${hh}h`;
-  }
+    return mm ? `${hh}${$t.journey.unitH} ${mm}${$t.journey.unitM}` : `${hh}${$t.journey.unitH}`;
+  };
 
 
   $: subjectMap = Object.fromEntries($subjects.map(s => [s.id, s]));
-  $: topicMap = Object.fromEntries($topics.map(t => [t.id, t]));
+  $: topicMap = Object.fromEntries($topics.map(tp => [tp.id, tp]));
 
   $: dayGroups = (() => {
     const map = new Map<string, typeof $sessions>();
@@ -31,8 +32,7 @@
     }
     const days = Array.from(map.entries()).sort((a, b) => b[0].localeCompare(a[0]));
     return days.map(([dateStr, daySessions]) => {
-      const d = new Date(dateStr + 'T00:00:00');
-      const label = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+      const label = $fmt.date(dateStr + 'T00:00:00', { weekday: 'long', month: 'long', day: 'numeric' });
       const totalSec = daySessions.reduce((sum, s) => sum + s.durationSec, 0);
       const sorted = [...daySessions].sort((a, b) => b.startedAt.localeCompare(a.startedAt));
       return { dateStr, label, totalSec, sessions: sorted };
@@ -46,17 +46,14 @@
 
   function showMore() { shownCount += TIMELINE_PAGE_SIZE; }
 
-  function formatTimeRange(startedAt: string, endedAt: string): string {
-    const fmt = (iso: string) =>
-      new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-    return `${fmt(startedAt)} – ${fmt(endedAt)}`;
-  }
+  $: formatTimeRange = (startedAt: string, endedAt: string): string =>
+    `${$fmt.date(startedAt, { hour: 'numeric', minute: '2-digit' })} – ${$fmt.date(endedAt, { hour: 'numeric', minute: '2-digit' })}`;
 
-  const MODE_LABELS: Record<string, string> = {
-    pomodoro: 'Pomodoro',
-    free: 'Free',
-    quick: 'Quick',
-  };
+  $: MODE_LABELS = {
+    pomodoro: $t.journey.modePomodoro,
+    free: $t.journey.modeFree,
+    quick: $t.journey.modeQuick,
+  } as Record<string, string>;
 
   onMount(() => loadData($auth));
 
@@ -64,30 +61,30 @@
 </script>
 
 <div class="journey-page">
-  <h1 class="page-title">Journey</h1>
+  <h1 class="page-title">{$t.journey.title}</h1>
 
   <div class="stat-grid">
     <div class="stat-card">
-      <div class="stat-label">Total Time</div>
+      <div class="stat-label">{$t.journey.totalTime}</div>
       <div class="stat-value">{formatHours(totalHours)}</div>
-      <div class="stat-sub">all-time</div>
+      <div class="stat-sub">{$t.journey.allTime}</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">Streak</div>
-      <div class="stat-value">{$streak}<span class="stat-unit">d</span></div>
-      <div class="stat-sub">{$streak > 0 ? 'Keep going!' : 'Study today to start'}</div>
+      <div class="stat-label">{$t.journey.streak}</div>
+      <div class="stat-value">{$streak}<span class="stat-unit">{$t.journey.unitD}</span></div>
+      <div class="stat-sub">{$streak > 0 ? $t.journey.streakKeepGoing : $t.journey.streakStart}</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">Sessions</div>
+      <div class="stat-label">{$t.journey.sessions}</div>
       <div class="stat-value">{totalSessions}</div>
-      <div class="stat-sub">all-time</div>
+      <div class="stat-sub">{$t.journey.allTime}</div>
     </div>
   </div>
 
   <section class="section">
     <div class="section-header">
-      <span class="section-label">ACTIVITY</span>
-      <span class="section-sub">Last {HISTORY_WEEKS} weeks</span>
+      <span class="section-label">{$t.journey.activity}</span>
+      <span class="section-sub">{$t.journey.lastWeeks(HISTORY_WEEKS)}</span>
     </div>
     <div class="card heatmap-card">
       <HeatmapGrid sessions={$sessions} />
@@ -96,14 +93,14 @@
 
   <section class="section">
     <div class="section-header">
-      <span class="section-label">SESSIONS</span>
-      <span class="section-sub">{totalSessions} total</span>
+      <span class="section-label">{$t.journey.sessionsLabel}</span>
+      <span class="section-sub">{$t.journey.sessionsTotal(totalSessions)}</span>
     </div>
 
     {#if dayGroups.length === 0}
       <div class="empty-state">
-        <p class="empty-title">No study sessions yet.</p>
-        <p class="empty-sub">Start your first session!</p>
+        <p class="empty-title">{$t.journey.emptyTitle}</p>
+        <p class="empty-sub">{$t.journey.emptySub}</p>
       </div>
     {:else}
       <div class="timeline">
@@ -111,7 +108,7 @@
           <div class="day-group">
             <div class="day-header">
               <span class="day-label">{group.label}</span>
-              <span class="day-total">{formatDuration(group.totalSec)}</span>
+              <span class="day-total">{formatDuration(group.totalSec, { h: $t.journey.unitH, m: $t.journey.unitM })}</span>
             </div>
             <div class="card session-list">
               {#each group.sessions as session, si (session.id)}
@@ -130,7 +127,7 @@
                   </div>
                   <div class="session-meta">
                     <div class="session-top">
-                      <span class="subject-name">{subject?.name ?? 'Unknown'}</span>
+                      <span class="subject-name">{subject?.name ?? $t.journey.unknownSubject}</span>
                       {#if topic}
                         <span class="topic-name">· {topic.name}</span>
                       {/if}
@@ -140,7 +137,7 @@
                     </div>
                   </div>
                   <div class="session-right">
-                    <span class="session-duration">{formatDuration(session.durationSec)}</span>
+                    <span class="session-duration">{formatDuration(session.durationSec, { h: $t.journey.unitH, m: $t.journey.unitM })}</span>
                     <span class="mode-badge mode-{session.mode}">{MODE_LABELS[session.mode] ?? session.mode}</span>
                   </div>
                 </div>
@@ -151,7 +148,7 @@
 
         {#if hasMore}
           <div class="show-more">
-            <button class="show-more-btn" on:click={showMore}>Show {remainingDays} more day{remainingDays === 1 ? '' : 's'}</button>
+            <button class="show-more-btn" on:click={showMore}>{$t.journey.showMore(remainingDays)}</button>
           </div>
         {/if}
       </div>

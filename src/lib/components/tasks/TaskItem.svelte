@@ -1,5 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
+  import { t } from '$lib/i18n';
   import type { Task, Subject, Priority } from '$lib/types';
 
   export let task: Task;
@@ -61,30 +62,30 @@
       <input
         class="edit-input"
         bind:value={editTitle}
-        placeholder="Task title"
+        placeholder={$t.tasks.editPlaceholder}
         on:keydown={e => e.key === 'Escape' && (editing = false)}
       />
       <div class="edit-row">
         <input type="date" class="edit-input" bind:value={editDueDate} />
         <select class="edit-input" bind:value={editPriority}>
-          <option value="low">Low</option>
-          <option value="medium">Medium</option>
-          <option value="high">High</option>
+          <option value="low">{$t.tasks.priorityLow}</option>
+          <option value="medium">{$t.tasks.priorityMedium}</option>
+          <option value="high">{$t.tasks.priorityHigh}</option>
         </select>
         <select class="edit-input" bind:value={editSubjectId}>
-          <option value={undefined}>No subject</option>
+          <option value={undefined}>{$t.tasks.noSubject}</option>
           {#each subjects as s}
             <option value={s.id}>{s.name}</option>
           {/each}
         </select>
       </div>
       <div class="edit-actions">
-        <button class="btn-save" on:click={saveEdit}>Save</button>
-        <button class="btn-cancel-edit" on:click={() => editing = false}>Cancel</button>
+        <button class="btn-save" on:click={saveEdit}>{$t.common.save}</button>
+        <button class="btn-cancel-edit" on:click={() => editing = false}>{$t.common.cancel}</button>
       </div>
     </div>
   {:else}
-    <button class="check-btn" on:click={() => dispatch('complete')} aria-label={task.completedAt ? 'Mark incomplete' : 'Mark complete'}>
+    <button class="check-btn" on:click={() => dispatch('complete')} aria-label={task.completedAt ? $t.tasks.markIncomplete : $t.tasks.markComplete}>
       {#if task.completedAt}
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
           <circle cx="8" cy="8" r="7" fill="var(--primary)" stroke="var(--primary)" stroke-width="1.5"/>
@@ -112,14 +113,14 @@
       </div>
     </div>
 
-    <button class="icon-btn" on:click={startEdit} aria-label="Edit task">
+    <button class="icon-btn" on:click={startEdit} aria-label={$t.tasks.editTaskLabel}>
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
       </svg>
     </button>
 
-    <button class="delete-btn" on:click={() => dispatch('delete')} aria-label="Delete task">
+    <button class="delete-btn" on:click={() => dispatch('delete')} aria-label={$t.tasks.deleteTaskLabel}>
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M18 6L6 18M6 6l12 12"/>
       </svg>

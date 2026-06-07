@@ -3,14 +3,16 @@
   import { auth } from '$lib/stores/auth';
   import { supabase } from '$lib/supabase';
   import { goto } from '$app/navigation';
+  import { t } from '$lib/i18n';
 
-  const themes: { value: Theme; label: string; sub: string; bg: string; text: string; card: string; accent: string; radius: string }[] = [
-    { value:'vercel-light', label:'Vercel', sub:'Light', bg:'#fafafa', text:'#171717', card:'#ffffff', accent:'#0070f3', radius:'8px'  },
-    { value:'vercel-dark',  label:'Vercel', sub:'Dark',  bg:'#0a0a0a', text:'#ededed', card:'#1a1a1a', accent:'#3291ff', radius:'8px'  },
-    { value:'apple-light',  label:'Apple',  sub:'Light', bg:'#f5f5f7', text:'#1d1d1f', card:'#ffffff', accent:'#0066cc', radius:'18px' },
-    { value:'apple-dark',   label:'Apple',  sub:'Dark',  bg:'#000000', text:'#f2f2f7', card:'#1c1c1e', accent:'#2997ff', radius:'18px' },
-    { value:'resend',       label:'Resend', sub:'Dark',  bg:'#000000', text:'#fcfdff', card:'#0a0a0c', accent:'#3b9eff', radius:'12px' },
+  const themeBase = [
+    { value:'vercel-light' as Theme, label:'Vercel', lightDark: 'light', bg:'#fafafa', text:'#171717', card:'#ffffff', accent:'#0070f3', radius:'8px'  },
+    { value:'vercel-dark'  as Theme, label:'Vercel', lightDark: 'dark',  bg:'#0a0a0a', text:'#ededed', card:'#1a1a1a', accent:'#3291ff', radius:'8px'  },
+    { value:'apple-light'  as Theme, label:'Apple',  lightDark: 'light', bg:'#f5f5f7', text:'#1d1d1f', card:'#ffffff', accent:'#0066cc', radius:'18px' },
+    { value:'apple-dark'   as Theme, label:'Apple',  lightDark: 'dark',  bg:'#000000', text:'#f2f2f7', card:'#1c1c1e', accent:'#2997ff', radius:'18px' },
+    { value:'resend'       as Theme, label:'Resend', lightDark: 'dark',  bg:'#000000', text:'#fcfdff', card:'#0a0a0c', accent:'#3b9eff', radius:'12px' },
   ];
+  $: themes = themeBase.map(tp => ({ ...tp, sub: tp.lightDark === 'light' ? $t.settings.light : $t.settings.dark }));
 
   async function signOut() {
     await supabase.auth.signOut();
@@ -19,28 +21,28 @@
 </script>
 
 <div class="page-enter">
-  <h1 class="text-large-title" style="margin-bottom:24px">Settings</h1>
+  <h1 class="text-large-title" style="margin-bottom:24px">{$t.settings.title}</h1>
 
-  <p class="section-label">Appearance</p>
+  <p class="section-label">{$t.settings.appearance}</p>
   <div class="card section-card">
-    <p style="font-size:14px;font-weight:600;margin-bottom:12px">Theme</p>
+    <p style="font-size:14px;font-weight:600;margin-bottom:12px">{$t.settings.theme}</p>
     <div class="theme-grid">
-      {#each themes as t}
+      {#each themes as tp}
         <button
           class="theme-card"
-          class:selected={$settings.theme === t.value}
-          style="--t-bg:{t.bg};--t-text:{t.text};--t-card:{t.card};--t-accent:{t.accent};--t-radius:{t.radius}"
-          on:click={() => settings.update(s => ({ ...s, theme: t.value }))}
+          class:selected={$settings.theme === tp.value}
+          style="--t-bg:{tp.bg};--t-text:{tp.text};--t-card:{tp.card};--t-accent:{tp.accent};--t-radius:{tp.radius}"
+          on:click={() => settings.update(s => ({ ...s, theme: tp.value }))}
         >
           <div class="tc-preview">
             <div class="tc-card">
-              <div class="tc-line long"  style="background:{t.text};opacity:.8"></div>
-              <div class="tc-line short" style="background:{t.text};opacity:.4"></div>
-              <div class="tc-btn"        style="background:{t.accent}"></div>
+              <div class="tc-line long"  style="background:{tp.text};opacity:.8"></div>
+              <div class="tc-line short" style="background:{tp.text};opacity:.4"></div>
+              <div class="tc-btn"        style="background:{tp.accent}"></div>
             </div>
           </div>
-          <div class="tc-label">{t.label}</div>
-          <div class="tc-sub">{t.sub}</div>
+          <div class="tc-label">{tp.label}</div>
+          <div class="tc-sub">{tp.sub}</div>
         </button>
       {/each}
     </div>
@@ -48,7 +50,7 @@
 
   <div class="card section-card" style="margin-top:8px">
     <div class="setting-row">
-      <span class="text-body">Language</span>
+      <span class="text-body">{$t.settings.language}</span>
       <div class="lang-pills">
         <button class="lang-pill" class:active={$settings.lang === 'en'}
           on:click={() => settings.update(s => ({ ...s, lang: 'en' }))}>English</button>
@@ -58,45 +60,45 @@
     </div>
   </div>
 
-  <p class="section-label" style="margin-top:20px">Study</p>
+  <p class="section-label" style="margin-top:20px">{$t.settings.study}</p>
   <div class="card section-card">
     <div class="setting-row">
-      <span class="text-body">Daily goal</span>
+      <span class="text-body">{$t.settings.dailyGoal}</span>
       <div class="row-right">
         <input type="number" min="1" max="12" step="0.5" value={$settings.dailyGoalHours}
           on:change={e => settings.update(s => ({ ...s, dailyGoalHours: +e.currentTarget.value }))}
           class="num-input" />
-        <span class="text-muted text-body">h / day</span>
+        <span class="text-muted text-body">{$t.settings.hPerDay}</span>
       </div>
     </div>
     <div class="divider"></div>
     <div class="setting-row">
-      <span class="text-body">Pomodoro work</span>
+      <span class="text-body">{$t.settings.pomodoroWork}</span>
       <div class="row-right">
         <input type="number" min="5" max="60" step="5" value={$settings.pomodoroWork}
           on:change={e => settings.update(s => ({ ...s, pomodoroWork: +e.currentTarget.value }))}
           class="num-input" />
-        <span class="text-muted text-body">min</span>
+        <span class="text-muted text-body">{$t.common.minutes}</span>
       </div>
     </div>
     <div class="divider"></div>
     <div class="setting-row">
-      <span class="text-body">Pomodoro break</span>
+      <span class="text-body">{$t.settings.pomodoroBreak}</span>
       <div class="row-right">
         <input type="number" min="1" max="30" value={$settings.pomodoroBreak}
           on:change={e => settings.update(s => ({ ...s, pomodoroBreak: +e.currentTarget.value }))}
           class="num-input" />
-        <span class="text-muted text-body">min</span>
+        <span class="text-muted text-body">{$t.common.minutes}</span>
       </div>
     </div>
   </div>
 
-  <p class="section-label" style="margin-top:20px">Calendar & Scheduling</p>
+  <p class="section-label" style="margin-top:20px">{$t.settings.calendarScheduling}</p>
   <div class="card section-card">
     <div class="setting-row">
       <div class="setting-info">
-        <span class="text-body">School hours</span>
-        <span class="text-muted" style="font-size:13px">Block these times from auto-scheduling</span>
+        <span class="text-body">{$t.settings.schoolHours}</span>
+        <span class="text-muted" style="font-size:13px">{$t.settings.schoolHoursHelper}</span>
       </div>
       <label class="toggle">
         <input type="checkbox" bind:checked={$settings.schoolHoursEnabled} />
@@ -107,27 +109,27 @@
     {#if $settings.schoolHoursEnabled}
       <div class="school-hours-config">
         <div class="day-picker">
-          {#each [['M',1],['T',2],['W',3],['T',4],['F',5],['S',6],['S',7]] as [label, val] (val)}
+          {#each $t.settings.weekdays as dayLabel, i}
             <button
               class="day-chip"
-              class:active={$settings.schoolDays.includes(val as number)}
+              class:active={$settings.schoolDays.includes(i + 1)}
               on:click={() => {
-                const v = val as number;
+                const v = i + 1;
                 const days = $settings.schoolDays.includes(v)
                   ? $settings.schoolDays.filter(d => d !== v)
                   : [...$settings.schoolDays, v];
                 settings.update(s => ({ ...s, schoolDays: days }));
               }}
-            >{label}</button>
+            >{dayLabel}</button>
           {/each}
         </div>
         <div class="time-row">
           <label class="time-field">
-            <span>From</span>
+            <span>{$t.settings.from}</span>
             <input type="time" bind:value={$settings.schoolStart} />
           </label>
           <label class="time-field">
-            <span>To</span>
+            <span>{$t.settings.to}</span>
             <input type="time" bind:value={$settings.schoolEnd} />
           </label>
         </div>
@@ -138,12 +140,12 @@
 
     <div class="setting-row">
       <div class="setting-info">
-        <span class="text-body">Energy profile</span>
-        <span class="text-muted" style="font-size:13px">Auto-schedule matches hard subjects to your peak hours</span>
+        <span class="text-body">{$t.settings.energyProfile}</span>
+        <span class="text-muted" style="font-size:13px">{$t.settings.energyProfileHelper}</span>
       </div>
     </div>
     <div class="energy-options">
-      {#each [['morning','🌅 Morning person','Peak 6am–12pm'],['neutral','☀️ No preference','Equal weighting'],['evening','🌙 Evening person','Peak 6pm–10pm']] as [val, label, desc] ([val, label, desc])}
+      {#each [['morning', $t.settings.energyMorningLabel, $t.settings.energyMorningDesc], ['neutral', $t.settings.energyNeutralLabel, $t.settings.energyNeutralDesc], ['evening', $t.settings.energyEveningLabel, $t.settings.energyEveningDesc]] as [val, label, desc] ([val, label, desc])}
         <button
           class="energy-chip"
           class:active={$settings.energyProfile === val}
@@ -159,8 +161,8 @@
 
     <div class="setting-row">
       <div class="setting-info">
-        <span class="text-body">Buffer between sessions</span>
-        <span class="text-muted" style="font-size:13px">{$settings.bufferMinutes} min gap after each auto-scheduled block</span>
+        <span class="text-body">{$t.settings.buffer}</span>
+        <span class="text-muted" style="font-size:13px">{$t.settings.bufferHelper($settings.bufferMinutes)}</span>
       </div>
       <input
         type="range"
@@ -174,27 +176,27 @@
   </div>
 
   {#if $auth.mode === 'authenticated'}
-    <p class="section-label" style="margin-top:20px">Account</p>
+    <p class="section-label" style="margin-top:20px">{$t.settings.account}</p>
     <div class="card section-card">
       <div class="setting-row">
-        <span class="text-body text-muted">Signed in as</span>
+        <span class="text-body text-muted">{$t.settings.signedInAs}</span>
         <span class="text-body">{$auth.user?.email}</span>
       </div>
       <div class="divider"></div>
       <button class="setting-row sign-out" on:click={signOut}>
-        <span style="color:var(--danger);font-size:15px">Sign out</span>
+        <span style="color:var(--danger);font-size:15px">{$t.settings.signOut}</span>
       </button>
     </div>
   {:else}
-    <p class="section-label" style="margin-top:20px">Account</p>
+    <p class="section-label" style="margin-top:20px">{$t.settings.account}</p>
     <div class="card section-card">
       <div class="setting-row">
-        <span class="text-body text-muted">Mode</span>
-        <span class="text-body">Guest</span>
+        <span class="text-body text-muted">{$t.settings.mode}</span>
+        <span class="text-body">{$t.settings.guest}</span>
       </div>
       <div class="divider"></div>
       <a href="/auth/signup" class="setting-row" style="text-decoration:none">
-        <span style="color:var(--primary);font-size:15px;font-weight:600">Create account to sync data</span>
+        <span style="color:var(--primary);font-size:15px;font-weight:600">{$t.settings.createAccount}</span>
       </a>
     </div>
   {/if}

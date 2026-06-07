@@ -1,10 +1,10 @@
-export function formatDuration(sec: number): string {
-  if (sec <= 0) return '0m';
+export function formatDuration(sec: number, units: { h: string; m: string } = { h: 'h', m: 'm' }): string {
+  if (sec <= 0) return `0${units.m}`;
   const h = Math.floor(sec / 3600);
   const m = Math.round((sec % 3600) / 60);
-  if (h === 0) return `${m}m`;
-  if (m === 0) return `${h}h`;
-  return `${h}h ${m}m`;
+  if (h === 0) return `${m}${units.m}`;
+  if (m === 0) return `${h}${units.h}`;
+  return `${h}${units.h} ${m}${units.m}`;
 }
 
 export function localDateStr(d: Date): string {

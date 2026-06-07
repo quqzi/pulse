@@ -2,6 +2,7 @@
   import { createEventDispatcher } from 'svelte';
   import { draggable } from '$lib/actions/draggable';
   import { anchored } from '$lib/actions/anchored';
+  import { t, fmt } from '$lib/i18n';
   import type { ScheduleSlot, Subject, Topic } from '$lib/types';
 
   export let slot: ScheduleSlot;
@@ -33,22 +34,15 @@
     return (end.getTime() - start.getTime()) / 60000 < 30;
   })();
 
-  $: timeLabel = (() => {
-    const fmt = (s: string) => {
-      const d = new Date(s);
-      const h = d.getHours();
-      const m = d.getMinutes();
-      const ampm = h >= 12 ? 'pm' : 'am';
-      return `${h % 12 || 12}${m ? ':' + String(m).padStart(2, '0') : ''}${ampm}`;
-    };
-    return `${fmt(slot.startTime)} – ${fmt(slot.endTime)}`;
-  })();
+  $: timeLabel = `${$fmt.date(slot.startTime, { hour: 'numeric', minute: '2-digit' })} – ${$fmt.date(slot.endTime, { hour: 'numeric', minute: '2-digit' })}`;
 
   $: durationLabel = (() => {
     const start = new Date(slot.startTime);
     const end = new Date(slot.endTime);
     const min = Math.round((end.getTime() - start.getTime()) / 60000);
-    return min >= 60 ? `${Math.floor(min / 60)}h${min % 60 ? ` ${min % 60}m` : ''}` : `${min}m`;
+    return min >= 60
+      ? `${Math.floor(min / 60)}${$t.schedule.unitH}${min % 60 ? ` ${min % 60}${$t.schedule.unitM}` : ''}`
+      : `${min}${$t.schedule.unitM}`;
   })();
 
   $: blockBg = subject
@@ -114,7 +108,7 @@
         <strong>{subject.symbol}</strong>
         {#if !isShort && topic}<span class="block-topic"> · {topic.name}</span>{/if}
       {:else}
-        <span class="free-label">Free</span>
+        <span class="free-label">{$t.schedule.free}</span>
       {/if}
     </div>
     {#if !isShort}
@@ -130,14 +124,14 @@
     <!-- svelte-ignore a11y-click-events-have-key-events -->
     <div class="block-popover" use:anchored={{ anchor: blockEl, placement: 'bottom-start', gutter: 6 }} on:click|stopPropagation on:pointerdown|stopPropagation>
       {#if slot.isAiSuggested}
-        <div class="pop-title">Suggested · {subject?.name ?? 'Free block'}</div>
+        <div class="pop-title">{$t.schedule.suggestedBy(subject?.name ?? $t.schedule.freeBlock)}</div>
         <div class="pop-time">{timeLabel} · {durationLabel}</div>
         <div class="pop-actions">
           <button class="pop-btn accept" on:click={() => { showPopover = false; dispatch('accept', { slotId: slot.id }); }}>
-            ✓ Accept
+            {$t.schedule.accept}
           </button>
           <button class="pop-btn dismiss" on:click={() => { showPopover = false; dispatch('dismiss', { slotId: slot.id }); }}>
-            ✕ Dismiss
+            {$t.schedule.dismiss}
           </button>
         </div>
       {:else}
@@ -146,14 +140,14 @@
             <span class="pop-subject-dot" style="background: {subject.color};"></span>
             <span class="pop-title">{subject.name}</span>
           {:else}
-            <span class="pop-title pop-free">Free block</span>
+            <span class="pop-title pop-free">{$t.schedule.freeBlock}</span>
           {/if}
         </div>
         {#if topic}<div class="pop-topic">{topic.name}</div>{/if}
         <div class="pop-time">{timeLabel} · {durationLabel}</div>
 
         {#if subjects.length > 0}
-          <div class="pop-change-label">Change subject</div>
+          <div class="pop-change-label">{$t.schedule.changeSubject}</div>
           <div class="pop-subject-chips">
             <button
               class="pop-chip"
@@ -161,7 +155,7 @@
               on:click={() => pickSubject(undefined)}
             >
               <span class="chip-dot muted-dot"></span>
-              Free
+              {$t.schedule.free}
             </button>
             {#each subjects as s}
               <button
@@ -180,11 +174,11 @@
         <div class="pop-actions">
           {#if slot.isFocusBlock && subject}
             <button class="pop-btn focus" on:click={() => { showPopover = false; dispatch('startFocus', { slot }); }}>
-              ⚡ Start focus
+              {$t.schedule.startFocus}
             </button>
           {/if}
           <button class="pop-btn delete" on:click={() => { showPopover = false; dispatch('delete', { slotId: slot.id }); }}>
-            Delete
+            {$t.common.delete}
           </button>
         </div>
       {/if}

@@ -13,6 +13,7 @@
   import ExamBanner from '$lib/components/calendar/ExamBanner.svelte';
   import BottomSheet from '$lib/components/BottomSheet.svelte';
   import { pendingAiCount } from '$lib/pendingAiCount';
+  import { t, fmt } from '$lib/i18n';
   import type { ScheduleSlot } from '$lib/types';
 
   // ── Week navigation ───────────────────────────────────────────
@@ -33,7 +34,7 @@
     return d;
   })();
 
-  $: weekTitle = viewedWeekStart.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  $: weekTitle = $fmt.date(viewedWeekStart.toISOString(), { month: 'long', year: 'numeric' });
 
   function prevWeek() {
     const d = new Date(viewedWeekStart);
@@ -183,10 +184,10 @@
 
     <header class="cal-header">
       <div class="week-nav">
-        <button class="nav-btn icon-btn" on:click={prevWeek} aria-label="Previous week">‹</button>
-        <button class="nav-btn icon-btn" on:click={nextWeek} aria-label="Next week">›</button>
+        <button class="nav-btn icon-btn" on:click={prevWeek} aria-label={$t.schedule.prevWeek}>‹</button>
+        <button class="nav-btn icon-btn" on:click={nextWeek} aria-label={$t.schedule.nextWeek}>›</button>
         <span class="week-title">{weekTitle}</span>
-        <button class="today-btn" on:click={goToday}>Today</button>
+        <button class="today-btn" on:click={goToday}>{$t.schedule.today}</button>
       </div>
       <div class="header-actions">
         <button
@@ -195,7 +196,7 @@
           on:click={handleAutoSchedule}
           disabled={isScheduling}
         >
-          {isScheduling ? 'Scheduling…' : '✦ Auto-schedule'}
+          {isScheduling ? $t.schedule.scheduling : $t.schedule.autoSchedule}
         </button>
       </div>
     </header>
@@ -218,8 +219,8 @@
     />
 
     <button class="summary-tab" on:click={() => (sheetOpen = true)}>
-      <span>▴ Week summary</span>
-      {#if aiPending > 0}<span class="ai-pill">{aiPending} AI</span>{/if}
+      <span>{$t.schedule.weekSummary}</span>
+      {#if aiPending > 0}<span class="ai-pill">{$t.schedule.aiPill(aiPending)}</span>{/if}
     </button>
   </div>
 

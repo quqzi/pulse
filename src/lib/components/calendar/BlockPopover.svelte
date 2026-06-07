@@ -1,5 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
+  import { t, fmt } from '$lib/i18n';
   import type { Subject, Topic } from '$lib/types';
 
   export let subjects: Subject[] = [];
@@ -17,18 +18,16 @@
   let selectedTopicId = '';
   let isFocusBlock = false;
 
-  $: filteredTopics = selectedSubjectId ? topics.filter(t => t.subjectId === selectedSubjectId) : [];
+  $: filteredTopics = selectedSubjectId ? topics.filter(tp => tp.subjectId === selectedSubjectId) : [];
   $: if (selectedSubjectId !== null) selectedTopicId = '';
 
   $: timeLabel = (() => {
-    const fmt = (s: string) => {
-      const d = new Date(s);
-      return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-    };
     const start = new Date(startTime);
     const end = new Date(endTime);
     const min = Math.round((end.getTime() - start.getTime()) / 60000);
-    return `${fmt(startTime)} – ${fmt(endTime)} (${min}m)`;
+    const startStr = $fmt.date(startTime, { hour: '2-digit', minute: '2-digit', hour12: false });
+    const endStr = $fmt.date(endTime, { hour: '2-digit', minute: '2-digit', hour12: false });
+    return `${startStr} – ${endStr} (${min}${$t.schedule.unitM})`;
   })();
 
   function save() {
@@ -53,7 +52,7 @@
 <div class="block-popover-create">
   <div class="pop-time-label">{timeLabel}</div>
 
-  <div class="field-label">Subject</div>
+  <div class="field-label">{$t.schedule.subject}</div>
   <div class="subject-list">
     <button
       class="subject-chip"
@@ -62,7 +61,7 @@
       on:click={() => selectedSubjectId = null}
     >
       <span class="chip-dot" style="background: var(--muted);"></span>
-      Free
+      {$t.schedule.free}
     </button>
     {#each subjects as subject}
       <button
@@ -78,23 +77,23 @@
   </div>
 
   {#if filteredTopics.length > 0}
-    <div class="field-label" style="margin-top:10px;">Topic (optional)</div>
+    <div class="field-label" style="margin-top:10px;">{$t.schedule.topicOptional}</div>
     <select class="topic-select" bind:value={selectedTopicId}>
-      <option value="">— none —</option>
-      {#each filteredTopics as t}
-        <option value={t.id}>{t.name}</option>
+      <option value="">{$t.schedule.noneOption}</option>
+      {#each filteredTopics as tp}
+        <option value={tp.id}>{tp.name}</option>
       {/each}
     </select>
   {/if}
 
   <label class="focus-toggle">
     <input type="checkbox" bind:checked={isFocusBlock} />
-    <span>⚡ Focus block</span>
+    <span>{$t.schedule.focusBlock}</span>
   </label>
 
   <div class="pop-actions">
-    <button class="pop-btn cancel" on:click={() => dispatch('cancel')}>Cancel</button>
-    <button class="pop-btn save" on:click={save}>Add block</button>
+    <button class="pop-btn cancel" on:click={() => dispatch('cancel')}>{$t.common.cancel}</button>
+    <button class="pop-btn save" on:click={save}>{$t.schedule.addBlock}</button>
   </div>
 </div>
 

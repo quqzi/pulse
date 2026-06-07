@@ -6,6 +6,7 @@
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
   import StudyTrendChart from '$lib/components/analytics/StudyTrendChart.svelte';
   import { sessionsRepo } from '$lib/data/entities';
+  import { t, fmt } from '$lib/i18n';
   import type { StudySession } from '$lib/types';
 
   function getWeekStart(date: Date): Date {
@@ -35,7 +36,7 @@
 
   $: maxSubjectHours = Math.max(...subjectBreakdown.map(x => x.hours), 0.01);
 
-  $: topicToSubjectId = Object.fromEntries($topics.map(t => [t.id, t.subjectId]));
+  $: topicToSubjectId = Object.fromEntries($topics.map(tp => [tp.id, tp.subjectId]));
 
   $: srsBySubject = (() => {
     const map: Record<string, number> = {};
@@ -51,13 +52,14 @@
     $srsCards.some(c => topicToSubjectId[c.topicId] === sub.id)
   );
 
-  function fmtH(h: number): string {
-    if (h === 0) return '0h';
-    if (h < 1) return `${Math.round(h * 60)}m`;
+  $: fmtH = (h: number): string => {
+    const { unitH, unitM } = $t.analytics;
+    if (h === 0) return `0${unitH}`;
+    if (h < 1) return `${Math.round(h * 60)}${unitM}`;
     const hh = Math.floor(h);
     const mm = Math.round((h - hh) * 60);
-    return mm ? `${hh}h ${mm}m` : `${hh}h`;
-  }
+    return mm ? `${hh}${unitH} ${mm}${unitM}` : `${hh}${unitH}`;
+  };
 
   onMount(() => loadData($auth));
 
@@ -75,15 +77,16 @@
     return $subjects.find(s => s.id === subjectId)?.color ?? 'var(--muted)';
   }
   function subjectName(subjectId: string): string {
-    return $subjects.find(s => s.id === subjectId)?.name ?? 'Unknown';
+    return $subjects.find(s => s.id === subjectId)?.name ?? $t.analytics.unknownSubject;
   }
-  function formatDur(sec: number): string {
+  $: formatDur = (sec: number): string => {
+    const { unitH, unitM } = $t.analytics;
     const h = Math.floor(sec / 3600);
     const m = Math.floor((sec % 3600) / 60);
-    return h > 0 ? `${h}h ${m}m` : `${m}m`;
-  }
+    return h > 0 ? `${h}${unitH} ${m}${unitM}` : `${m}${unitM}`;
+  };
   function formatDate(iso: string): string {
-    return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return $fmt.date(iso, { month: 'short', day: 'numeric' });
   }
   function startEditSession(session: StudySession) {
     editingSessionId = session.id;
@@ -109,38 +112,38 @@
 </script>
 
 <div class="analytics-page">
-  <h1 class="page-title">Analytics</h1>
+  <h1 class="page-title">{$t.analytics.title}</h1>
 
   <div class="stat-grid">
     <div class="stat-card">
-      <div class="stat-label">Today</div>
+      <div class="stat-label">{$t.analytics.today}</div>
       <div class="stat-value">{fmtH($todayHours)}</div>
-      <div class="stat-sub">Goal: {$settings.dailyGoalHours}h</div>
+      <div class="stat-sub">{$t.analytics.goal(`${$settings.dailyGoalHours}${$t.analytics.unitH}`)}</div>
       <div class="stat-bar">
         <div class="stat-bar-fill" style="width: {Math.min(100, ($todayHours / $settings.dailyGoalHours) * 100)}%;"></div>
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">Streak</div>
-      <div class="stat-value">{$streak}<span class="stat-unit">d</span></div>
-      <div class="stat-sub">{$streak > 0 ? 'Keep it up!' : 'Study today'}</div>
+      <div class="stat-label">{$t.analytics.streak}</div>
+      <div class="stat-value">{$streak}<span class="stat-unit">{$t.analytics.unitD}</span></div>
+      <div class="stat-sub">{$streak > 0 ? $t.analytics.streakKeepUp : $t.analytics.streakStudyToday}</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">This Week</div>
+      <div class="stat-label">{$t.analytics.thisWeek}</div>
       <div class="stat-value">{fmtH(weekHours)}</div>
-      <div class="stat-sub">Goal: {$settings.dailyGoalHours * 7}h</div>
+      <div class="stat-sub">{$t.analytics.goal(`${$settings.dailyGoalHours * 7}${$t.analytics.unitH}`)}</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">SRS Due</div>
+      <div class="stat-label">{$t.analytics.srsDue}</div>
       <div class="stat-value" class:urgent={dueCount > 0}>{dueCount}</div>
-      <div class="stat-sub">{totalCards} cards total</div>
+      <div class="stat-sub">{$t.analytics.cardsTotal(totalCards)}</div>
     </div>
   </div>
 
   <section class="section">
     <div class="section-header">
-      <span class="section-label">STUDY TREND</span>
-      <span class="section-sub">Last 14 days</span>
+      <span class="section-label">{$t.analytics.studyTrend}</span>
+      <span class="section-sub">{$t.analytics.last14Days}</span>
     </div>
     <StudyTrendChart />
   </section>
@@ -148,8 +151,8 @@
   {#if subjectBreakdown.length > 0}
     <section class="section">
       <div class="section-header">
-        <span class="section-label">THIS WEEK BY SUBJECT</span>
-        <span class="section-sub">{fmtH(weekHours)} total</span>
+        <span class="section-label">{$t.analytics.weekBySubject}</span>
+        <span class="section-sub">{$t.analytics.weekTotal(fmtH(weekHours))}</span>
       </div>
       <div class="card">
         {#each subjectBreakdown as { subject, hours }, i}
@@ -172,8 +175,8 @@
   {#if subjectsWithCards.length > 0}
     <section class="section">
       <div class="section-header">
-        <span class="section-label">SRS HEALTH</span>
-        <span class="section-sub">{dueCount} due today</span>
+        <span class="section-label">{$t.analytics.srsHealth}</span>
+        <span class="section-sub">{$t.analytics.dueToday(dueCount)}</span>
       </div>
       <div class="srs-grid">
         {#each subjectsWithCards as sub}
@@ -185,7 +188,7 @@
               <span class="srs-name">{sub.name}</span>
             </div>
             <div class="srs-due" class:has-due={due > 0}>{due > 0 ? due : '✓'}</div>
-            <div class="srs-sub">{due > 0 ? 'due' : 'caught up'} · {cards} cards</div>
+            <div class="srs-sub">{due > 0 ? $t.analytics.srsStateDue : $t.analytics.srsStateCaughtUp} · {$t.analytics.srsCards(cards)}</div>
           </div>
         {/each}
       </div>
@@ -193,9 +196,9 @@
   {/if}
 
   <section class="sessions-section">
-    <h2 class="section-title">Recent Sessions</h2>
+    <h2 class="section-title">{$t.analytics.recentSessions}</h2>
     {#if recentSessions.length === 0}
-      <p class="empty-sessions">No sessions yet.</p>
+      <p class="empty-sessions">{$t.analytics.noSessions}</p>
     {:else}
       {#each recentSessions as session (session.id)}
         {#if editingSessionId === session.id}
@@ -206,9 +209,9 @@
               {/each}
             </select>
             <input type="number" class="sess-edit-input dur-input" bind:value={editSessionMinutes} min="1" max="480" />
-            <span class="dur-label">min</span>
-            <button class="btn-save-sm" on:click={saveEditSession}>Save</button>
-            <button class="btn-cancel-sm" on:click={() => editingSessionId = null}>Cancel</button>
+            <span class="dur-label">{$t.common.minutes}</span>
+            <button class="btn-save-sm" on:click={saveEditSession}>{$t.common.save}</button>
+            <button class="btn-cancel-sm" on:click={() => editingSessionId = null}>{$t.common.cancel}</button>
           </div>
         {:else}
           <div class="session-row">
@@ -216,10 +219,10 @@
             <span class="session-subject">{subjectName(session.subjectId)}</span>
             <span class="session-dur">{formatDur(session.durationSec)}</span>
             <span class="session-date">{formatDate(session.startedAt)}</span>
-            <button class="icon-btn-sm" on:click={() => startEditSession(session)} aria-label="Edit session">
+            <button class="icon-btn-sm" on:click={() => startEditSession(session)} aria-label={$t.analytics.editSession}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             </button>
-            <button class="icon-btn-sm danger-btn" on:click={() => promptDeleteSession(session)} aria-label="Delete session">
+            <button class="icon-btn-sm danger-btn" on:click={() => promptDeleteSession(session)} aria-label={$t.analytics.deleteSession}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
             </button>
           </div>
@@ -233,8 +236,8 @@
 
 <ConfirmDialog
   bind:open={deleteSessionOpen}
-  title="Delete session?"
-  message="This study session will be permanently removed."
+  title={$t.analytics.deleteSessionTitle}
+  message={$t.analytics.deleteSessionMessage}
   on:confirm={doDeleteSession}
 />
 

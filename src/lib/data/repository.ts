@@ -4,6 +4,20 @@ import { localAdapter } from '$lib/data/adapters/local';
 import { supabaseAdapter } from '$lib/data/adapters/supabase';
 import { authCtx } from '$lib/data/authctx';
 import { toast } from '$lib/stores/toast';
+import { t } from '$lib/i18n';
+import { en } from '$lib/i18n/en';
+
+/**
+ * Surface a data-layer error as a localized toast. The pure engine emits its two
+ * generic English messages (en.common.errSave / errDelete); we map those to the
+ * active language here at the display boundary, keeping the engine i18n-free.
+ */
+export function reportError(m: string): void {
+  const tr = get(t);
+  if (m === en.common.errSave) toast.error(tr.common.errSave);
+  else if (m === en.common.errDelete) toast.error(tr.common.errDelete);
+  else toast.error(m);
+}
 
 export interface EntityConfig<T extends { id: string }> extends RepoConfig<T> {
   lsKey: string;
@@ -32,7 +46,7 @@ export function repo<T extends { id: string }>(cfg: EntityConfig<T>): Repository
     {
       getMode: () => get(authCtx).mode,
       selectAdapter: (mode) => (mode === 'guest' ? local : cloud(get(authCtx).userId)),
-      onError: (m) => toast.error(m),
+      onError: reportError,
     },
   );
 }

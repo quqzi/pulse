@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { t } from '$lib/i18n';
 	import type { Subject, StudySession } from '$lib/types';
 	import type { Settings } from '$lib/stores/settings';
 
@@ -44,9 +45,9 @@
 	<div class="exam-banner">
 		<span class="pulse-dot" style="background: {urgentColor};"></span>
 		<span class="banner-text">
-			TCAS in <strong>{daysLeft} day{daysLeft !== 1 ? 's' : ''}</strong>
+			<strong>{$t.schedule.examIn(daysLeft)}</strong>
 			{#if behindSubjects.length > 0}
-				— <span class="behind">{behindSubjects.join(' & ')} {behindSubjects.length === 1 ? 'is' : 'are'} most behind this week</span>
+				— <span class="behind">{$t.schedule.mostBehind(behindSubjects.join($t.schedule.behindJoin))}</span>
 			{/if}
 		</span>
 	</div>

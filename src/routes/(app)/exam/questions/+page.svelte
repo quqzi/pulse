@@ -4,7 +4,10 @@
   import { examQuestions, subjects, loadData, getAuthContext } from '$lib/stores/data';
   import { examQuestionsRepo } from '$lib/data/entities';
   import { newId } from '$lib/id';
+  import { t } from '$lib/i18n';
   import type { ExamQuestion } from '$lib/types';
+
+  $: diffLabels = { easy: $t.exam.diffEasy, medium: $t.exam.diffMedium, hard: $t.exam.diffHard };
 
   onMount(() => loadData($auth));
   $: if ($auth.mode !== 'loading') loadData($auth);
@@ -75,31 +78,27 @@
   }
 
   async function deleteQuestion(q: ExamQuestion) {
-    if (!confirm('Delete this question?')) return;
+    if (!confirm($t.exam.deleteConfirm)) return;
     await examQuestionsRepo.remove(q.id);
-  }
-
-  function difficultyLabel(d: ExamQuestion['difficulty']): string {
-    return d.charAt(0).toUpperCase() + d.slice(1);
   }
 </script>
 
 <div class="page">
   <div class="page-header">
     <div>
-      <h1 class="page-title">Question Bank</h1>
-      <p class="page-sub">{$examQuestions.length} question{$examQuestions.length !== 1 ? 's' : ''}</p>
+      <h1 class="page-title">{$t.exam.bankTitle}</h1>
+      <p class="page-sub">{$t.exam.bankCount($examQuestions.length)}</p>
     </div>
     <div class="header-actions">
-      <a href="/exam" class="btn-secondary">← Mock Exam</a>
-      <button class="btn-primary" on:click={openAdd}>+ Add Question</button>
+      <a href="/exam" class="btn-secondary">{$t.exam.backToExam}</a>
+      <button class="btn-primary" on:click={openAdd}>{$t.exam.addQuestion}</button>
     </div>
   </div>
 
   <div class="toolbar">
-    <input class="search" type="text" placeholder="Search questions…" bind:value={search} />
+    <input class="search" type="text" placeholder={$t.exam.searchPlaceholder} bind:value={search} />
     <select bind:value={filterSubject}>
-      <option value="all">All subjects</option>
+      <option value="all">{$t.exam.allSubjects}</option>
       {#each subjectOptions as s}
         <option value={s}>{s}</option>
       {/each}
@@ -108,29 +107,29 @@
 
   {#if showForm}
     <div class="form-card">
-      <h3 class="form-title">{editingQuestion ? 'Edit Question' : 'Add Question'}</h3>
+      <h3 class="form-title">{editingQuestion ? $t.exam.editQuestionTitle : $t.exam.addQuestionTitle}</h3>
 
-      <label class="field-label" for="q-text">Question</label>
-      <textarea id="q-text" class="field-input" bind:value={formText} rows={3} placeholder="Enter question text…"></textarea>
+      <label class="field-label" for="q-text">{$t.exam.questionLabel}</label>
+      <textarea id="q-text" class="field-input" bind:value={formText} rows={3} placeholder={$t.exam.questionPlaceholder}></textarea>
 
-      <span class="field-label">Choices — click circle to mark correct</span>
+      <span class="field-label">{$t.exam.choicesLabel}</span>
       {#each formChoices as _choice, i}
         <div class="choice-row">
           <span class="choice-letter">{String.fromCharCode(65 + i)}</span>
-          <input class="field-input choice-input" bind:value={formChoices[i]} placeholder="Choice {String.fromCharCode(65 + i)}" aria-label="Choice {String.fromCharCode(65 + i)}" />
+          <input class="field-input choice-input" bind:value={formChoices[i]} placeholder={$t.exam.choicePlaceholder(String.fromCharCode(65 + i))} aria-label={$t.exam.choiceAria(String.fromCharCode(65 + i))} />
           <button
             class="correct-btn"
             class:selected={formCorrectIndex === i}
             on:click={() => (formCorrectIndex = i as 0 | 1 | 2 | 3)}
-            title="Mark as correct"
-            aria-label="Mark choice {String.fromCharCode(65 + i)} correct"
+            title={$t.exam.markCorrect}
+            aria-label={$t.exam.markChoiceCorrect(String.fromCharCode(65 + i))}
           ></button>
         </div>
       {/each}
 
       <div class="form-row">
         <div class="form-col">
-          <label class="field-label" for="q-subject">Subject</label>
+          <label class="field-label" for="q-subject">{$t.exam.subjectLabel}</label>
           <select id="q-subject" class="field-input" bind:value={formSubject}>
             {#each $subjects as s}
               <option value={s.name}>{s.name}</option>
@@ -138,23 +137,23 @@
           </select>
         </div>
         <div class="form-col">
-          <label class="field-label" for="q-diff">Difficulty</label>
+          <label class="field-label" for="q-diff">{$t.exam.difficulty}</label>
           <select id="q-diff" class="field-input" bind:value={formDifficulty}>
-            <option value="easy">Easy</option>
-            <option value="medium">Medium</option>
-            <option value="hard">Hard</option>
+            <option value="easy">{$t.exam.diffEasy}</option>
+            <option value="medium">{$t.exam.diffMedium}</option>
+            <option value="hard">{$t.exam.diffHard}</option>
           </select>
         </div>
         <div class="form-col">
-          <label class="field-label" for="q-year">Year (optional)</label>
-          <input id="q-year" class="field-input" bind:value={formYear} placeholder="e.g. 2024" maxlength={4} />
+          <label class="field-label" for="q-year">{$t.exam.yearOptional}</label>
+          <input id="q-year" class="field-input" bind:value={formYear} placeholder={$t.exam.yearPlaceholder} maxlength={4} />
         </div>
       </div>
 
       <div class="form-actions">
-        <button class="btn-secondary" on:click={cancelForm}>Cancel</button>
+        <button class="btn-secondary" on:click={cancelForm}>{$t.common.cancel}</button>
         <button class="btn-primary" on:click={saveQuestion} disabled={!formText.trim() || formChoices.some((c) => !c.trim())}>
-          Save Question
+          {$t.exam.saveQuestion}
         </button>
       </div>
     </div>
@@ -162,8 +161,8 @@
 
   {#if filteredQuestions.length === 0}
     <div class="empty-state">
-      <p class="empty-title">{$examQuestions.length === 0 ? 'No questions yet.' : 'No questions match.'}</p>
-      <p class="empty-sub">{$examQuestions.length === 0 ? 'Add your first question to get started.' : 'Try a different search or filter.'}</p>
+      <p class="empty-title">{$examQuestions.length === 0 ? $t.exam.emptyNoQuestions : $t.exam.emptyNoMatch}</p>
+      <p class="empty-sub">{$examQuestions.length === 0 ? $t.exam.emptyAddFirst : $t.exam.emptyTryDifferent}</p>
     </div>
   {:else}
     <div class="question-list">
@@ -173,13 +172,13 @@
             <p class="q-text">{q.text}</p>
             <div class="q-tags">
               <span class="tag tag-subject">{q.subject}</span>
-              <span class="tag tag-diff">{difficultyLabel(q.difficulty)}</span>
+              <span class="tag tag-diff">{diffLabels[q.difficulty]}</span>
               {#if q.year}<span class="tag tag-year">{q.year}</span>{/if}
             </div>
           </div>
           <div class="q-actions">
-            <button class="action-btn" on:click={() => openEdit(q)}>Edit</button>
-            <button class="action-btn action-delete" on:click={() => deleteQuestion(q)} aria-label="Delete question">✕</button>
+            <button class="action-btn" on:click={() => openEdit(q)}>{$t.common.edit}</button>
+            <button class="action-btn action-delete" on:click={() => deleteQuestion(q)} aria-label={$t.exam.deleteQuestionAria}>✕</button>
           </div>
         </div>
       {/each}
