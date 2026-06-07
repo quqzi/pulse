@@ -82,6 +82,32 @@
     editingTopicId = null;
   }
 
+  async function toggleDone(topic: import('$lib/types').Topic) {
+    await topicsRepo.save({ ...topic, done: !topic.done });
+  }
+
+  let editingNoteId: string | null = null;
+  let editNoteText = '';
+
+  function startEditNote(topic: import('$lib/types').Topic) {
+    editingNoteId = topic.id;
+    editNoteText = topic.note ?? '';
+  }
+
+  async function saveEditNote(topic: import('$lib/types').Topic) {
+    const note = editNoteText.trim();
+    if ((note || undefined) === (topic.note ?? undefined)) {
+      editingNoteId = null;
+      return;
+    }
+    await topicsRepo.save({ ...topic, note: note || undefined });
+    editingNoteId = null;
+  }
+
+  function cancelEditNote() {
+    editingNoteId = null;
+  }
+
   let topicConfirmOpen = false;
   let pendingDeleteTopicId: string | null = null;
 
@@ -166,6 +192,23 @@
         {#each subjectTopics as topic, i (topic.id)}
           {@const card = cardForTopic(topic.id)}
           <div class="topic-row" class:divider={i > 0}>
+            <button
+              class="done-checkbox"
+              class:checked={topic.done}
+              on:click={() => toggleDone(topic)}
+              aria-label={topic.done ? $t.subjects.unmarkCovered : $t.subjects.markCovered}
+            >
+              {#if topic.done}
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <rect x="3" y="3" width="18" height="18" rx="4" fill="currentColor" />
+                  <path d="M8 12l3 3 5-6" stroke="var(--bg)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              {:else}
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <rect x="3" y="3" width="18" height="18" rx="4" stroke="currentColor" stroke-width="2" fill="none" />
+                </svg>
+              {/if}
+            </button>
             <div class="topic-info">
               {#if editingTopicId === topic.id}
                 <input
@@ -191,6 +234,20 @@
                   {/if}
                 </span>
               {/if}
+              {#if editingNoteId === topic.id}
+                <input
+                  class="note-input"
+                  bind:value={editNoteText}
+                  placeholder={$t.subjects.notePlaceholder}
+                  on:keydown={e => {
+                    if (e.key === 'Enter') saveEditNote(topic);
+                    if (e.key === 'Escape') cancelEditNote();
+                  }}
+                  on:blur={() => saveEditNote(topic)}
+                />
+              {:else if topic.note}
+                <p class="topic-note">{topic.note}</p>
+              {/if}
             </div>
             <div class="topic-actions">
               {#if card && isDue(card.dueDate) && editingTopicId !== topic.id}
@@ -201,6 +258,18 @@
                 >{$t.subjects.review}</button>
               {/if}
               {#if editingTopicId !== topic.id}
+                <button
+                  class="icon-btn note-btn"
+                  class:has-note={!!topic.note}
+                  on:click={() => startEditNote(topic)}
+                  aria-label={topic.note ? $t.subjects.editNote : $t.subjects.addNote}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <path d="M14 2v6h6" />
+                    <path d="M9 13h6M9 17h4" />
+                  </svg>
+                </button>
                 <button class="icon-btn edit-icon" on:click={() => startEditTopic(topic)} aria-label={$t.subjects.editTopicLabel}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -307,6 +376,22 @@
     padding: 12px 14px;
   }
   .topic-row.divider { border-top: 1px solid var(--border); }
+  .done-checkbox {
+    width: 28px; height: 28px; border-radius: 8px; border: none;
+    background: transparent; color: var(--muted); cursor: pointer;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .done-checkbox.checked { color: var(--primary); }
+  .done-checkbox:hover { background: var(--bg3); }
+  @media (max-width: 768px) { .done-checkbox { min-width: 44px; min-height: 44px; } }
+  .topic-note { font-size: 12px; color: var(--muted); margin: 2px 0 0; line-height: 1.4; }
+  .note-input {
+    width: 100%; margin-top: 4px; padding: 4px 8px;
+    border: 1px solid var(--border); border-radius: 6px;
+    background: var(--bg); color: var(--text); font-family: inherit; font-size: 12px; outline: none;
+  }
+  .note-input:focus { border-color: var(--primary); }
+  .note-btn.has-note { color: var(--primary); }
   .topic-info { flex: 1; min-width: 0; }
   .topic-name { font-size: 15px; font-weight: 500; color: var(--text); display: block; }
   .srs-status {
