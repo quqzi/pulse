@@ -108,6 +108,11 @@ export const en = {
     templateNamePlaceholder: 'e.g. International Bac',
     addTopicPlaceholder: 'Add topic…',
     subjectNamePlaceholder: 'Subject name…',
+    markCovered: 'Mark as covered',
+    unmarkCovered: 'Mark as not covered',
+    addNote: 'Add note',
+    editNote: 'Edit note',
+    notePlaceholder: 'Add a note…',
   },
   settings: {
     title: 'Settings',

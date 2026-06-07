@@ -87,6 +87,8 @@ export const topicFromRow = (r: Record<string, unknown>): Topic => ({
   subjectId: r.subject_id as string,
   name: r.name as string,
   orderIndex: r.order_index as number,
+  done: (r.done as boolean | null) ?? false,
+  note: (r.note as string | null) ?? undefined,
 });
 
 export const topicToRow = (t: Topic): Record<string, unknown> => ({
@@ -95,6 +97,8 @@ export const topicToRow = (t: Topic): Record<string, unknown> => ({
   // user_id is injected by topicsRepo.save/create (Topic has no userId field; guest rows never carry it).
   name: t.name,
   order_index: t.orderIndex,
+  done: t.done ?? false,
+  note: t.note ?? null,
 });
 
 export const cardFromRow = (r: Record<string, unknown>): SrsCard => ({
