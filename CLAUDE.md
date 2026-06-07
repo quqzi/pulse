@@ -338,9 +338,9 @@ Guest mode is fully offline (localStorage); no account required.
 
 ### Planned (spec'd, plan not yet written)
 
-- WS4 features · WS5 polish · WS6 motion (see roadmap spec)
+- WS5 polish · WS6 motion (see roadmap spec)
 - Exam label / tag on topics under a subject (deferred — surfaced 2026-06-04)
 
 ### Completed
 
-→ **`docs/CHANGELOG.md`** — full history, newest first (26 plans through WS3 Thai i18n fan-out).
+→ **`docs/CHANGELOG.md`** — full history, newest first (27 plans through WS4 Insights).
