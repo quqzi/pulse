@@ -14,6 +14,8 @@ export interface Topic {
   subjectId: string;
   name: string;
   orderIndex: number;
+  done?: boolean;   // covered checkbox; absent/false = not covered
+  note?: string;    // short free-text note; absent/'' = no note
 }
 
 export interface SrsCard {
