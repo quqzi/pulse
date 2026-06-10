@@ -1,6 +1,6 @@
 import type { I18n } from '$lib/i18n/en';
 import type { Subject, MockScore } from '$lib/types';
-import type { Topic, SrsCard, StudySession, ExamSession } from '$lib/types';
+import type { Topic, StudySession, ExamSession } from '$lib/types';
 
 export type InsightSeverity = 'high' | 'medium' | 'positive';
 export type InsightKey = keyof I18n['insights'];
@@ -26,7 +26,7 @@ export interface Insight {
 export interface InsightSnapshot {
   subjects: Subject[];
   topics: Topic[];
-  srsCards: SrsCard[];
+  dueDeckCount: number;
   sessions: StudySession[];
   scores: MockScore[];
   examSessions: ExamSession[];
@@ -46,7 +46,7 @@ const SEV_RANK: Record<InsightSeverity, number> = { high: 0, medium: 1, positive
 const MIN_SESSIONS = 3;
 const NEGLECT_DAYS = 7;
 const RECENT_ACTIVITY_DAYS = 14;
-const SRS_BACKLOG_MIN = 10;
+const DECKS_DUE_MIN = 3;
 const READINESS_GAP_MAX = 60;
 const EXAM_SOON_DAYS = 60;
 const EXAM_URGENT_DAYS = 14;
@@ -121,13 +121,12 @@ const neglectedSubject: Generator = (s) => {
   };
 };
 
-const srsBacklog: Generator = (s) => {
-  const due = s.srsCards.filter((c) => c.dueDate <= s.today).length;
-  if (due < SRS_BACKLOG_MIN) return null;
+const decksDue: Generator = (s) => {
+  if (s.dueDeckCount < DECKS_DUE_MIN) return null;
   return {
-    id: 'srs-backlog', severity: 'high', priority: 20, icon: '🗂️',
-    titleKey: 'backlogTitle', titleArgs: [due], bodyKey: 'backlogBody',
-    action: { labelKey: 'actionReview', href: '/review' },
+    id: 'decks-due', severity: 'high', priority: 20, icon: '🗂️',
+    titleKey: 'backlogTitle', titleArgs: [s.dueDeckCount], bodyKey: 'backlogBody',
+    action: { labelKey: 'actionReview', href: '/flashcards' },
   };
 };
 
@@ -231,7 +230,7 @@ const goalAdherence: Generator = (s) => {
 };
 
 export const GENERATORS: Generator[] = [
-  weakestSubject, neglectedSubject, srsBacklog, readinessGap, examCountdown,
+  weakestSubject, neglectedSubject, decksDue, readinessGap, examCountdown,
   scoreTrend, timeBalance, activeStreak, goalAdherence,
 ];
 

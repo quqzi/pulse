@@ -1,13 +1,12 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { auth } from '$lib/stores/auth';
-  import { subjects, topics, srsCards, sessions, todayHours, streak, dueCards, loadData } from '$lib/stores/data';
+  import { subjects, topics, flashcards, sessions, todayHours, streak, dueDecks, loadData } from '$lib/stores/data';
   import { settings } from '$lib/stores/settings';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
   import StudyTrendChart from '$lib/components/analytics/StudyTrendChart.svelte';
   import { sessionsRepo } from '$lib/data/entities';
   import { t, fmt } from '$lib/i18n';
-  import { localDateStr } from '$lib/utils';
   import type { StudySession } from '$lib/types';
 
   function getWeekStart(date: Date): Date {
@@ -18,13 +17,12 @@
     return d;
   }
 
-  const todayStr = localDateStr(new Date());
   const weekStartISO = getWeekStart(new Date()).toISOString();
 
   $: weekSessions = $sessions.filter(s => s.startedAt >= weekStartISO);
   $: weekHours = weekSessions.reduce((sum, s) => sum + s.durationSec / 3600, 0);
-  $: dueCount = $dueCards.length;
-  $: totalCards = $srsCards.length;
+  $: dueCount = $dueDecks.length;
+  $: totalCards = $flashcards.length;
 
   $: subjectBreakdown = (() => {
     const map: Record<string, number> = {};
@@ -39,18 +37,15 @@
 
   $: topicToSubjectId = Object.fromEntries($topics.map(tp => [tp.id, tp.subjectId]));
 
+  // Due decks per subject (a deck = a topic with flashcards).
   $: srsBySubject = (() => {
     const map: Record<string, number> = {};
-    $srsCards.forEach(card => {
-      if (card.dueDate > todayStr) return;
-      const subId = topicToSubjectId[card.topicId];
-      if (subId) map[subId] = (map[subId] || 0) + 1;
-    });
+    $dueDecks.forEach(tp => { map[tp.subjectId] = (map[tp.subjectId] || 0) + 1; });
     return map;
   })();
 
   $: subjectsWithCards = $subjects.filter(sub =>
-    $srsCards.some(c => topicToSubjectId[c.topicId] === sub.id)
+    $flashcards.some(c => topicToSubjectId[c.topicId] === sub.id)
   );
 
   $: fmtH = (h: number): string => {
@@ -182,7 +177,7 @@
       <div class="srs-grid">
         {#each subjectsWithCards as sub}
           {@const due = srsBySubject[sub.id] || 0}
-          {@const cards = $srsCards.filter(c => topicToSubjectId[c.topicId] === sub.id).length}
+          {@const cards = $flashcards.filter(c => topicToSubjectId[c.topicId] === sub.id).length}
           <div class="srs-card" style="--sc: {sub.color};">
             <div class="srs-top">
               <span class="srs-dot" style="background: {sub.color};"></span>

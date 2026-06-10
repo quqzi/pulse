@@ -1,16 +1,14 @@
 import { get } from 'svelte/store';
-import type { Task, MockScore, Template, Subject, Topic, SrsCard, StudySession, ScheduleSlot, ExamQuestion, ExamSession, Flashcard } from '$lib/types';
-import { tasks, scores, templates, subjects, topics, srsCards, sessions, scheduleSlots, examQuestions, examSessions, flashcards } from '$lib/data/stores';
+import type { Task, MockScore, Template, Subject, Topic, StudySession, ScheduleSlot, ExamQuestion, ExamSession, Flashcard } from '$lib/types';
+import { tasks, scores, templates, subjects, topics, sessions, scheduleSlots, examQuestions, examSessions, flashcards } from '$lib/data/stores';
 import { repo, reportError } from '$lib/data/repository';
 import { writeThrough, loadInto } from '$lib/data/engine';
-import { taskFromRow, taskToRow, scoreFromRow, scoreToRow, templateFromRow, templateToRow, subjectFromRow, subjectToRow, topicFromRow, topicToRow, cardFromRow, cardToRow, sessionFromRow, sessionToRow, slotFromRow, slotToRow, examQuestionFromRow, examQuestionToRow, examSessionFromRow, examSessionToRow, flashcardFromRow, flashcardToRow } from '$lib/data/mappers';
+import { taskFromRow, taskToRow, scoreFromRow, scoreToRow, templateFromRow, templateToRow, subjectFromRow, subjectToRow, topicFromRow, topicToRow, sessionFromRow, sessionToRow, slotFromRow, slotToRow, examQuestionFromRow, examQuestionToRow, examSessionFromRow, examSessionToRow, flashcardFromRow, flashcardToRow } from '$lib/data/mappers';
 import { getAuthContext } from '$lib/data/authctx';
 import { toast } from '$lib/stores/toast';
 import { t } from '$lib/i18n';
 import { lsWrite, lsRead } from '$lib/data/ls';
 import { supabase } from '$lib/supabase';
-import { newId } from '$lib/id';
-import { defaultCard } from '$lib/srs';
 import { HISTORY_DAYS } from '$lib/constants';
 
 export const tasksRepo = repo<Task>({
@@ -96,27 +94,26 @@ export const subjectsRepo = {
   // Subjects are only ever deleted via removeCascade; the bare engine `remove` (which would orphan
   // topics/cards) is intentionally not exposed (mirrors topicsRepo).
   /**
-   * Delete a subject and its dependents. Guest: purge topics + their cards in localStorage.
-   * Auth: delete the subject; the DB FK cascade removes topics/cards (and sessions/schedule/scores).
-   * Stores refreshed for subjects/topics/srsCards only (sessions/scores resync on next loadData) —
-   * matches today's behavior exactly.
+   * Delete a subject and its dependents. Guest: purge topics + their flashcards in localStorage.
+   * Auth: delete the subject; the DB FK cascade removes topics/flashcards (and sessions/schedule/scores).
+   * Stores refreshed for subjects/topics/flashcards only (sessions/scores resync on next loadData).
    */
   async removeCascade(id: string): Promise<void> {
     const { mode } = getAuthContext();
     const snapSub = get(subjects);
     const snapTop = get(topics);
-    const snapCard = get(srsCards);
+    const snapFc = get(flashcards);
     const removedTopicIds = new Set(snapTop.filter(tp => tp.subjectId === id).map(tp => tp.id));
 
     subjects.set(snapSub.filter(s => s.id !== id));
     topics.set(snapTop.filter(tp => tp.subjectId !== id));
-    srsCards.set(snapCard.filter(c => !removedTopicIds.has(c.topicId)));
+    flashcards.set(snapFc.filter(c => !removedTopicIds.has(c.topicId)));
 
     try {
       if (mode === 'guest') {
         lsWrite('pulse.subjects', get(subjects));
         lsWrite('pulse.topics', get(topics));
-        lsWrite('pulse.srsCards', get(srsCards));
+        lsWrite('pulse.flashcards', get(flashcards));
       } else {
         const { error } = await supabase.from('subjects').delete().eq('id', id);
         if (error) throw error;
@@ -124,7 +121,7 @@ export const subjectsRepo = {
     } catch {
       subjects.set(snapSub);
       topics.set(snapTop);
-      srsCards.set(snapCard);
+      flashcards.set(snapFc);
       toast.error(get(t).common.errDelete);
     }
   },
@@ -166,94 +163,45 @@ export const topicsRepo = {
     );
   },
 
-  /** Add a topic and ensure exactly one SRS card for it. Returns the card. Idempotent on the card. */
-  async create(topic: Topic): Promise<SrsCard> {
+  /** Add (or upsert) a topic. */
+  async create(topic: Topic): Promise<void> {
     const { userId, mode } = getAuthContext();
-    const existing = get(srsCards).find(c => c.topicId === topic.id);
-    const card: SrsCard = existing ?? { id: newId(), topicId: topic.id, userId, ...defaultCard() };
-
     const snapTop = get(topics);
-    const snapCard = get(srsCards);
     topics.set([...snapTop.filter(tp => tp.id !== topic.id), topic].sort(topicOrder));
-    if (!existing) srsCards.set([...snapCard, card]);
 
     try {
       if (mode === 'guest') {
         lsWrite('pulse.topics', get(topics));
-        if (!existing) lsWrite('pulse.srsCards', get(srsCards));
       } else {
-        const { error: te } = await supabase.from('topics').upsert({ ...topicToRow(topic), user_id: userId });
-        if (te) throw te;
-        if (!existing) {
-          const { error: ce } = await supabase
-            .from('srs_cards')
-            .upsert(cardToRow(card), { onConflict: 'topic_id' });
-          if (ce) throw ce;
-        }
+        const { error } = await supabase.from('topics').upsert({ ...topicToRow(topic), user_id: userId });
+        if (error) throw error;
       }
     } catch {
       topics.set(snapTop);
-      srsCards.set(snapCard);
       toast.error(get(t).common.errSave);
     }
-    return card;
   },
 
-  /** Delete a topic and its card. Guest purges localStorage; auth relies on the srs_cards FK cascade. */
+  /** Delete a topic and its flashcards. Guest purges localStorage; auth relies on the flashcards FK cascade. */
   async removeCascade(id: string): Promise<void> {
     const { mode } = getAuthContext();
     const snapTop = get(topics);
-    const snapCard = get(srsCards);
+    const snapFc = get(flashcards);
     topics.set(snapTop.filter(tp => tp.id !== id));
-    srsCards.set(snapCard.filter(c => c.topicId !== id));
+    flashcards.set(snapFc.filter(c => c.topicId !== id));
     try {
       if (mode === 'guest') {
         lsWrite('pulse.topics', get(topics));
-        lsWrite('pulse.srsCards', get(srsCards));
+        lsWrite('pulse.flashcards', get(flashcards));
       } else {
         const { error } = await supabase.from('topics').delete().eq('id', id);
         if (error) throw error;
       }
     } catch {
       topics.set(snapTop);
-      srsCards.set(snapCard);
+      flashcards.set(snapFc);
       toast.error(get(t).common.errDelete);
     }
-  },
-};
-
-const srsBase = repo<SrsCard>({
-  store: srsCards,
-  lsKey: 'pulse.srsCards',
-  table: 'srs_cards',
-  toRow: cardToRow,
-  fromRow: cardFromRow,
-});
-
-export const srsRepo = {
-  load: srsBase.load,
-
-  /** Update-only (never inserts); sets updated_at. SM-2 writes go here, not generic save. */
-  async update(card: SrsCard): Promise<void> {
-    const { mode } = getAuthContext();
-    await writeThrough(
-      srsCards,
-      (arr) => arr.map(c => (c.id === card.id ? card : c)),
-      async () => {
-        if (mode === 'guest') lsWrite('pulse.srsCards', get(srsCards));
-        else {
-          const { error } = await supabase.from('srs_cards').update({
-            ease: card.ease,
-            interval_days: card.intervalDays,
-            due_date: card.dueDate,
-            reps: card.reps,
-            updated_at: new Date().toISOString(),
-          }).eq('id', card.id);
-          if (error) throw error;
-        }
-      },
-      { onError: reportError },
-    );
   },
 };
 

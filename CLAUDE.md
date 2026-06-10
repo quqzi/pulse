@@ -23,7 +23,7 @@ npm run dev      # dev server → localhost:5173
 npm run check    # type-check — zero errors before every commit
 npm run build    # production build
 npm run preview  # preview the production build locally
-npx vitest run   # unit tests (data engine, mappers, srs, scheduler)
+npx vitest run   # unit tests (data engine, mappers, flashcards, scheduler)
 ```
 
 `.env.local` (never commit) needs `PUBLIC_SUPABASE_URL` + `PUBLIC_SUPABASE_ANON_KEY` (Supabase → Settings → API). Guest mode runs without them.
@@ -125,7 +125,7 @@ export const thingsRepo = repo<Thing>({
 
 - **Mode switch lives in the engine.** Guest → localStorage (`pulse.*`); authenticated → Supabase (RLS `auth.uid() = user_id`). Repo callers never branch on mode.
 - **Errors** are caught in the engine and surfaced via `toast.error` — no try/catch in pages.
-- **Bespoke methods** (cascade delete, windowed load, insert-only log) wrap `writeThrough` / `loadInto` with an explicit snapshot/rollback — see `subjectsRepo.removeCascade`, `topicsRepo.create`, `srsRepo.update`, `sessionsRepo.log`/`load`, `scheduleRepo.loadWeek`/`confirmAll`. Multi-store atomic rollback can't go through single-store `writeThrough`, so those snapshot each store manually.
+- **Bespoke methods** (cascade delete, windowed load, insert-only log) wrap `writeThrough` / `loadInto` with an explicit snapshot/rollback — see `subjectsRepo.removeCascade`, `topicsRepo.create`, `sessionsRepo.log`/`load`, `scheduleRepo.loadWeek`/`confirmAll`. Multi-store atomic rollback can't go through single-store `writeThrough`, so those snapshot each store manually.
 - DB columns are `snake_case`, TS fields `camelCase` — every entity needs a mapper pair in `mappers.ts`.
 - IDs come from `newId()` in `$lib/id` (not from any `db.*` helper).
 
@@ -280,12 +280,12 @@ src/
     types.ts              # all shared TS types
     constants.ts          # TCAS_SUBJECTS, templates, HISTORY_DAYS
     id.ts                 # newId()
-    srs.ts                # SM-2 spaced repetition
+    flashcards.ts         # deck state helper (deckState / isDeckDue / presetDate)
     supabase.ts           # Supabase client
     i18n/{en,th}.ts
   routes/
     (app)/                # sidebar + content shell
-      dashboard/ timer/ subjects/ tasks/ analytics/ schedule/ scores/ journey/ insights/ exam/ settings/
+      dashboard/ timer/ subjects/ tasks/ analytics/ schedule/ scores/ journey/ insights/ exam/ flashcards/ settings/
     auth/ onboarding/
 ```
 
@@ -293,9 +293,9 @@ src/
 
 ```ts
 // writables (defined in data/stores.ts, re-exported here)
-subjects topics srsCards sessions tasks templates scheduleSlots scores examQuestions examSessions
+subjects topics sessions tasks templates scheduleSlots scores examQuestions examSessions flashcards
 // derived
-todaysSessions dueCards todayHours streak tasksDueToday readinessScore
+todaysSessions dueDecks todayHours streak tasksDueToday readinessScore insights
 // functions
 loadData(authState)        // populate all stores — call in onMount
 loadScheduleSlots(ws, we)  // windowed week load (separate from loadData)
@@ -314,7 +314,7 @@ Guest mode is fully offline (localStorage); no account required.
 
 ### Supabase Tables — all RLS-enabled, policy `auth.uid() = user_id`
 
-`subjects` · `topics` (FK → subject, cascade) · `srs_cards` (one per topic, `UNIQUE(topic_id)`, SM-2 state) · `study_sessions` · `tasks` · `mock_scores` · `templates` · `schedule_slots` · `user_settings` (JSONB per-user) · `exam_questions` · `exam_sessions`.
+`subjects` · `topics` (FK → subject, cascade; `next_study_date` = the deck's manual schedule) · `flashcards` (FK → topic, cascade) · `study_sessions` · `tasks` · `mock_scores` · `templates` · `schedule_slots` · `user_settings` (JSONB per-user) · `exam_questions` · `exam_sessions`. (`srs_cards` still exists in the DB but is retired — no app code reads it.)
 
 ### Coding Rules
 

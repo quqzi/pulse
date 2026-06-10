@@ -1,9 +1,8 @@
 import { writable } from 'svelte/store';
-import type { Subject, Topic, SrsCard, StudySession, Task, Template, ScheduleSlot, MockScore, ExamQuestion, ExamSession, Flashcard } from '$lib/types';
+import type { Subject, Topic, StudySession, Task, Template, ScheduleSlot, MockScore, ExamQuestion, ExamSession, Flashcard } from '$lib/types';
 
 export const subjects = writable<Subject[]>([]);
 export const topics = writable<Topic[]>([]);
-export const srsCards = writable<SrsCard[]>([]);
 export const sessions = writable<StudySession[]>([]);
 export const tasks = writable<Task[]>([]);
 export const templates = writable<Template[]>([]);

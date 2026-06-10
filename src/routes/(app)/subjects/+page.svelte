@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { auth } from '$lib/stores/auth';
-  import { subjects, topics, srsCards, dueCards, loadData, getAuthContext } from '$lib/stores/data';
+  import { subjects, topics, dueDecks, loadData, getAuthContext } from '$lib/stores/data';
   import SubjectTile from '$lib/components/SubjectTile.svelte';
   import SubjectEditSheet from '$lib/components/subjects/SubjectEditSheet.svelte';
   import BottomSheet from '$lib/components/BottomSheet.svelte';
@@ -15,10 +15,8 @@
 
   $: if ($auth.mode !== 'loading') loadData($auth);
 
-  $: dueBySubject = (subjectId: string) => {
-    const subjectTopicIds = new Set($topics.filter((tp) => tp.subjectId === subjectId).map((tp) => tp.id));
-    return $dueCards.filter((c) => subjectTopicIds.has(c.topicId)).length;
-  };
+  $: dueBySubject = (subjectId: string) =>
+    $dueDecks.filter((tp) => tp.subjectId === subjectId).length;
 
   // add flow (edit now lives on the subject detail page)
   let editOpen = false;
@@ -96,7 +94,6 @@
           <SubjectTile
             {subject}
             topics={$topics}
-            cards={$srsCards}
             on:click={() => goto(`/subjects/${subject.id}`)}
           />
           {#if dueBySubject(subject.id) > 0}

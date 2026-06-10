@@ -3,10 +3,11 @@
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import { auth } from '$lib/stores/auth';
-  import { subjects, topics, srsCards, loadData } from '$lib/stores/data';
+  import { subjects, topics, flashcards, loadData } from '$lib/stores/data';
   import { newId } from '$lib/id';
-  import { topicsRepo, srsRepo, subjectsRepo } from '$lib/data/entities';
-  import { reviewCard, isDue } from '$lib/srs';
+  import { topicsRepo, subjectsRepo } from '$lib/data/entities';
+  import { deckState } from '$lib/flashcards';
+  import { localDateStr } from '$lib/utils';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
   import SubjectEditSheet from '$lib/components/subjects/SubjectEditSheet.svelte';
   import { t, fmt } from '$lib/i18n';
@@ -14,14 +15,14 @@
   $: subjectId = $page.params.id;
   $: subject = $subjects.find(s => s.id === subjectId);
   $: subjectTopics = $topics.filter(tp => tp.subjectId === subjectId);
-  $: cardForTopic = (topicId: string) => $srsCards.find(c => c.topicId === topicId);
+  $: today = localDateStr(new Date());
+  $: cardCountFor = (topicId: string) => $flashcards.filter(c => c.topicId === topicId).length;
 
   let newTopicName = '';
   let adding = false;
   let submitting = false;
   let editingTopicId: string | null = null;
   let editTopicName = '';
-  let reviewingCard: { topicId: string; topicName: string } | null = null;
 
   let subjectEditOpen = false;
 
@@ -123,16 +124,6 @@
     await topicsRepo.removeCascade(topicId);
   }
 
-  async function handleReview(rating: 1 | 2 | 3 | 4) {
-    if (!reviewingCard) return;
-    const card = $srsCards.find(c => c.topicId === reviewingCard!.topicId);
-    if (!card) return;
-    const result = reviewCard(card.ease, card.intervalDays, rating);
-    const updated = { ...card, ...result, reps: card.reps + 1 };
-    await srsRepo.update(updated);
-    reviewingCard = null;
-  }
-
   onMount(() => loadData($auth));
 
   $: if ($auth.mode !== 'loading') loadData($auth);
@@ -144,29 +135,6 @@
   message={$t.subjects.deleteTopicMessage}
   on:confirm={doDeleteTopic}
 />
-
-{#if reviewingCard}
-  <div class="overlay" role="dialog" aria-modal="true" tabindex="-1"
-    on:click|self={() => reviewingCard = null}
-    on:keydown={(e) => e.key === 'Escape' && (reviewingCard = null)}>
-    <div class="review-card card">
-      <p class="section-label" style="text-align:center; margin-bottom:12px;">{$t.subjects.review.toUpperCase()}</p>
-      <h3 class="text-heading" style="text-align:center; margin-bottom:4px;">{reviewingCard.topicName}</h3>
-      <p class="text-body" style="color: var(--muted); text-align: center; margin-bottom:24px;">{$t.subjects.howWell}</p>
-      <div class="rating-row">
-        {#each ([1,2,3,4] as const) as r}
-          {@const ratingLabels = {1:$t.subjects.again,2:$t.subjects.hard,3:$t.subjects.good,4:$t.subjects.easy}}
-          {@const colors = {1:'var(--srs-again)',2:'var(--srs-hard)',3:'var(--srs-good)',4:'var(--srs-easy)'}}
-          <button
-            class="rating-btn"
-            style="background: {colors[r]};"
-            on:click={() => handleReview(r)}
-          >{ratingLabels[r]}</button>
-        {/each}
-      </div>
-    </div>
-  </div>
-{/if}
 
 <div class="page">
   {#if !subject}
@@ -192,7 +160,8 @@
     {:else}
       <div class="topics-list card">
         {#each subjectTopics as topic, i (topic.id)}
-          {@const card = cardForTopic(topic.id)}
+          {@const cardCount = cardCountFor(topic.id)}
+          {@const state = deckState(topic.nextStudyDate, cardCount, today)}
           <div class="topic-row" class:divider={i > 0}>
             <button
               class="done-checkbox"
@@ -225,16 +194,13 @@
               {:else}
                 <span class="topic-name topic-name-text">{topic.name}</span>
               {/if}
-              {#if card && editingTopicId !== topic.id}
-                <span class="srs-status" class:due={card.reps > 0 && isDue(card.dueDate)} class:reviewed={card.reps > 0 && !isDue(card.dueDate)}>
-                  {#if card.reps === 0}
-                    {$t.subjects.new}
-                  {:else if isDue(card.dueDate)}
-                    {$t.subjects.dueToday}
-                  {:else}
-                    {$t.subjects.dueLabel($fmt.date(card.dueDate, { day: 'numeric', month: 'short' }))}
-                  {/if}
-                </span>
+              {#if state !== 'empty' && editingTopicId !== topic.id}
+                <a class="deck-status" class:due={state === 'new' || state === 'due'} href="/flashcards/{topic.id}">
+                  {$t.flashcards.cardsCount(cardCount)} ·
+                  {#if state === 'new'}{$t.flashcards.stateNew}
+                  {:else if state === 'due'}{$t.flashcards.stateDue}
+                  {:else}{$t.flashcards.nextOn($fmt.date(topic.nextStudyDate + 'T00:00:00', { day: 'numeric', month: 'short' }))}{/if}
+                </a>
               {/if}
               {#if editingNoteId === topic.id}
                 <input
@@ -252,14 +218,20 @@
               {/if}
             </div>
             <div class="topic-actions">
-              {#if card && isDue(card.dueDate) && editingTopicId !== topic.id}
-                <button
+              {#if (state === 'new' || state === 'due') && editingTopicId !== topic.id}
+                <a
                   class="review-btn"
                   style="background: color-mix(in srgb, {subject.color} 12%, transparent); color: {subject.color};"
-                  on:click={() => reviewingCard = { topicId: topic.id, topicName: topic.name }}
-                >{$t.subjects.review}</button>
+                  href="/flashcards/{topic.id}?study=1"
+                >{$t.flashcards.study}</a>
               {/if}
               {#if editingTopicId !== topic.id}
+                <a class="icon-btn deck-btn" href="/flashcards/{topic.id}" aria-label={$t.nav.flashcards}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 5h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" />
+                    <path d="M7 9h6M7 13h4" />
+                  </svg>
+                </a>
                 <button
                   class="icon-btn note-btn"
                   class:has-note={!!topic.note}
@@ -399,15 +371,16 @@
   .note-btn.has-note { color: var(--primary); }
   .topic-info { flex: 1; min-width: 0; }
   .topic-name { font-size: 15px; font-weight: 500; color: var(--text); display: block; }
-  .srs-status {
+  .deck-status {
     font-size: 11px;
     font-weight: 600;
     color: var(--muted);
     margin-top: 2px;
     display: block;
+    text-decoration: none;
   }
-  .srs-status.due { color: var(--danger); }
-  .srs-status.reviewed { color: var(--success); }
+  .deck-status.due { color: var(--danger); }
+  .deck-status:hover { text-decoration: underline; }
   .topic-actions { display: flex; align-items: center; gap: 6px; }
   .review-btn {
     padding: 5px 12px;
@@ -416,6 +389,7 @@
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
+    text-decoration: none;
     transition: transform 400ms cubic-bezier(0.34,1.56,0.64,1);
   }
   .review-btn:active { transform: scale(0.94); transition: transform 80ms ease-in; }
@@ -514,28 +488,4 @@
     padding: 8px 2px;
     margin-top: 4px;
   }
-  .overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.35);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 200;
-    padding: 24px;
-  }
-  .review-card { padding: 28px 24px; max-width: 320px; width: 100%; }
-  .rating-row { display: flex; gap: 8px; }
-  .rating-btn {
-    flex: 1;
-    padding: 11px 0;
-    border-radius: 12px;
-    border: none;
-    color: #fff; /* stylelint-disable-line declaration-property-value-disallowed-list */
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: transform 400ms cubic-bezier(0.34,1.56,0.64,1);
-  }
-  .rating-btn:active { transform: scale(0.94); transition: transform 80ms ease-in; }
 </style>

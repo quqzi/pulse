@@ -4,8 +4,8 @@
   import { auth } from '$lib/stores/auth';
   import { settings } from '$lib/stores/settings';
   import {
-    subjects, topics, srsCards,
-    dueCards, todayHours, streak, loadData, getAuthContext,
+    subjects, topics,
+    dueDecks, todayHours, streak, loadData, getAuthContext,
     tasksDueToday,
   } from '$lib/stores/data';
   import { setTimerSubject } from '$lib/stores/timer';
@@ -92,7 +92,6 @@
           <SubjectTile
             {subject}
             topics={$topics}
-            cards={$srsCards}
             on:click={() => goto(`/subjects/${subject.id}`)}
           />
         {/each}
@@ -100,22 +99,21 @@
     </section>
   {/if}
 
-  {#if $dueCards.length > 0}
+  {#if $dueDecks.length > 0}
     <section class="review-section">
-      <button class="review-cta" on:click={() => goto('/review')}>
+      <button class="review-cta" on:click={() => goto('/flashcards')}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/>
-          <path d="M12 6v6l4 2"/>
+          <path d="M3 5h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/>
+          <path d="M7 9h6M7 13h4"/>
         </svg>
-        {$t.dashboard.reviewDue($dueCards.length)}
+        {$t.dashboard.reviewDue($dueDecks.length)}
       </button>
     </section>
   {/if}
 
   <TodaysPlan
     subjects={$subjects}
-    topics={$topics}
-    dueCards={$dueCards}
+    dueDecks={$dueDecks}
     on:start={handleStart}
   />
 

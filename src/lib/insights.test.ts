@@ -3,7 +3,7 @@ import { computeInsights, computeInsights as ci, rankAndCap, type Insight, type 
 import type { Subject, StudySession, MockScore } from '$lib/types';
 
 const emptySnapshot: InsightSnapshot = {
-  subjects: [], topics: [], srsCards: [], sessions: [], scores: [], examSessions: [],
+  subjects: [], topics: [], dueDeckCount: 0, sessions: [], scores: [], examSessions: [],
   readiness: { overall: 0, bySubject: {} }, streak: 0, dailyGoalHours: 4,
   examDate: null, today: '2026-06-07',
 };
@@ -74,13 +74,12 @@ describe('focus generators', () => {
     expect(out.find((i) => i.id === 'weakest-subject')).toBeUndefined();
   });
 
-  it('srs-backlog fires when ≥10 cards are due', () => {
-    const cards = Array.from({ length: 11 }, (_, n) => ({
-      id: 'c' + n, topicId: 't', userId: 'u', ease: 2.5, intervalDays: 1, dueDate: '2026-06-01', reps: 1,
-    }));
-    const out = ci({ ...emptySnapshot, srsCards: cards });
-    const b = out.find((i) => i.id === 'srs-backlog');
-    expect(b?.titleArgs).toEqual([11]);
+  it('decks-due fires when ≥3 decks are due', () => {
+    const out = ci({ ...emptySnapshot, dueDeckCount: 4 });
+    const b = out.find((i) => i.id === 'decks-due');
+    expect(b?.titleArgs).toEqual([4]);
+    expect(b?.action?.href).toBe('/flashcards');
+    expect(ci({ ...emptySnapshot, dueDeckCount: 2 }).find((i) => i.id === 'decks-due')).toBeUndefined();
   });
 
   it('neglected-subject fires for a topic-bearing subject idle ≥7 days (given recent activity)', () => {

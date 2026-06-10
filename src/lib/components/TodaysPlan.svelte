@@ -1,28 +1,24 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import { t } from '$lib/i18n';
-  import type { Subject, Topic, SrsCard } from '$lib/types';
+  import type { Subject, Topic } from '$lib/types';
 
   export let subjects: Subject[] = [];
-  export let topics: Topic[] = [];
-  export let dueCards: SrsCard[] = [];
+  export let dueDecks: Topic[] = [];
 
   const dispatch = createEventDispatcher<{ start: { subjectId: string; topicId: string } }>();
 
   interface PlanItem {
-    card: SrsCard;
     topic: Topic;
     subject: Subject;
   }
 
-  $: items = dueCards
+  $: items = dueDecks
     .slice(0, 8)
-    .reduce<PlanItem[]>((acc, card) => {
-      const topic = topics.find(tp => tp.id === card.topicId);
-      if (!topic) return acc;
+    .reduce<PlanItem[]>((acc, topic) => {
       const subject = subjects.find(s => s.id === topic.subjectId);
       if (!subject) return acc;
-      acc.push({ card, topic, subject });
+      acc.push({ topic, subject });
       return acc;
     }, []);
 </script>
