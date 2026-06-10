@@ -1,9 +1,9 @@
 import { get } from 'svelte/store';
-import type { Task, MockScore, Template, Subject, Topic, SrsCard, StudySession, ScheduleSlot, ExamQuestion, ExamSession } from '$lib/types';
-import { tasks, scores, templates, subjects, topics, srsCards, sessions, scheduleSlots, examQuestions, examSessions } from '$lib/data/stores';
+import type { Task, MockScore, Template, Subject, Topic, SrsCard, StudySession, ScheduleSlot, ExamQuestion, ExamSession, Flashcard } from '$lib/types';
+import { tasks, scores, templates, subjects, topics, srsCards, sessions, scheduleSlots, examQuestions, examSessions, flashcards } from '$lib/data/stores';
 import { repo, reportError } from '$lib/data/repository';
 import { writeThrough, loadInto } from '$lib/data/engine';
-import { taskFromRow, taskToRow, scoreFromRow, scoreToRow, templateFromRow, templateToRow, subjectFromRow, subjectToRow, topicFromRow, topicToRow, cardFromRow, cardToRow, sessionFromRow, sessionToRow, slotFromRow, slotToRow, examQuestionFromRow, examQuestionToRow, examSessionFromRow, examSessionToRow } from '$lib/data/mappers';
+import { taskFromRow, taskToRow, scoreFromRow, scoreToRow, templateFromRow, templateToRow, subjectFromRow, subjectToRow, topicFromRow, topicToRow, cardFromRow, cardToRow, sessionFromRow, sessionToRow, slotFromRow, slotToRow, examQuestionFromRow, examQuestionToRow, examSessionFromRow, examSessionToRow, flashcardFromRow, flashcardToRow } from '$lib/data/mappers';
 import { getAuthContext } from '$lib/data/authctx';
 import { toast } from '$lib/stores/toast';
 import { t } from '$lib/i18n';
@@ -66,6 +66,17 @@ export const examSessionsRepo = repo<ExamSession>({
   orderColumn: 'created_at',
   ascending: false,
   order: (a, b) => b.createdAt.localeCompare(a.createdAt),
+});
+
+export const flashcardsRepo = repo<Flashcard>({
+  store: flashcards,
+  lsKey: 'pulse.flashcards',
+  table: 'flashcards',
+  toRow: flashcardToRow,
+  fromRow: flashcardFromRow,
+  orderColumn: 'created_at',
+  ascending: true,
+  order: (a, b) => a.createdAt.localeCompare(b.createdAt),
 });
 
 const subjectsBase = repo<Subject>({

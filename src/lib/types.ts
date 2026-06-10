@@ -16,6 +16,16 @@ export interface Topic {
   orderIndex: number;
   done?: boolean;   // covered checkbox; absent/false = not covered
   note?: string;    // short free-text note; absent/'' = no note
+  nextStudyDate?: string;   // YYYY-MM-DD; the deck's manual next-study date
+}
+
+export interface Flashcard {
+  id: string;
+  userId: string;
+  topicId: string;
+  front: string;
+  back: string;
+  createdAt: string;   // ISO
 }
 
 export interface SrsCard {

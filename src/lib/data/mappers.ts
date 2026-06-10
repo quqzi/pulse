@@ -1,4 +1,4 @@
-import type { Task, MockScore, Template, SubjectPreset, Subject, Topic, SrsCard, StudySession, ScheduleSlot, ExamQuestion, ExamSession } from '$lib/types';
+import type { Task, MockScore, Template, SubjectPreset, Subject, Topic, SrsCard, StudySession, ScheduleSlot, ExamQuestion, ExamSession, Flashcard } from '$lib/types';
 
 export const taskFromRow = (r: Record<string, unknown>): Task => ({
   id: r.id as string,
@@ -89,6 +89,7 @@ export const topicFromRow = (r: Record<string, unknown>): Topic => ({
   orderIndex: r.order_index as number,
   done: (r.done as boolean | null) ?? false,
   note: (r.note as string | null) ?? undefined,
+  nextStudyDate: (r.next_study_date as string | null) ?? undefined,
 });
 
 export const topicToRow = (t: Topic): Record<string, unknown> => ({
@@ -99,6 +100,25 @@ export const topicToRow = (t: Topic): Record<string, unknown> => ({
   order_index: t.orderIndex,
   done: t.done ?? false,
   note: t.note ?? null,
+  next_study_date: t.nextStudyDate ?? null,
+});
+
+export const flashcardFromRow = (r: Record<string, unknown>): Flashcard => ({
+  id: r.id as string,
+  userId: r.user_id as string,
+  topicId: r.topic_id as string,
+  front: r.front as string,
+  back: r.back as string,
+  createdAt: r.created_at as string,
+});
+
+export const flashcardToRow = (f: Flashcard): Record<string, unknown> => ({
+  id: f.id,
+  user_id: f.userId,
+  topic_id: f.topicId,
+  front: f.front,
+  back: f.back,
+  created_at: f.createdAt,
 });
 
 export const cardFromRow = (r: Record<string, unknown>): SrsCard => ({

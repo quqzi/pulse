@@ -10,6 +10,7 @@
     { key: 'schedule', href: '/schedule' },
     { key: 'scores',   href: '/scores' },
     { key: 'exam',     href: '/exam' },
+    { key: 'flashcards', href: '/flashcards' },
     { key: 'insights', href: '/insights' },
     { key: 'journey',  href: '/journey' },
     { key: 'settings', href: '/settings' },

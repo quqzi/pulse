@@ -1,15 +1,15 @@
 import { derived } from 'svelte/store';
 import type { AuthState } from '$lib/stores/auth';
 import {
-  subjects, topics, srsCards, sessions, tasks, templates, scheduleSlots, scores, examQuestions, examSessions,
+  subjects, topics, srsCards, sessions, tasks, templates, scheduleSlots, scores, examQuestions, examSessions, flashcards,
 } from '$lib/data/stores';
-import { tasksRepo, scoresRepo, templatesRepo, subjectsRepo, topicsRepo, srsRepo, sessionsRepo, scheduleRepo, examQuestionsRepo, examSessionsRepo } from '$lib/data/entities';
+import { tasksRepo, scoresRepo, templatesRepo, subjectsRepo, topicsRepo, srsRepo, sessionsRepo, scheduleRepo, examQuestionsRepo, examSessionsRepo, flashcardsRepo } from '$lib/data/entities';
 import { computeInsights } from '$lib/insights';
 import { localDateStr } from '$lib/utils';
 import { settings } from '$lib/stores/settings';
 
 // Re-export so existing `import { tasks } from '$lib/stores/data'` keeps working.
-export { subjects, topics, srsCards, sessions, tasks, templates, scheduleSlots, scores, examQuestions, examSessions };
+export { subjects, topics, srsCards, sessions, tasks, templates, scheduleSlots, scores, examQuestions, examSessions, flashcards };
 export { authCtx, getAuthContext } from '$lib/data/authctx';
 
 export const todaysSessions = derived(sessions, ($s) => {
@@ -121,6 +121,7 @@ export async function loadData(authState: AuthState): Promise<void> {
     templatesRepo.load(),
     examQuestionsRepo.load(),
     examSessionsRepo.load(),
+    flashcardsRepo.load(),
   ]);
 }
 

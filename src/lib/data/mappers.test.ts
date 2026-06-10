@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { scoreFromRow, scoreToRow, topicFromRow, topicToRow } from '$lib/data/mappers';
-import type { MockScore, Topic } from '$lib/types';
+import { scoreFromRow, scoreToRow, topicFromRow, topicToRow, flashcardFromRow, flashcardToRow } from '$lib/data/mappers';
+import type { MockScore, Topic, Flashcard } from '$lib/types';
 
 describe('score mapper', () => {
   it('round-trips camel <-> snake', () => {
@@ -35,5 +35,25 @@ describe('topic mapper', () => {
     const row = topicToRow(t);
     expect(row.done).toBe(false);
     expect(row.note).toBe(null);
+  });
+
+  it('round-trips next_study_date', () => {
+    const t: Topic = { id: 't1', subjectId: 's1', name: 'K', orderIndex: 0, nextStudyDate: '2026-06-14' };
+    expect(topicToRow(t).next_study_date).toBe('2026-06-14');
+    expect(topicFromRow(topicToRow(t)).nextStudyDate).toBe('2026-06-14');
+  });
+
+  it('legacy row → nextStudyDate undefined', () => {
+    expect(topicFromRow({ id: 't', subject_id: 's', name: 'n', order_index: 0 }).nextStudyDate).toBeUndefined();
+  });
+});
+
+describe('flashcard mapper', () => {
+  it('round-trips a flashcard', () => {
+    const f: Flashcard = { id: 'f1', userId: 'u', topicId: 't1', front: 'v=?', back: 'u+at', createdAt: '2026-06-07T00:00:00Z' };
+    const row = flashcardToRow(f);
+    expect(row.user_id).toBe('u');
+    expect(row.topic_id).toBe('t1');
+    expect(flashcardFromRow(row)).toEqual(f);
   });
 });
