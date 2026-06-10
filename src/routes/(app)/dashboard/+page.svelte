@@ -128,7 +128,7 @@
             <button class="dash-check" on:click={async () => {
               const updated = { ...task, completedAt: new Date().toISOString() };
               await tasksRepo.save(updated);
-            }} aria-label="Complete task">
+            }} aria-label={$t.tasks.markComplete}>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <circle cx="8" cy="8" r="7" stroke="var(--border)" stroke-width="1.5"/>
               </svg>

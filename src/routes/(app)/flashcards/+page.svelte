@@ -99,14 +99,16 @@
   .subject-group { margin-bottom: 12px; }
   .subject-head { font-size: 12px; font-weight: 700; margin: 0 2px 6px; }
   .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
-  .deck-row { display: flex; align-items: center; gap: 10px; padding: 12px 14px; }
+  .deck-row { display: flex; align-items: center; gap: 10px; padding: 12px 14px; transition: background 120ms ease; }
   .deck-row.divider { border-top: 1px solid var(--border); }
+  @media (hover: hover) { .deck-row:hover { background: var(--bg3); } }
   .deck-main { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; text-decoration: none; color: inherit; }
   .deck-symbol { font-size: 14px; font-weight: 800; flex-shrink: 0; }
   .deck-name { font-size: 15px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .deck-meta { font-size: 12px; color: var(--muted); flex-shrink: 0; }
   .deck-meta.due { color: var(--primary); font-weight: 600; }
-  .study-btn { padding: 6px 14px; border-radius: 16px; background: var(--primary); color: var(--bg); font-size: 12px; font-weight: 600; text-decoration: none; flex-shrink: 0; }
+  .study-btn { padding: 6px 14px; border-radius: 16px; background: var(--primary); color: var(--bg); font-size: 12px; font-weight: 600; text-decoration: none; flex-shrink: 0; transition: transform 120ms ease; }
+  .study-btn:active { transform: scale(0.95); }
   .empty-state { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 32px 16px; text-align: center; }
   .empty-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
   .empty-sub { font-size: 13px; color: var(--muted); }

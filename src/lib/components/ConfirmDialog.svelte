@@ -34,7 +34,8 @@
 <svelte:window on:keydown={handleKey} />
 
 {#if open}
-  <div use:portal class="backdrop" on:click={handleBackdrop} role="dialog" aria-modal="true">
+  <div use:portal class="backdrop" on:click={handleBackdrop} role="dialog" aria-modal="true" tabindex="-1"
+    on:keydown|stopPropagation={(e) => e.key === 'Escape' && cancel()}>
     <div class="dialog">
       <p class="dialog-title">{title ?? $t.common.areYouSure}</p>
       {#if message}<p class="dialog-message">{message}</p>{/if}

@@ -146,12 +146,12 @@
       {/if}
     </div>
   {:else}
-    <ul class="score-list">
+    <div class="score-list">
       {#each filteredScores as score (score.id)}
         {@const color = subjectColor(score.subjectId)}
         {@const pct = score.maxScore > 0 ? Math.round((score.score / score.maxScore) * 100) : 0}
         {@const trend = trendData(score.subjectId)}
-        <li
+        <div
           class="score-item card"
           role="button"
           tabindex="0"
@@ -206,9 +206,9 @@
               </svg>
             </button>
           </div>
-        </li>
+        </div>
       {/each}
-    </ul>
+    </div>
   {/if}
 </div>
 
@@ -251,7 +251,7 @@
   .tab-btn {
     padding: 5px 14px; border-radius: 999px; border: 1.5px solid var(--border);
     background: none; color: var(--muted); font-family: inherit; font-size: 13px;
-    font-weight: 500; cursor: pointer; transition: all 120ms ease;
+    font-weight: 500; cursor: pointer; transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
   }
   .tab-btn.active {
     background: var(--tab-color, var(--primary));

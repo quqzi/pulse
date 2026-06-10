@@ -146,7 +146,9 @@
 />
 
 {#if reviewingCard}
-  <div class="overlay" on:click|self={() => reviewingCard = null}>
+  <div class="overlay" role="dialog" aria-modal="true" tabindex="-1"
+    on:click|self={() => reviewingCard = null}
+    on:keydown={(e) => e.key === 'Escape' && (reviewingCard = null)}>
     <div class="review-card card">
       <p class="section-label" style="text-align:center; margin-bottom:12px;">{$t.subjects.review.toUpperCase()}</p>
       <h3 class="text-heading" style="text-align:center; margin-bottom:4px;">{reviewingCard.topicName}</h3>
@@ -171,7 +173,7 @@
     <p class="text-body" style="color:var(--muted)">{$t.subjects.notFound}</p>
   {:else}
     <div class="page-header">
-      <button class="back-btn" on:click={() => goto('/subjects')}>
+      <button class="back-btn" on:click={() => goto('/subjects')} aria-label={$t.common.back}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M19 12H5m7-7l-7 7 7 7"/>
         </svg>
@@ -277,7 +279,7 @@
                   </svg>
                 </button>
               {/if}
-              <button class="del-btn" on:click={() => promptDeleteTopic(topic.id)}>
+              <button class="del-btn" on:click={() => promptDeleteTopic(topic.id)} aria-label={$t.common.delete}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M18 6L6 18M6 6l12 12"/>
                 </svg>
@@ -290,6 +292,7 @@
 
     {#if adding}
       <div class="add-row">
+        <!-- svelte-ignore a11y_autofocus — field appears on explicit user action -->
         <input
           type="text"
           placeholder={$t.subjects.topicName}

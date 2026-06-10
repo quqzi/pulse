@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { fly } from 'svelte/transition';
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import { auth } from '$lib/stores/auth';
@@ -13,11 +14,21 @@
   import type { Flashcard } from '$lib/types';
 
   onMount(() => {
-    loadData($auth).then(() => {
-      if ($page.url.searchParams.get('study') === '1' && deckCards.length > 0) startStudy();
-    });
+    loadData($auth);
+    prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   });
   $: if ($auth.mode !== 'loading') loadData($auth);
+
+  let prefersReduced = false;
+  $: dur = prefersReduced ? 0 : 200;
+
+  // Auto-start once the deck has loaded — onMount is too early (auth may
+  // still be 'loading', making loadData a no-op and the deck empty).
+  let autoStarted = false;
+  $: if (!autoStarted && $page.url.searchParams.get('study') === '1' && deckCards.length > 0) {
+    autoStarted = true;
+    startStudy();
+  }
 
   $: topicId = $page.params.topicId;
   $: topic = $topics.find(tp => tp.id === topicId);
@@ -111,13 +122,20 @@
         <button class="exit-btn" on:click={() => (studying = false)} aria-label={$t.common.close}>✕</button>
         <span class="study-progress">{$t.flashcards.progress(studyIndex + 1, deckCards.length)}</span>
       </div>
-      <div class="study-card">
-        <p class="study-front">{card.front}</p>
-        {#if revealed}
-          <div class="study-divider"></div>
-          <p class="study-back">{card.back}</p>
-        {/if}
+      <div class="study-bar" aria-hidden="true">
+        <div class="study-bar-fill" style="transform: scaleX({(studyIndex + 1) / deckCards.length});"></div>
       </div>
+      {#key studyIndex}
+        <div class="study-card" in:fly={{ y: 14, duration: dur }}>
+          <p class="study-front">{card.front}</p>
+          {#if revealed}
+            <div in:fly={{ y: 8, duration: dur }}>
+              <div class="study-divider"></div>
+              <p class="study-back">{card.back}</p>
+            </div>
+          {/if}
+        </div>
+      {/key}
       {#if revealed}
         <button class="study-action" on:click={nextCard}>{$t.flashcards.next}</button>
       {:else}
@@ -211,17 +229,21 @@
 
   .study-overlay { position: fixed; inset: 0; z-index: 1000; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; padding: 24px; }
   .study-top { position: absolute; top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; padding: 16px; }
-  .exit-btn { background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer; }
+  .exit-btn { background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer; min-width: 44px; min-height: 44px; margin: -12px; }
   .study-progress { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .study-bar { position: absolute; top: 54px; left: 16px; right: 16px; height: 3px; border-radius: 2px; background: var(--bg3); overflow: hidden; }
+  .study-bar-fill { height: 100%; width: 100%; background: var(--primary); border-radius: 2px; transform-origin: left; transition: transform 300ms ease-out; }
   .study-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 32px 24px; width: 100%; max-width: 460px; min-height: 200px; display: flex; flex-direction: column; justify-content: center; }
   .study-front { font-size: 20px; font-weight: 600; color: var(--text); text-align: center; margin: 0; line-height: 1.4; }
   .study-divider { height: 1px; background: var(--border); margin: 20px 0; }
   .study-back { font-size: 17px; color: var(--text); text-align: center; margin: 0; line-height: 1.5; }
-  .study-action { width: 100%; max-width: 460px; padding: 14px; border-radius: var(--radius-md); border: none; background: var(--primary); color: var(--bg); font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer; }
+  .study-action { width: 100%; max-width: 460px; padding: 14px; border-radius: var(--radius-md); border: none; background: var(--primary); color: var(--bg); font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer; transition: transform 120ms ease; }
+  .study-action:active { transform: scale(0.98); }
   .finish { width: 100%; max-width: 460px; display: flex; flex-direction: column; gap: 12px; text-align: center; }
   .finish-title { font-size: 17px; font-weight: 700; color: var(--text); margin: 0 0 4px; }
   .preset-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .preset { padding: 12px 8px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--bg2); color: var(--text); font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .preset { padding: 12px 8px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--bg2); color: var(--text); font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: transform 120ms ease, background 120ms ease; }
+  .preset:active:not(:disabled) { transform: scale(0.97); background: var(--bg3); }
   .preset:disabled { opacity: 0.4; cursor: not-allowed; }
   .pick-row { display: flex; gap: 8px; }
   .pick-row input { flex: 1; height: 40px; padding: 0 10px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--text); font-family: inherit; font-size: 13px; }

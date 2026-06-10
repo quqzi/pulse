@@ -184,7 +184,7 @@
   .filter-btn {
     padding: 5px 14px; border-radius: 999px; border: 1.5px solid var(--border);
     background: none; color: var(--muted); font-family: inherit; font-size: 13px;
-    font-weight: 500; cursor: pointer; transition: all 120ms ease;
+    font-weight: 500; cursor: pointer; transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
   }
   .filter-btn.active { background: var(--primary); color: var(--bg); border-color: var(--primary); }
 

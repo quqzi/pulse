@@ -18,11 +18,11 @@
 </script>
 
 {#if open}
-  <button class="backdrop" on:click={onClose} aria-label="Close"></button>
+  <button class="backdrop" on:click={onClose} aria-label={$t.common.close}></button>
   <div class="drawer" role="dialog">
     <div class="drawer-header">
       <span style="font-size:17px;font-weight:700">{$t.nav.more}</span>
-      <button class="close-btn" on:click={onClose} aria-label="Close">
+      <button class="close-btn" on:click={onClose} aria-label={$t.common.close}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>

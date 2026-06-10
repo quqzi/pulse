@@ -148,11 +148,11 @@
     <div class="create-form card" style="margin-top:20px">
       <p class="sheet-title">{$t.subjects.newTemplate}</p>
       <div class="field">
-        <label class="field-label">{$t.subjects.templateName}</label>
-        <input class="field-input" bind:value={newName} placeholder={$t.subjects.templateNamePlaceholder} />
+        <label class="field-label" for="tpl-name">{$t.subjects.templateName}</label>
+        <input id="tpl-name" class="field-input" bind:value={newName} placeholder={$t.subjects.templateNamePlaceholder} />
       </div>
       <div class="field">
-        <label class="field-label">{$t.subjects.title}</label>
+        <span class="field-label">{$t.subjects.title}</span>
         <div class="preset-list">
           {#each newPresets as preset, i}
             <div class="preset-row">

@@ -90,7 +90,9 @@
 </script>
 
 {#if showSummary && lastSession}
-  <div class="overlay" on:click|self={dismissSummary}>
+  <div class="overlay" role="dialog" aria-modal="true" tabindex="-1"
+    on:click|self={dismissSummary}
+    on:keydown={(e) => e.key === 'Escape' && dismissSummary()}>
     <div class="summary-card card">
       <div class="summary-check">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
