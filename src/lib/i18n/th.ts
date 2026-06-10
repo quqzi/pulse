@@ -43,6 +43,10 @@ export const th: I18n = {
     title: 'ความพร้อมสอบ',
     noData: 'เพิ่มวิชาเพื่อดูความพร้อม',
     startExam: 'เริ่มทำข้อสอบ →',
+    partCoverage: 'หัวข้อที่เรียนแล้ว',
+    partHours: 'ชั่วโมงอ่าน',
+    partExam: 'ข้อสอบจำลอง',
+    ptsOf: (earned: number, max: number) => `${earned}/${max}`,
   },
   timer: {
     pomodoro: 'โพโมโดโร',

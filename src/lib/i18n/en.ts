@@ -41,6 +41,10 @@ export const en = {
     title: 'Exam Readiness',
     noData: 'Add subjects to see readiness',
     startExam: 'Start Mock Exam →',
+    partCoverage: 'Topic coverage',
+    partHours: 'Study hours',
+    partExam: 'Mock exams',
+    ptsOf: (earned: number, max: number) => `${earned}/${max}`,
   },
   timer: {
     pomodoro: 'Pomodoro',

@@ -2,6 +2,15 @@
   import { goto } from '$app/navigation';
   import { readinessScore, subjects } from '$lib/stores/data';
   import { t } from '$lib/i18n';
+
+  let expandedId: string | null = null;
+  const toggle = (id: string) => (expandedId = expandedId === id ? null : id);
+
+  const SEGMENTS = [
+    { key: 'coverage', max: 40, labelKey: 'partCoverage', opacity: 1 },
+    { key: 'hours', max: 30, labelKey: 'partHours', opacity: 0.55 },
+    { key: 'exam', max: 30, labelKey: 'partExam', opacity: 0.25 },
+  ] as const;
 </script>
 
 <div class="card">
@@ -11,18 +20,50 @@
 
   <div class="score-big">{$readinessScore.overall}<span class="score-pct">%</span></div>
 
-  <div class="pills">
-    {#each $subjects as subj (subj.id)}
-      {@const score = $readinessScore.bySubject[subj.id] ?? 0}
-      <div class="pill">
-        <span class="pill-name">{subj.name}</span>
-        <span class="pill-score" style="color:{subj.color}">{score}%</span>
-      </div>
-    {/each}
-    {#if $subjects.length === 0}
-      <span class="no-data">{$t.readiness.noData}</span>
-    {/if}
-  </div>
+  {#if $subjects.length > 0}
+    <div class="seg-bar" aria-hidden="true">
+      {#each SEGMENTS as seg (seg.key)}
+        <div class="seg" style="width:{$readinessScore.parts[seg.key]}%; opacity:{seg.opacity}"></div>
+      {/each}
+    </div>
+    <div class="legend">
+      {#each SEGMENTS as seg (seg.key)}
+        <div class="legend-row">
+          <span class="legend-swatch" style="opacity:{seg.opacity}"></span>
+          <span class="legend-name">{$t.readiness[seg.labelKey]}</span>
+          <span class="legend-pts">{$t.readiness.ptsOf($readinessScore.parts[seg.key], seg.max)}</span>
+        </div>
+      {/each}
+    </div>
+
+    <div class="subject-list">
+      {#each $subjects as subj (subj.id)}
+        {@const score = $readinessScore.bySubject[subj.id] ?? 0}
+        {@const parts = $readinessScore.partsBySubject[subj.id]}
+        <button class="subject-row" class:open={expandedId === subj.id} on:click={() => toggle(subj.id)} aria-expanded={expandedId === subj.id}>
+          <span class="subj-name">{subj.name}</span>
+          <span class="subj-score" style="color:{subj.color}">{score}%</span>
+          <svg class="chev" class:flip={expandedId === subj.id} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        {#if expandedId === subj.id && parts}
+          <div class="subj-detail">
+            <div class="seg-bar small" style="--subj-color:{subj.color}" aria-hidden="true">
+              {#each SEGMENTS as seg (seg.key)}
+                <div class="seg subj" style="width:{parts[seg.key]}%; opacity:{seg.opacity}"></div>
+              {/each}
+            </div>
+            <div class="detail-rows">
+              {#each SEGMENTS as seg (seg.key)}
+                <span class="detail-item">{$t.readiness[seg.labelKey]} <strong>{$t.readiness.ptsOf(parts[seg.key], seg.max)}</strong></span>
+              {/each}
+            </div>
+          </div>
+        {/if}
+      {/each}
+    </div>
+  {:else}
+    <span class="no-data">{$t.readiness.noData}</span>
+  {/if}
 
   <button class="start-btn" on:click={() => goto('/exam')}>{$t.readiness.startExam}</button>
 </div>
@@ -33,11 +74,35 @@
   .card-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
   .score-big { font-size: 52px; font-weight: 700; color: var(--primary); line-height: 1; }
   .score-pct { font-size: 22px; font-weight: 400; }
-  .pills { display: flex; flex-wrap: wrap; gap: 6px; }
-  .pill { background: var(--bg3); border: 1px solid var(--border); border-radius: 20px; padding: 4px 12px; font-size: 11px; display: flex; gap: 6px; align-items: center; }
-  .pill-name { color: var(--muted); }
-  .pill-score { font-weight: 600; }
+
+  .seg-bar { display: flex; gap: 2px; height: 8px; border-radius: 4px; background: var(--bg3); overflow: hidden; }
+  .seg-bar.small { height: 5px; margin-bottom: 6px; }
+  .seg { background: var(--primary); border-radius: 2px; min-width: 0; }
+  .seg.subj { background: var(--subj-color); }
+
+  .legend { display: flex; flex-direction: column; gap: 4px; }
+  .legend-row { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+  .legend-swatch { width: 10px; height: 10px; border-radius: 3px; background: var(--primary); flex-shrink: 0; }
+  .legend-name { color: var(--muted); flex: 1; }
+  .legend-pts { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  .subject-list { display: flex; flex-direction: column; border-top: 1px solid var(--border); padding-top: 4px; }
+  .subject-row {
+    display: flex; align-items: center; gap: 8px; padding: 8px 2px;
+    background: none; border: none; cursor: pointer; font-family: inherit;
+    width: 100%; text-align: left; border-radius: 8px;
+    transition: background 120ms ease;
+  }
+  @media (hover: hover) { .subject-row:hover { background: var(--bg3); } }
+  .subj-name { flex: 1; min-width: 0; font-size: 13px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .subj-score { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .chev { color: var(--muted); flex-shrink: 0; transition: transform 160ms ease; }
+  .chev.flip { transform: rotate(180deg); }
+  .subj-detail { padding: 2px 2px 10px; }
+  .detail-rows { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 11px; color: var(--muted); }
+  .detail-item strong { color: var(--text); font-variant-numeric: tabular-nums; }
+
   .no-data { font-size: 12px; color: var(--muted); }
   .start-btn { background: var(--primary); color: var(--bg); border: none; border-radius: var(--radius-md); padding: 9px 16px; font-size: 13px; font-weight: 600; cursor: pointer; align-self: flex-start; }
-  @media (max-width: 768px) { .start-btn { min-height: 44px; } }
+  @media (max-width: 768px) { .start-btn { min-height: 44px; } .subject-row { min-height: 44px; } }
 </style>
