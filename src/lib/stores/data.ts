@@ -5,6 +5,8 @@ import {
 } from '$lib/data/stores';
 import { tasksRepo, scoresRepo, templatesRepo, subjectsRepo, topicsRepo, srsRepo, sessionsRepo, scheduleRepo, examQuestionsRepo, examSessionsRepo, flashcardsRepo } from '$lib/data/entities';
 import { computeInsights } from '$lib/insights';
+import { subjectCoverage } from '$lib/data/readiness-util';
+import { deckState, isDeckDue } from '$lib/flashcards';
 import { localDateStr } from '$lib/utils';
 import { settings } from '$lib/stores/settings';
 
@@ -50,21 +52,25 @@ export const tasksDueToday = derived(tasks, ($tasks) => {
   return $tasks.filter(t => !t.completedAt && t.dueDate && t.dueDate <= today);
 });
 
-// Per-subject + overall exam readiness (0–100), blending SRS retention,
-// recent study hours, and mock-exam accuracy. SrsCard has no subjectId, so
-// cards are mapped to their subject through their topic.
+// Decks (topics with cards) that are new or due today.
+export const dueDecks = derived([topics, flashcards], ([$topics, $flashcards]) => {
+  const today = localDateStr(new Date());
+  const countFor = (id: string) => $flashcards.filter(c => c.topicId === id).length;
+  return $topics.filter(tp => isDeckDue(deckState(tp.nextStudyDate, countFor(tp.id), today)));
+});
+
+// Per-subject + overall exam readiness (0–100), blending topic coverage,
+// recent study hours, and mock-exam accuracy.
 export const readinessScore = derived(
-  [subjects, topics, srsCards, sessions, examSessions],
-  ([$subjects, $topics, $srsCards, $sessions, $examSessions]) => {
+  [subjects, topics, sessions, examSessions],
+  ([$subjects, $topics, $sessions, $examSessions]) => {
     if ($subjects.length === 0) return { overall: 0, bySubject: {} as Record<string, number> };
 
-    const topicSubject = new Map($topics.map(t => [t.id, t.subjectId]));
     const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const bySubject: Record<string, number> = {};
 
     for (const subj of $subjects) {
-      const cards = $srsCards.filter(c => topicSubject.get(c.topicId) === subj.id);
-      const srsScore = cards.length === 0 ? 0 : cards.filter(c => c.ease >= 2.5).length / cards.length;
+      const coverage = subjectCoverage($topics.filter(t => t.subjectId === subj.id));
 
       const recentSecs = $sessions
         .filter(s => s.subjectId === subj.id && new Date(s.startedAt) >= cutoff)
@@ -79,7 +85,7 @@ export const readinessScore = derived(
         .filter((r): r is number => r !== null);
       const examScore = examRatios.length === 0 ? 0 : examRatios.reduce((a, b) => a + b, 0) / examRatios.length;
 
-      bySubject[subj.id] = Math.round((srsScore * 0.4 + hoursScore * 0.3 + examScore * 0.3) * 100);
+      bySubject[subj.id] = Math.round((coverage * 0.4 + hoursScore * 0.3 + examScore * 0.3) * 100);
     }
 
     const overall = Math.round(
