@@ -84,8 +84,11 @@ export function generateSchedule(input: SchedulerInput): ScheduleSlot[] {
       .filter(s => s.subjectId === subject.id && new Date(s.startedAt) >= weekStart)
       .reduce((sum, s) => sum + s.durationSec / 3600, 0);
 
-    const weeklyGoalPerSubject = (subjects.length > 0)
-      ? settings.dailyGoalHours * 7 / subjects.length
+    // Weekly goal split by per-subject priority weight (0.5 low / 1 normal / 2 high).
+    const weightOf = (id: string) => settings.subjectWeights[id] ?? 1;
+    const totalWeight = subjects.reduce((sum, s) => sum + weightOf(s.id), 0);
+    const weeklyGoalPerSubject = totalWeight > 0
+      ? settings.dailyGoalHours * 7 * (weightOf(subject.id) / totalWeight)
       : settings.dailyGoalHours;
     const hoursDeficit = Math.max(0, weeklyGoalPerSubject - hoursThisWeek);
 
@@ -118,10 +121,16 @@ export function generateSchedule(input: SchedulerInput): ScheduleSlot[] {
   // ── Step 4: Greedy fill ────────────────────────────────────────
   const SLOT_STEP = 30;
   const MIN_BLOCK = 30;
-  const MAX_BLOCK = 90;
+  const MAX_BLOCK = Math.max(MIN_BLOCK, settings.blockMinutes || 90);
   const TASK_BLOCK = 45;
-  const START_HOUR = 6;
-  const END_HOUR = 22;
+  const toMin = (hhmm: string, fallback: number) => {
+    const [h, m] = (hhmm || '').split(':').map(Number);
+    return Number.isFinite(h) && Number.isFinite(m) ? h * 60 + m : fallback;
+  };
+  const START_MIN = toMin(settings.studyStart, 6 * 60);
+  const END_MIN = Math.max(START_MIN + MIN_BLOCK, toMin(settings.studyEnd, 22 * 60));
+  const isRestDay = (dayIdx: number) =>
+    settings.restDays.includes(((weekDays[dayIdx].getDay() + 6) % 7) + 1);
 
   function isAvailable(dayIdx: number, startMin: number, endMin: number): boolean {
     for (const b of blockedByDay[dayIdx]) {
@@ -150,6 +159,7 @@ export function generateSchedule(input: SchedulerInput): ScheduleSlot[] {
 
   const dailyGoalMinutes = settings.dailyGoalHours * 60;
   const dailyPlanned = new Array(7).fill(0);
+  const dailyBlockCount = new Array(7).fill(0);
 
   for (const slot of existingSlots) {
     if (!slot.isConfirmed) continue;
@@ -166,13 +176,15 @@ export function generateSchedule(input: SchedulerInput): ScheduleSlot[] {
     let minutesLeft = Math.min(MAX_BLOCK * 2, Math.round(hoursDeficit * 60));
 
     for (let dayIdx = 0; dayIdx < 7 && minutesLeft > 0; dayIdx++) {
+      if (isRestDay(dayIdx)) continue;
       if (dailyPlanned[dayIdx] >= dailyGoalMinutes) continue;
+      if (settings.maxBlocksPerDay > 0 && dailyBlockCount[dayIdx] >= settings.maxBlocksPerDay) continue;
 
       let bestStart = -1;
       let bestScore = -Infinity;
 
-      for (let m = START_HOUR * 60; m + MIN_BLOCK <= END_HOUR * 60; m += SLOT_STEP) {
-        const blockLen = Math.min(MAX_BLOCK, minutesLeft, Math.floor((END_HOUR * 60 - m) / SLOT_STEP) * SLOT_STEP);
+      for (let m = START_MIN; m + MIN_BLOCK <= END_MIN; m += SLOT_STEP) {
+        const blockLen = Math.min(MAX_BLOCK, minutesLeft, Math.floor((END_MIN - m) / SLOT_STEP) * SLOT_STEP);
         if (blockLen < MIN_BLOCK) continue;
         if (!isAvailable(dayIdx, m, m + blockLen)) continue;
 
@@ -189,7 +201,7 @@ export function generateSchedule(input: SchedulerInput): ScheduleSlot[] {
       const blockLen = Math.min(
         MAX_BLOCK,
         minutesLeft,
-        Math.floor((END_HOUR * 60 - bestStart) / SLOT_STEP) * SLOT_STEP
+        Math.floor((END_MIN - bestStart) / SLOT_STEP) * SLOT_STEP
       );
       if (blockLen < MIN_BLOCK) continue;
       const day = weekDays[dayIdx];
@@ -211,6 +223,7 @@ export function generateSchedule(input: SchedulerInput): ScheduleSlot[] {
 
       blockDay(dayIdx, bestStart, bestStart + blockLen);
       dailyPlanned[dayIdx] += blockLen;
+      dailyBlockCount[dayIdx] += 1;
       minutesLeft -= blockLen;
     }
   }
@@ -228,8 +241,9 @@ export function generateSchedule(input: SchedulerInput): ScheduleSlot[] {
     for (const d of [dayIdx, dayIdx - 1]) {
       if (placed) break;
       if (d < 0 || d >= 7) continue;
+      if (isRestDay(d)) continue;
 
-      for (let m = START_HOUR * 60; m + TASK_BLOCK <= END_HOUR * 60; m += SLOT_STEP) {
+      for (let m = START_MIN; m + TASK_BLOCK <= END_MIN; m += SLOT_STEP) {
         if (!isAvailable(d, m, m + TASK_BLOCK)) continue;
         results.push({
           id: makeId(),

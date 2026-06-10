@@ -1,9 +1,18 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { settings, type Theme } from '$lib/stores/settings';
   import { auth } from '$lib/stores/auth';
+  import { subjects, loadData } from '$lib/stores/data';
   import { supabase } from '$lib/supabase';
   import { goto } from '$app/navigation';
   import { t } from '$lib/i18n';
+
+  onMount(() => loadData($auth));
+  $: if ($auth.mode !== 'loading') loadData($auth);
+
+  function setWeight(subjectId: string, w: number) {
+    settings.update(s => ({ ...s, subjectWeights: { ...s.subjectWeights, [subjectId]: w } }));
+  }
 
   const themeBase = [
     { value:'vercel-light' as Theme, label:'Vercel', lightDark: 'light', bg:'#fafafa', text:'#171717', card:'#ffffff', accent:'#0070f3', radius:'8px'  },
@@ -173,6 +182,92 @@
         style="width:100px"
       />
     </div>
+
+    <div class="divider"></div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <span class="text-body">{$t.settings.studyWindow}</span>
+        <span class="text-muted" style="font-size:13px">{$t.settings.studyWindowHelper}</span>
+      </div>
+      <div class="time-row">
+        <input type="time" class="time-input" bind:value={$settings.studyStart} aria-label={$t.settings.from} />
+        <span class="text-muted">–</span>
+        <input type="time" class="time-input" bind:value={$settings.studyEnd} aria-label={$t.settings.to} />
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="setting-row">
+      <span class="text-body">{$t.settings.blockLength}</span>
+      <div class="lang-pills">
+        {#each [45, 60, 90] as len (len)}
+          <button class="lang-pill" class:active={$settings.blockMinutes === len}
+            on:click={() => settings.update(s => ({ ...s, blockMinutes: len }))}>{len}{$t.common.minutes}</button>
+        {/each}
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <span class="text-body">{$t.settings.maxPerDay}</span>
+        <span class="text-muted" style="font-size:13px">{$t.settings.maxPerDayHelper}</span>
+      </div>
+      <input type="number" min="0" max="8" value={$settings.maxBlocksPerDay}
+        on:change={e => settings.update(s => ({ ...s, maxBlocksPerDay: Math.max(0, +e.currentTarget.value) }))}
+        class="num-input" />
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <span class="text-body">{$t.settings.restDays}</span>
+        <span class="text-muted" style="font-size:13px">{$t.settings.restDaysHelper}</span>
+      </div>
+    </div>
+    <div class="day-picker" style="padding-bottom:12px">
+      {#each $t.settings.weekdays as dayLabel, i (i)}
+        <button
+          class="day-chip"
+          class:active={$settings.restDays.includes(i + 1)}
+          on:click={() => {
+            const v = i + 1;
+            const days = $settings.restDays.includes(v)
+              ? $settings.restDays.filter(d => d !== v)
+              : [...$settings.restDays, v];
+            settings.update(s => ({ ...s, restDays: days }));
+          }}
+        >{dayLabel}</button>
+      {/each}
+    </div>
+
+    {#if $subjects.length > 0}
+      <div class="divider"></div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="text-body">{$t.settings.subjectPriority}</span>
+          <span class="text-muted" style="font-size:13px">{$t.settings.subjectPriorityHelper}</span>
+        </div>
+      </div>
+      <div class="prio-list">
+        {#each $subjects as subj (subj.id)}
+          {@const w = $settings.subjectWeights[subj.id] ?? 1}
+          <div class="prio-row">
+            <span class="prio-dot" style="background:{subj.color}"></span>
+            <span class="prio-name">{subj.name}</span>
+            <div class="lang-pills">
+              <button class="lang-pill sm" class:active={w === 0.5} on:click={() => setWeight(subj.id, 0.5)}>{$t.settings.prioLow}</button>
+              <button class="lang-pill sm" class:active={w === 1} on:click={() => setWeight(subj.id, 1)}>{$t.settings.prioNormal}</button>
+              <button class="lang-pill sm" class:active={w === 2} on:click={() => setWeight(subj.id, 2)}>{$t.settings.prioHigh}</button>
+            </div>
+          </div>
+        {/each}
+      </div>
+    {/if}
   </div>
 
   {#if $auth.mode === 'authenticated'}
@@ -277,7 +372,16 @@
     cursor:pointer; display:flex; align-items:center; justify-content:center;
   }
   .day-chip.active { background:var(--primary); border-color:var(--primary); color:var(--bg); }
-  .time-row { display:flex; gap:12px; }
+  .time-row { display:flex; gap:8px; align-items:center; }
+  .time-input {
+    border:1px solid var(--border); border-radius:6px; padding:4px 8px;
+    background:var(--bg); color:var(--text); font-size:13px; font-family:inherit;
+  }
+  .lang-pill.sm { padding:5px 10px; font-size:12px; min-height:32px; }
+  .prio-list { display:flex; flex-direction:column; gap:8px; padding:2px 0 12px; }
+  .prio-row { display:flex; align-items:center; gap:8px; }
+  .prio-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .prio-name { flex:1; min-width:0; font-size:14px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .time-field { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text); }
   .time-field input {
     border:1px solid var(--border); border-radius:6px; padding:4px 8px;
