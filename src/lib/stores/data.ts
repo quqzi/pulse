@@ -13,12 +13,12 @@ export { subjects, topics, srsCards, sessions, tasks, templates, scheduleSlots, 
 export { authCtx, getAuthContext } from '$lib/data/authctx';
 
 export const todaysSessions = derived(sessions, ($s) => {
-  const today = new Date().toISOString().split('T')[0];
-  return $s.filter(s => s.startedAt.startsWith(today));
+  const today = localDateStr(new Date());
+  return $s.filter(s => localDateStr(new Date(s.startedAt)) === today);
 });
 
 export const dueCards = derived(srsCards, ($cards) => {
-  const today = new Date().toISOString().split('T')[0];
+  const today = localDateStr(new Date());
   return $cards.filter(c => c.dueDate <= today);
 });
 
@@ -28,25 +28,25 @@ export const todayHours = derived(todaysSessions, ($s) =>
 
 export const streak = derived(sessions, ($s) => {
   if ($s.length === 0) return 0;
-  const days = new Set($s.map(s => s.startedAt.split('T')[0]));
+  const days = new Set($s.map(s => localDateStr(new Date(s.startedAt))));
   let count = 0;
   const d = new Date();
-  let base = d.toISOString().split('T')[0];
+  let base = localDateStr(d);
   if (!days.has(base)) {
     d.setDate(d.getDate() - 1);
-    base = d.toISOString().split('T')[0];
+    base = localDateStr(d);
     if (!days.has(base)) return 0;
   }
   while (days.has(base)) {
     count++;
     d.setDate(d.getDate() - 1);
-    base = d.toISOString().split('T')[0];
+    base = localDateStr(d);
   }
   return count;
 });
 
 export const tasksDueToday = derived(tasks, ($tasks) => {
-  const today = new Date().toISOString().split('T')[0];
+  const today = localDateStr(new Date());
   return $tasks.filter(t => !t.completedAt && t.dueDate && t.dueDate <= today);
 });
 

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import { t, fmt } from '$lib/i18n';
+  import { localDateStr } from '$lib/utils';
   import type { StudySession, Task, Subject } from '$lib/types';
 
   export let currentWeekStart: Date;
@@ -48,8 +49,8 @@
 
   function getDotsForDay(d: Date | null): string[] {
     if (!d) return [];
-    const dateStr = d.toISOString().split('T')[0];
-    const daySessions = sessions.filter(s => s.startedAt.startsWith(dateStr));
+    const dateStr = localDateStr(d);
+    const daySessions = sessions.filter(s => localDateStr(new Date(s.startedAt)) === dateStr);
     const subjectIds = [...new Set(daySessions.map(s => s.subjectId))].slice(0, 3);
     return subjectIds.map(id => subjects.find(s => s.id === id)?.color ?? 'var(--muted)');
   }

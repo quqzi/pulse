@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import { t } from '$lib/i18n';
+  import { localDateStr } from '$lib/utils';
   import type { Subject, MockScore } from '$lib/types';
 
   export let subjects: Subject[];
@@ -12,7 +13,7 @@
   }>();
 
   function todayStr(): string {
-    return new Date().toISOString().split('T')[0];
+    return localDateStr(new Date());
   }
 
   let subjectId = initial?.subjectId ?? (subjects[0]?.id ?? '');

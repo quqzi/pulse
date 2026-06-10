@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import { t } from '$lib/i18n';
+  import { localDateStr } from '$lib/utils';
   import type { ScheduleSlot, Subject, SrsCard, Topic } from '$lib/types';
   import type { Settings } from '$lib/stores/settings';
 
@@ -14,8 +15,8 @@
   const dispatch = createEventDispatcher<{ acceptAll: void; rejectAll: void }>();
 
   $: weekEnd = (() => { const d = new Date(weekStart); d.setDate(d.getDate() + 7); return d; })();
-  $: weekEndStr = weekEnd.toISOString().substring(0, 10);
-  $: todayStr = new Date().toISOString().split('T')[0];
+  $: weekEndStr = localDateStr(weekEnd);
+  $: todayStr = localDateStr(new Date());
 
   $: confirmedSlots = slots.filter(s => s.isConfirmed && !s.isAiSuggested);
   $: suggestedSlots = slots.filter(s => s.isAiSuggested && !s.isConfirmed);

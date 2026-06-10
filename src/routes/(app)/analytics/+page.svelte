@@ -7,6 +7,7 @@
   import StudyTrendChart from '$lib/components/analytics/StudyTrendChart.svelte';
   import { sessionsRepo } from '$lib/data/entities';
   import { t, fmt } from '$lib/i18n';
+  import { localDateStr } from '$lib/utils';
   import type { StudySession } from '$lib/types';
 
   function getWeekStart(date: Date): Date {
@@ -17,7 +18,7 @@
     return d;
   }
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = localDateStr(new Date());
   const weekStartISO = getWeekStart(new Date()).toISOString();
 
   $: weekSessions = $sessions.filter(s => s.startedAt >= weekStartISO);

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import { t } from '$lib/i18n';
+  import { localDateStr } from '$lib/utils';
   import type { Task, Subject, Priority } from '$lib/types';
 
   export let task: Task;
@@ -24,7 +25,7 @@
 
   function isOverdue(): boolean {
     if (!task.dueDate || task.completedAt) return false;
-    return task.dueDate < new Date().toISOString().split('T')[0];
+    return task.dueDate < localDateStr(new Date());
   }
 
   function formatDate(d: string): string {

@@ -24,7 +24,7 @@
 		if (!settings || subjects.length === 0) return [];
 		const weekAgo = new Date();
 		weekAgo.setDate(weekAgo.getDate() - 7);
-		const weekAgoStr = weekAgo.toISOString().split('T')[0] + 'T00:00:00';
+		const weekAgoStr = weekAgo.toISOString();
 		const weeklyGoalPer = (settings.dailyGoalHours * 7) / subjects.length;
 
 		return subjects

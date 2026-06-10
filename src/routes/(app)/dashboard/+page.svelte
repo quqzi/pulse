@@ -10,6 +10,7 @@
   } from '$lib/stores/data';
   import { setTimerSubject } from '$lib/stores/timer';
   import { cardTilt } from '$lib/effects';
+  import { localDateStr } from '$lib/utils';
   import HeroCard from '$lib/components/HeroCard.svelte';
   import SubjectTile from '$lib/components/SubjectTile.svelte';
   import TodaysPlan from '$lib/components/TodaysPlan.svelte';
@@ -134,7 +135,7 @@
             </button>
             <span class="dash-task-title">{task.title}</span>
             {#if task.dueDate}
-              <span class="dash-due" class:overdue={task.dueDate < new Date().toISOString().split('T')[0]}>
+              <span class="dash-due" class:overdue={task.dueDate < localDateStr(new Date())}>
                 {$fmt.date(task.dueDate + 'T00:00:00', { month: 'short', day: 'numeric' })}
               </span>
             {/if}
