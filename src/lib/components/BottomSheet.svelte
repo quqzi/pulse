@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from 'svelte';
   import { fly, fade } from 'svelte/transition';
+  import { t } from '$lib/i18n';
 
   export let open = false;
 
@@ -63,7 +64,7 @@
         on:pointermove={onPointermove}
         on:pointerup={onPointerup}
       >
-        <button class="sheet-handle" on:click={close} aria-label="Close"></button>
+        <button class="sheet-handle" on:click={close} aria-label={$t.common.close}></button>
       </div>
       <div class="sheet-content">
         <slot />

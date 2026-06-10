@@ -497,7 +497,7 @@
     <div class="time-gutter"></div>
     {#each weekDays as _day, i}
       <div class="load-bar-cell" title={loadBarTooltip(i)}>
-        <div class="load-bar-fill" style="width: {loadBarWidth(i)}%; background: {loadBarColor(i)};"></div>
+        <div class="load-bar-fill" style="transform: scaleX({loadBarWidth(i) / 100}); background: {loadBarColor(i)};"></div>
       </div>
     {/each}
   </div>
@@ -804,7 +804,9 @@
     left: 0;
     top: 0;
     bottom: 0;
-    transition: width 0.3s ease;
+    width: 100%;
+    transform-origin: left;
+    transition: transform 0.3s ease;
   }
 
   /* Midnight gap shading */

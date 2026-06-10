@@ -121,7 +121,7 @@
       <div class="stat-value">{fmtH($todayHours)}</div>
       <div class="stat-sub">{$t.analytics.goal(`${$settings.dailyGoalHours}${$t.analytics.unitH}`)}</div>
       <div class="stat-bar">
-        <div class="stat-bar-fill" style="width: {Math.min(100, ($todayHours / $settings.dailyGoalHours) * 100)}%;"></div>
+        <div class="stat-bar-fill" style="transform: scaleX({Math.min(1, $todayHours / $settings.dailyGoalHours)});"></div>
       </div>
     </div>
     <div class="stat-card">
@@ -165,7 +165,7 @@
               <span class="subject-pct">{Math.round((hours / weekHours) * 100)}%</span>
             </div>
             <div class="bar-track">
-              <div class="bar-fill" style="width: {(hours / maxSubjectHours) * 100}%; background: {subject.color};"></div>
+              <div class="bar-fill" style="transform: scaleX({hours / maxSubjectHours}); background: {subject.color};"></div>
             </div>
           </div>
         {/each}
@@ -279,7 +279,7 @@
   .stat-value.urgent { color: var(--warning); }
   .stat-sub { font-size: 11px; color: var(--muted); }
   .stat-bar { height: 3px; background: var(--border); border-radius: 2px; margin-top: 8px; overflow: hidden; }
-  .stat-bar-fill { height: 100%; border-radius: 2px; background: var(--primary); transition: width 0.4s ease; }
+  .stat-bar-fill { height: 100%; width: 100%; border-radius: 2px; background: var(--primary); transform-origin: left; transition: transform 0.4s ease; }
 
   .section { margin-bottom: 20px; }
   .section-header {
@@ -307,7 +307,7 @@
   .subject-hours { font-size: 12px; color: var(--muted); }
   .subject-pct { font-size: 11px; color: var(--muted); min-width: 32px; text-align: right; }
   .bar-track { height: 4px; background: var(--border); border-radius: 3px; overflow: hidden; }
-  .bar-fill { height: 100%; border-radius: 3px; opacity: 0.8; transition: width 0.4s ease; }
+  .bar-fill { height: 100%; width: 100%; border-radius: 3px; opacity: 0.8; transform-origin: left; transition: transform 0.4s ease; }
 
   .srs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
   .srs-card {

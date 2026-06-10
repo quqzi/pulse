@@ -1,6 +1,7 @@
 <script lang="ts">
   import { supabase } from '$lib/supabase';
   import { goto } from '$app/navigation';
+  import { t } from '$lib/i18n';
 
   let email = '', password = '', error = '', loading = false;
 
@@ -45,7 +46,7 @@
       <span class="logo-word">pulse</span>
     </div>
 
-    <h1 class="text-heading" style="margin-bottom:20px">Sign in</h1>
+    <h1 class="text-heading" style="margin-bottom:20px">{$t.auth.signIn}</h1>
 
     {#if error}<p class="error-msg">{error}</p>{/if}
 
@@ -56,20 +57,20 @@
         <path d="M3.964 10.707A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.707V4.961H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.039l3.007-2.332z" fill="#FBBC05"/>
         <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.961L3.964 6.293C4.672 4.166 6.656 3.58 9 3.58z" fill="#EA4335"/>
       </svg>
-      Continue with Google
+      {$t.auth.continueWithGoogle}
     </button>
 
-    <div class="auth-divider"><span>or</span></div>
+    <div class="auth-divider"><span>{$t.auth.or}</span></div>
 
     <form on:submit|preventDefault={login} class="auth-form">
-      <label><span class="field-label">Email</span><input type="email" bind:value={email} placeholder="student@example.com" required /></label>
-      <label><span class="field-label">Password</span><input type="password" bind:value={password} placeholder="••••••••" required /></label>
-      <button type="submit" class="btn btn-primary" disabled={loading} style="width:100%">{loading ? 'Signing in…' : 'Sign in'}</button>
+      <label><span class="field-label">{$t.auth.email}</span><input type="email" bind:value={email} placeholder="student@example.com" required /></label>
+      <label><span class="field-label">{$t.auth.password}</span><input type="password" bind:value={password} placeholder="••••••••" required /></label>
+      <button type="submit" class="btn btn-primary" disabled={loading} style="width:100%">{loading ? $t.auth.signingIn : $t.auth.signIn}</button>
     </form>
 
-    <div class="divider"><span>or</span></div>
-    <button class="btn btn-secondary" style="width:100%" on:click={continueAsGuest}>Continue as Guest</button>
-    <p class="auth-footer">No account? <a href="/auth/signup">Sign up</a></p>
+    <div class="divider"><span>{$t.auth.or}</span></div>
+    <button class="btn btn-secondary" style="width:100%" on:click={continueAsGuest}>{$t.auth.continueAsGuest}</button>
+    <p class="auth-footer">{$t.auth.noAccount} <a href="/auth/signup">{$t.auth.signUp}</a></p>
   </div>
 </div>
 

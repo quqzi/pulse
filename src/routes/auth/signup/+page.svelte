@@ -1,6 +1,7 @@
 <script lang="ts">
   import { supabase } from '$lib/supabase';
   import { goto } from '$app/navigation';
+  import { t } from '$lib/i18n';
 
   let name = '', email = '', password = '', error = '', loading = false;
   let confirmSent = false;
@@ -34,7 +35,7 @@
       <span class="logo-word">pulse</span>
     </div>
 
-    <h1 class="text-heading" style="margin-bottom:20px">Create account</h1>
+    <h1 class="text-heading" style="margin-bottom:20px">{$t.auth.createAccount}</h1>
     {#if error}<p class="error-msg">{error}</p>{/if}
 
     {#if !confirmSent}
@@ -45,26 +46,26 @@
         <path d="M3.964 10.707A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.707V4.961H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.039l3.007-2.332z" fill="#FBBC05"/>
         <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.961L3.964 6.293C4.672 4.166 6.656 3.58 9 3.58z" fill="#EA4335"/>
       </svg>
-      Continue with Google
+      {$t.auth.continueWithGoogle}
     </button>
 
-    <div class="auth-divider"><span>or</span></div>
+    <div class="auth-divider"><span>{$t.auth.or}</span></div>
     {/if}
 
     {#if confirmSent}
       <div class="confirm-msg">
-        <p style="font-weight:600; margin-bottom:4px">Check your email</p>
-        <p style="color:var(--muted); font-size:14px">We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account, then <a href="/auth/login">sign in</a>.</p>
+        <p style="font-weight:600; margin-bottom:4px">{$t.auth.checkEmail}</p>
+        <p style="color:var(--muted); font-size:14px">{$t.auth.confirmSentTo(email)} <a href="/auth/login">{$t.auth.signIn}</a></p>
       </div>
     {:else}
     <form on:submit|preventDefault={signup} class="auth-form">
-      <label><span class="field-label">Name</span><input type="text" bind:value={name} placeholder="Your name" required /></label>
-      <label><span class="field-label">Email</span><input type="email" bind:value={email} placeholder="student@example.com" required /></label>
-      <label><span class="field-label">Password</span><input type="password" bind:value={password} placeholder="Min. 8 characters" minlength="8" required /></label>
-      <button type="submit" class="btn btn-primary" disabled={loading} style="width:100%">{loading ? 'Creating account…' : 'Create account'}</button>
+      <label><span class="field-label">{$t.auth.name}</span><input type="text" bind:value={name} placeholder={$t.auth.namePlaceholder} required /></label>
+      <label><span class="field-label">{$t.auth.email}</span><input type="email" bind:value={email} placeholder="student@example.com" required /></label>
+      <label><span class="field-label">{$t.auth.password}</span><input type="password" bind:value={password} placeholder={$t.auth.passwordMin} minlength="8" required /></label>
+      <button type="submit" class="btn btn-primary" disabled={loading} style="width:100%">{loading ? $t.auth.creatingAccount : $t.auth.createAccount}</button>
     </form>
 
-    <p class="auth-footer">Already have an account? <a href="/auth/login">Sign in</a></p>
+    <p class="auth-footer">{$t.auth.haveAccount} <a href="/auth/login">{$t.auth.signIn}</a></p>
     {/if}
   </div>
 </div>

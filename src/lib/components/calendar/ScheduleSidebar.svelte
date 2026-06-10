@@ -67,7 +67,7 @@
       <span class="stat-goal">{settings ? $t.schedule.goalSuffix(`${settings.dailyGoalHours * 7}${$t.schedule.unitH}`) : '—'}</span>
     </div>
     <div class="progress-bar">
-      <div class="progress-fill" style="width: {plannedRatio * 100}%;"></div>
+      <div class="progress-fill" style="transform: scaleX({plannedRatio});"></div>
     </div>
   </section>
 
@@ -144,7 +144,7 @@
 .stat-big { font-size: 20px; font-weight: 700; color: var(--text); }
 .stat-goal { font-size: 12px; color: var(--muted); }
 .progress-bar { height: 4px; border-radius: 2px; background: var(--bg3); overflow: hidden; }
-.progress-fill { height: 100%; background: var(--primary); border-radius: 2px; transition: width 0.3s ease; }
+.progress-fill { height: 100%; width: 100%; background: var(--primary); border-radius: 2px; transform-origin: left; transition: transform 0.3s ease; }
 .subject-row {
   display: flex;
   align-items: center;

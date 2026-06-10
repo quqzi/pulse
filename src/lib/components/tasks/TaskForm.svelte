@@ -37,6 +37,7 @@
 </script>
 
 <div class="add-form card">
+  <!-- svelte-ignore a11y_autofocus — form appears on explicit user action -->
   <input
     class="title-input"
     class:error={titleError}
