@@ -30,7 +30,7 @@ function baseInput(over: Partial<SchedulerInput> = {}): SchedulerInput {
     subjects: [],
     topics: [],
     sessions: [],
-    srsCards: [],
+    flashcards: [],
     tasks: [],
     existingSlots: [],
     settings: baseSettings(),
@@ -84,6 +84,24 @@ describe('generateSchedule', () => {
       // must lie entirely before 08:00 (480) or after 15:30 (930)
       expect(end <= 480 || start >= 930).toBe(true);
     }
+  });
+
+  it('prioritizes the subject whose deck is overdue', () => {
+    const out = generateSchedule(baseInput({
+      subjects: [
+        { id: 'sA', userId: 'u', name: 'Math', symbol: 'M', color: '#0d9488', colorRgb: '13,148,136', orderIndex: 0 },
+        { id: 'sB', userId: 'u', name: 'Bio', symbol: 'B', color: '#7c3aed', colorRgb: '124,58,237', orderIndex: 1 },
+      ],
+      topics: [
+        { id: 'tA', subjectId: 'sA', name: 'Algebra', orderIndex: 0, nextStudyDate: '2026-01-05' },
+        { id: 'tB', subjectId: 'sB', name: 'Cells', orderIndex: 0 },
+      ],
+      flashcards: [
+        { id: 'f1', userId: 'u', topicId: 'tA', front: 'q', back: 'a', createdAt: '2026-01-01T00:00:00Z' },
+      ],
+    }));
+    expect(out.length).toBeGreaterThan(0);
+    expect(out[0].subjectId).toBe('sA');
   });
 
   it('injects a 45-minute block on a task due date', () => {

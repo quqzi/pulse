@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { auth } from '$lib/stores/auth';
-  import { subjects, topics, srsCards, tasks, sessions, scheduleSlots, loadData, loadScheduleSlots, getAuthContext } from '$lib/stores/data';
+  import { subjects, topics, flashcards, tasks, sessions, scheduleSlots, loadData, loadScheduleSlots, getAuthContext } from '$lib/stores/data';
   import { settings } from '$lib/stores/settings';
   import { newId } from '$lib/id';
   import { scheduleRepo } from '$lib/data/entities';
@@ -73,7 +73,7 @@
       subjects: $subjects,
       topics: $topics,
       sessions: $sessions,
-      srsCards: $srsCards,
+      flashcards: $flashcards,
       tasks: $tasks,
       existingSlots: filteredSlots,
       settings: $settings,
@@ -228,7 +228,7 @@
     slots={$scheduleSlots}
     subjects={$subjects}
     topics={$topics}
-    srsCards={$srsCards}
+    flashcards={$flashcards}
     settings={$settings}
     weekStart={viewedWeekStart}
     on:acceptAll={handleAcceptAll}
@@ -241,7 +241,7 @@
     slots={$scheduleSlots}
     subjects={$subjects}
     topics={$topics}
-    srsCards={$srsCards}
+    flashcards={$flashcards}
     settings={$settings}
     weekStart={viewedWeekStart}
     on:acceptAll={handleAcceptAll}

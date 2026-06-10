@@ -1,4 +1,4 @@
-import type { Subject, Topic, SrsCard, StudySession, Task, ScheduleSlot } from '$lib/types';
+import type { Subject, Topic, Flashcard, StudySession, Task, ScheduleSlot } from '$lib/types';
 import type { Settings } from '$lib/stores/settings';
 import { localDateStr } from '$lib/utils';
 
@@ -7,7 +7,7 @@ export interface SchedulerInput {
   subjects: Subject[];
   topics: Topic[];
   sessions: StudySession[];       // past 14 days (for deficit calc)
-  srsCards: SrsCard[];
+  flashcards: Flashcard[];
   tasks: Task[];
   existingSlots: ScheduleSlot[];  // confirmed slots already on calendar
   settings: Settings;
@@ -15,7 +15,7 @@ export interface SchedulerInput {
 }
 
 export function generateSchedule(input: SchedulerInput): ScheduleSlot[] {
-  const { weekStart, subjects, topics, sessions, srsCards, tasks, existingSlots, settings, examDate } = input;
+  const { weekStart, subjects, topics, sessions, flashcards, tasks, existingSlots, settings, examDate } = input;
   const results: ScheduleSlot[] = [];
 
   // Build week days (Mon–Sun)
@@ -68,12 +68,17 @@ export function generateSchedule(input: SchedulerInput): ScheduleSlot[] {
     ? Math.round((new Date(examDate).getTime() - today.getTime()) / 86400000)
     : Infinity;
 
-  const cardSubjectId = new Map(topics.map(t => [t.id, t.subjectId]));
+  const deckCardCount = new Map<string, number>();
+  for (const c of flashcards) deckCardCount.set(c.topicId, (deckCardCount.get(c.topicId) ?? 0) + 1);
 
   const subjectScores = subjects.map(subject => {
-    const cards = srsCards.filter(c => cardSubjectId.get(c.topicId) === subject.id);
-    const overdueCount = cards.filter(c => c.dueDate < todayStr).length;
-    const dueThisWeekCount = cards.filter(c => c.dueDate >= todayStr && c.dueDate < weekEndStr).length;
+    // Decks = this subject's topics that have flashcards. A 'new' deck (cards, no
+    // nextStudyDate) counts as due this week; a past date counts as overdue.
+    const decks = topics.filter(tp => tp.subjectId === subject.id && (deckCardCount.get(tp.id) ?? 0) > 0);
+    const overdueCount = decks.filter(tp => tp.nextStudyDate && tp.nextStudyDate < todayStr).length;
+    const dueThisWeekCount = decks.filter(tp =>
+      !tp.nextStudyDate || (tp.nextStudyDate >= todayStr && tp.nextStudyDate < weekEndStr)
+    ).length;
 
     const hoursThisWeek = sessions
       .filter(s => s.subjectId === subject.id && new Date(s.startedAt) >= weekStart)

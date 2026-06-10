@@ -1,9 +1,9 @@
 import { derived } from 'svelte/store';
 import type { AuthState } from '$lib/stores/auth';
 import {
-  subjects, topics, srsCards, sessions, tasks, templates, scheduleSlots, scores, examQuestions, examSessions, flashcards,
+  subjects, topics, sessions, tasks, templates, scheduleSlots, scores, examQuestions, examSessions, flashcards,
 } from '$lib/data/stores';
-import { tasksRepo, scoresRepo, templatesRepo, subjectsRepo, topicsRepo, srsRepo, sessionsRepo, scheduleRepo, examQuestionsRepo, examSessionsRepo, flashcardsRepo } from '$lib/data/entities';
+import { tasksRepo, scoresRepo, templatesRepo, subjectsRepo, topicsRepo, sessionsRepo, scheduleRepo, examQuestionsRepo, examSessionsRepo, flashcardsRepo } from '$lib/data/entities';
 import { computeInsights } from '$lib/insights';
 import { subjectCoverage } from '$lib/data/readiness-util';
 import { deckState, isDeckDue } from '$lib/flashcards';
@@ -11,17 +11,12 @@ import { localDateStr } from '$lib/utils';
 import { settings } from '$lib/stores/settings';
 
 // Re-export so existing `import { tasks } from '$lib/stores/data'` keeps working.
-export { subjects, topics, srsCards, sessions, tasks, templates, scheduleSlots, scores, examQuestions, examSessions, flashcards };
+export { subjects, topics, sessions, tasks, templates, scheduleSlots, scores, examQuestions, examSessions, flashcards };
 export { authCtx, getAuthContext } from '$lib/data/authctx';
 
 export const todaysSessions = derived(sessions, ($s) => {
   const today = localDateStr(new Date());
   return $s.filter(s => localDateStr(new Date(s.startedAt)) === today);
-});
-
-export const dueCards = derived(srsCards, ($cards) => {
-  const today = localDateStr(new Date());
-  return $cards.filter(c => c.dueDate <= today);
 });
 
 export const todayHours = derived(todaysSessions, ($s) =>
@@ -98,12 +93,12 @@ export const readinessScore = derived(
 // Study-coach feed: runs the pure insight generators over current store state.
 // Purely derived — no persistence, identical in guest and authenticated mode.
 export const insights = derived(
-  [subjects, topics, srsCards, sessions, scores, examSessions, readinessScore, streak, settings],
-  ([$subjects, $topics, $srsCards, $sessions, $scores, $examSessions, $readiness, $streak, $settings]) =>
+  [subjects, topics, dueDecks, sessions, scores, examSessions, readinessScore, streak, settings],
+  ([$subjects, $topics, $dueDecks, $sessions, $scores, $examSessions, $readiness, $streak, $settings]) =>
     computeInsights({
       subjects: $subjects,
       topics: $topics,
-      srsCards: $srsCards,
+      dueDeckCount: $dueDecks.length,
       sessions: $sessions,
       scores: $scores,
       examSessions: $examSessions,
@@ -122,7 +117,6 @@ export async function loadData(authState: AuthState): Promise<void> {
     scoresRepo.load(),
     subjectsRepo.load(),
     topicsRepo.load(),
-    srsRepo.load(),
     sessionsRepo.load(),
     templatesRepo.load(),
     examQuestionsRepo.load(),

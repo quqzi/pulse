@@ -2,13 +2,13 @@
   import { createEventDispatcher } from 'svelte';
   import { t } from '$lib/i18n';
   import { localDateStr } from '$lib/utils';
-  import type { ScheduleSlot, Subject, SrsCard, Topic } from '$lib/types';
+  import type { ScheduleSlot, Subject, Flashcard, Topic } from '$lib/types';
   import type { Settings } from '$lib/stores/settings';
 
   export let slots: ScheduleSlot[] = [];
   export let subjects: Subject[] = [];
   export let topics: Topic[] = [];
-  export let srsCards: SrsCard[] = [];
+  export let flashcards: Flashcard[] = [];
   export let settings: Settings | null = null;
   export let weekStart: Date = new Date();
 
@@ -16,7 +16,6 @@
 
   $: weekEnd = (() => { const d = new Date(weekStart); d.setDate(d.getDate() + 7); return d; })();
   $: weekEndStr = localDateStr(weekEnd);
-  $: todayStr = localDateStr(new Date());
 
   $: confirmedSlots = slots.filter(s => s.isConfirmed && !s.isAiSuggested);
   $: suggestedSlots = slots.filter(s => s.isAiSuggested && !s.isConfirmed);
@@ -45,17 +44,19 @@
 
   $: maxSubjectMins = Math.max(...subjectStats.map(x => x.mins), 1);
 
-  $: topicToSubject = topics.reduce<Record<string, string>>((acc, tp) => {
-    acc[tp.id] = tp.subjectId;
+  // Decks to study this week: topics with cards that are new, overdue, or scheduled before week end.
+  $: deckCardCount = flashcards.reduce<Record<string, number>>((acc, c) => {
+    acc[c.topicId] = (acc[c.topicId] ?? 0) + 1;
     return acc;
   }, {});
-
-  $: weekSrsCards = srsCards.filter(c => c.dueDate <= weekEndStr && c.dueDate >= todayStr);
-  $: srsDueCount = weekSrsCards.length;
+  $: weekDueDecks = topics.filter(tp =>
+    (deckCardCount[tp.id] ?? 0) > 0 && (!tp.nextStudyDate || tp.nextStudyDate < weekEndStr)
+  );
+  $: srsDueCount = weekDueDecks.length;
 
   $: srsBySubject = subjects.map(subject => ({
     subject,
-    count: weekSrsCards.filter(c => topicToSubject[c.topicId] === subject.id).length,
+    count: weekDueDecks.filter(tp => tp.subjectId === subject.id).length,
   })).filter(x => x.count > 0);
 </script>
 

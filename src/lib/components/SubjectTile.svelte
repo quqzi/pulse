@@ -1,15 +1,13 @@
 <script lang="ts">
-  import type { Subject, Topic, SrsCard } from '$lib/types';
+  import type { Subject, Topic } from '$lib/types';
 
   export let subject: Subject;
   export let topics: Topic[] = [];
-  export let cards: SrsCard[] = [];
 
   $: subjectTopics = topics.filter(t => t.subjectId === subject.id);
-  $: subjectCards = cards.filter(c => subjectTopics.some(t => t.id === c.topicId));
-  $: reviewed = subjectCards.filter(c => c.reps > 0).length;
+  $: covered = subjectTopics.filter(t => t.done).length;
   $: total = subjectTopics.length;
-  $: pct = total > 0 ? Math.round((reviewed / total) * 100) : 0;
+  $: pct = total > 0 ? Math.round((covered / total) * 100) : 0;
 </script>
 
 <button
