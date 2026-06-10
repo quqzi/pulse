@@ -1,5 +1,6 @@
 import type { Subject, Topic, SrsCard, StudySession, Task, ScheduleSlot } from '$lib/types';
 import type { Settings } from '$lib/stores/settings';
+import { localDateStr } from '$lib/utils';
 
 export interface SchedulerInput {
   weekStart: Date;
@@ -57,11 +58,11 @@ export function generateSchedule(input: SchedulerInput): ScheduleSlot[] {
   // ── Step 2: Score subjects ─────────────────────────────────────
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const todayStr = today.toISOString().split('T')[0];
+  const todayStr = localDateStr(today);
   const weekEndStr = (() => {
     const d = new Date(weekStart);
     d.setDate(d.getDate() + 7);
-    return d.toISOString().split('T')[0];
+    return localDateStr(d);
   })();
   const daysToExam = examDate
     ? Math.round((new Date(examDate).getTime() - today.getTime()) / 86400000)
@@ -74,9 +75,8 @@ export function generateSchedule(input: SchedulerInput): ScheduleSlot[] {
     const overdueCount = cards.filter(c => c.dueDate < todayStr).length;
     const dueThisWeekCount = cards.filter(c => c.dueDate >= todayStr && c.dueDate < weekEndStr).length;
 
-    const weekStartStr = weekStart.toISOString().split('T')[0];
     const hoursThisWeek = sessions
-      .filter(s => s.subjectId === subject.id && s.startedAt >= weekStartStr + 'T00:00:00')
+      .filter(s => s.subjectId === subject.id && new Date(s.startedAt) >= weekStart)
       .reduce((sum, s) => sum + s.durationSec / 3600, 0);
 
     const weeklyGoalPerSubject = (subjects.length > 0)

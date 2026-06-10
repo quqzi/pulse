@@ -61,6 +61,13 @@
     pendingDeleteId = null;
   }
 
+  // Render at <body> so the overlay escapes `.main-content`'s stacking
+  // context and layers above the fixed tab-bar.
+  function portal(node: HTMLElement) {
+    document.body.appendChild(node);
+    return { destroy() { node.remove(); } };
+  }
+
   // ── study flow ────────────────────────────────────────────
   let studying = false;
   let studyIndex = 0;
@@ -94,8 +101,10 @@
 
 <ConfirmDialog bind:open={deleteOpen} title={$t.flashcards.deleteCardTitle} message={$t.common.cannotUndo} on:confirm={doDelete} />
 
+<svelte:window on:keydown={(e) => { if (studying && e.key === 'Escape' && !deleteOpen) studying = false; }} />
+
 {#if studying}
-  <div class="study-overlay">
+  <div class="study-overlay" use:portal role="dialog" aria-modal="true">
     {#if !finished}
       {@const card = deckCards[studyIndex]}
       <div class="study-top">

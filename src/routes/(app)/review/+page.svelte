@@ -6,6 +6,7 @@
   import { srsRepo } from '$lib/data/entities';
   import { reviewCard } from '$lib/srs';
   import { toast } from '$lib/stores/toast';
+  import { localDateStr } from '$lib/utils';
   import { t } from '$lib/i18n';
   import type { SrsCard, Topic, Subject } from '$lib/types';
 
@@ -51,7 +52,7 @@
   }
 
   $: dueLabel = (dueDate: string): string => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = localDateStr(new Date());
     if (dueDate === today) return $t.review.dueToday;
     const diff = Math.round(
       (new Date(today).getTime() - new Date(dueDate).getTime()) / 86400000

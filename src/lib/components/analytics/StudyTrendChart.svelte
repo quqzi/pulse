@@ -3,15 +3,16 @@
   import { sessions } from '$lib/stores/data';
   import { settings } from '$lib/stores/settings';
   import { t, fmt } from '$lib/i18n';
+  import { localDateStr } from '$lib/utils';
 
   $: dailyData = (() => {
     const days: { label: string; hours: number; isToday: boolean }[] = [];
     for (let i = 13; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      const dateStr = d.toISOString().split('T')[0];
+      const dateStr = localDateStr(d);
       const hours = $sessions
-        .filter(s => s.startedAt.startsWith(dateStr))
+        .filter(s => localDateStr(new Date(s.startedAt)) === dateStr)
         .reduce((sum, s) => sum + s.durationSec / 3600, 0);
       const label = i === 0
         ? $t.analytics.today
