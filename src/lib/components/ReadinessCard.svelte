@@ -1,6 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { readinessScore, subjects } from '$lib/stores/data';
+  import { countup } from '$lib/motion/countup';
   import { t } from '$lib/i18n';
 
   let expandedId: string | null = null;
@@ -18,7 +19,7 @@
     <span class="card-label">{$t.readiness.title}</span>
   </div>
 
-  <div class="score-big">{$readinessScore.overall}<span class="score-pct">%</span></div>
+  <div class="score-big"><span use:countup={{ value: $readinessScore.overall }}>{$readinessScore.overall}</span><span class="score-pct">%</span></div>
 
   {#if $subjects.length > 0}
     <div class="seg-bar" aria-hidden="true">

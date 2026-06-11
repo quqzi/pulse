@@ -3,6 +3,7 @@
   import { auth } from '$lib/stores/auth';
   import { subjects, topics, sessions, streak, loadData } from '$lib/stores/data';
   import HeatmapGrid from '$lib/components/journey/HeatmapGrid.svelte';
+  import { countup } from '$lib/motion/countup';
   import { formatDuration, localDateStr } from '$lib/utils';
   import { HISTORY_WEEKS } from '$lib/constants';
   import { t, fmt } from '$lib/i18n';
@@ -71,12 +72,12 @@
     </div>
     <div class="stat-card">
       <div class="stat-label">{$t.journey.streak}</div>
-      <div class="stat-value">{$streak}<span class="stat-unit">{$t.journey.unitD}</span></div>
+      <div class="stat-value"><span use:countup={{ value: $streak }}>{$streak}</span><span class="stat-unit">{$t.journey.unitD}</span></div>
       <div class="stat-sub">{$streak > 0 ? $t.journey.streakKeepGoing : $t.journey.streakStart}</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">{$t.journey.sessions}</div>
-      <div class="stat-value">{totalSessions}</div>
+      <div class="stat-value"><span use:countup={{ value: totalSessions }}>{totalSessions}</span></div>
       <div class="stat-sub">{$t.journey.allTime}</div>
     </div>
   </div>
