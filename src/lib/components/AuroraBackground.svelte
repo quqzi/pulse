@@ -30,23 +30,23 @@
     will-change: transform;
   }
 
-  /* Colours pulled from the theme-aware subject palette → "colourful" but on-brand. */
+  /* Colours come from the per-theme aurora palette → cohesive with each accent. */
   .b1 {
     top: -12vmax;
     left: -8vmax;
-    background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--subject-math) 65%, transparent), transparent 70%);
+    background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--aurora-1) 62%, transparent), transparent 70%);
     animation: drift1 26s ease-in-out infinite;
   }
   .b2 {
     bottom: -14vmax;
     right: -10vmax;
-    background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--subject-english) 60%, transparent), transparent 70%);
+    background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--aurora-2) 58%, transparent), transparent 70%);
     animation: drift2 32s ease-in-out infinite;
   }
   .b3 {
     bottom: -6vmax;
     left: 18vmax;
-    background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--subject-social) 55%, transparent), transparent 70%);
+    background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--aurora-3) 55%, transparent), transparent 70%);
     animation: drift3 38s ease-in-out infinite;
   }
 
