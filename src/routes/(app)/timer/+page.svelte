@@ -268,7 +268,7 @@
     font-weight: 700;
     border: none;
     cursor: pointer;
-    transition: transform 400ms cubic-bezier(0.34,1.56,0.64,1);
+    transition: transform var(--dur-base) var(--ease-spring);
   }
   .btn-start:active { transform: scale(0.94); transition: transform 80ms ease-in; }
   .btn-start:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -282,7 +282,7 @@
     font-weight: 600;
     border: none;
     cursor: pointer;
-    transition: transform 400ms cubic-bezier(0.34,1.56,0.64,1);
+    transition: transform var(--dur-base) var(--ease-spring);
   }
   .btn-ctrl { background: var(--primary); color: var(--bg); }
   .btn-stop { background: var(--bg3); color: var(--text); }

@@ -112,7 +112,7 @@
   <div class="header-row">
     <h1 class="text-large-title page-title">{$t.scores.title}</h1>
     {#if !adding}
-      <button class="btn-add-score" on:click={openAdd}>+ {$t.scores.addScore}</button>
+      <button class="btn-add-score pressable" on:click={openAdd}>+ {$t.scores.addScore}</button>
     {/if}
   </div>
 
@@ -152,7 +152,7 @@
       {/if}
     </div>
   {:else}
-    <div class="score-list">
+    <div class="score-list stagger-children">
       {#each filteredScores as score (score.id)}
         {@const color = subjectColor(score.subjectId)}
         {@const pct = score.maxScore > 0 ? Math.round((score.score / score.maxScore) * 100) : 0}

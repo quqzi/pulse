@@ -95,7 +95,7 @@
     height: 100%;
     background: var(--hero-fill, rgba(255,255,255,.9));
     border-radius: 3px;
-    transition: transform 500ms cubic-bezier(.4,0,.2,1);
+    transition: transform var(--dur-slow) var(--ease-out);
   }
   .hero-footer { font-size: 12px; opacity: 0.7; }
 </style>

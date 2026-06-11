@@ -334,8 +334,7 @@ Guest mode is fully offline (localStorage); no account required.
 
 ### Open (ready to implement)
 
-- **WS5 polish** — `docs/superpowers/plans/2026-06-11-ws5-polish.md` (midnight-aware today, toast→undo, a11y pass, WeekGrid decomposition)
-- **WS6 motion** — `docs/superpowers/plans/2026-06-11-ws6-motion.md` (motion tokens, reduced-motion guard, stagger, count-ups, press states — run AFTER WS5)
+- _None — WS1–WS6 foundation roadmap complete._
 
 ### Planned (spec'd, plan not yet written)
 

@@ -55,7 +55,7 @@
   <p class="step"><span class="step-num">1</span>{$t.importer.step1}</p>
   <slot name="options" />
   <div class="prompt-row">
-    <button class="copy-btn" on:click={copyPrompt}>
+    <button class="copy-btn pressable" on:click={copyPrompt}>
       {copied ? $t.importer.copied : $t.importer.copyPrompt}
     </button>
     <button class="peek-btn" class:active={promptVisible} on:click={() => (promptVisible = !promptVisible)} aria-expanded={promptVisible}>
@@ -82,7 +82,7 @@
     <p class="parse-msg ok">{$t.importer.itemsReady(result.items.length)}</p>
   {/if}
 
-  <button class="import-btn" disabled={!result?.ok} on:click={doImport}>
+  <button class="import-btn pressable" disabled={!result?.ok} on:click={doImport}>
     {result?.ok ? $t.importer.importN(result.items.length) : $t.importer.importBtn}
   </button>
 </BottomSheet>

@@ -390,7 +390,7 @@
     font-weight: 600;
     cursor: pointer;
     text-decoration: none;
-    transition: transform 400ms cubic-bezier(0.34,1.56,0.64,1);
+    transition: transform var(--dur-base) var(--ease-spring);
   }
   .review-btn:active { transform: scale(0.94); transition: transform 80ms ease-in; }
   .del-btn {

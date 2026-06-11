@@ -256,6 +256,43 @@ body.theme-dark {
 /* One keyboard-focus ring for the whole app; pointer interactions are untouched. */
 :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
+/* --- Motion --- */
+/* The app's motion language: spring for playful movement, ease-out for data/progress. */
+:root {
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out:    cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast: 120ms;
+  --dur-base: 400ms;
+  --dur-slow: 500ms;
+}
+
+/* Honor reduced-motion globally — every animation/transition collapses to instant. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Stagger direct children on mount — pair with page entrances. Caps at 8 steps.
+   Never apply to a container whose children hold position:fixed descendants
+   (animation-fill-mode:both would trap them in a transformed containing block). */
+.stagger-children > * { animation: fadeUp var(--dur-base) var(--ease-out) both; }
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 30ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 60ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 90ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 120ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 150ms; }
+.stagger-children > *:nth-child(7) { animation-delay: 180ms; }
+.stagger-children > *:nth-child(n+8) { animation-delay: 200ms; }
+
+/* Unified press feedback for tap targets. */
+.pressable { transition: transform var(--dur-fast) var(--ease-out); }
+.pressable:active { transform: scale(0.96); }
+
 /* --- Typography --- */
 .text-large-title { font-size: 26px; font-weight: 700; font-family: var(--font-display, var(--font-sans, inherit)); letter-spacing: var(--tracking-display, -0.02em); }
 .text-heading     { font-size: 17px; font-weight: var(--weight-heading, 700); letter-spacing: var(--tracking-body, 0); }
@@ -301,7 +338,7 @@ body.theme-dark {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   border: none; cursor: pointer; font-family: inherit; font-weight: 600;
   border-radius: var(--radius-sm);
-  transition: transform 400ms cubic-bezier(0.34,1.56,0.64,1), opacity 140ms ease;
+  transition: transform var(--dur-base) var(--ease-spring), opacity var(--dur-fast) ease;
 }
 .btn:active { transform: scale(0.94); transition: transform 80ms ease-in; }
 @media (prefers-reduced-motion: reduce) { .btn, .btn:active { transition: none; transform: none; } }
@@ -322,7 +359,7 @@ body.theme-dark {
 
 /* --- Progress bar (scaleX — never width transition) --- */
 .progress-track { background: var(--bg3); border-radius: 999px; overflow: hidden; height: 6px; }
-.progress-fill  { height: 100%; background: var(--primary); border-radius: 999px; transform-origin: left; transition: transform 500ms cubic-bezier(.4,0,.2,1); }
+.progress-fill  { height: 100%; background: var(--primary); border-radius: 999px; transform-origin: left; transition: transform var(--dur-slow) var(--ease-out); }
 
 /* --- Subject tile hover glow --- */
 .subject-tile { background: var(--bg2); border-radius: var(--radius-md); padding: 14px; transition: transform 160ms ease-out, box-shadow 160ms ease-out; cursor: pointer; }

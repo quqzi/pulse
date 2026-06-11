@@ -48,7 +48,7 @@
     {#if dueDecks.length > 0}
       <section class="section">
         <div class="section-label">{$t.flashcards.dueToday}</div>
-        <div class="deck-list card">
+        <div class="deck-list card stagger-children">
           {#each dueDecks as d, i (d.topic.id)}
             <div class="deck-row" class:divider={i > 0}>
               <a class="deck-main" href="/flashcards/{d.topic.id}">

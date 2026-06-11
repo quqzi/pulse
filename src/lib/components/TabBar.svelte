@@ -49,7 +49,7 @@
     padding: 6px 12px; border-radius: 10px;
     border: none; background: transparent; color: var(--muted);
     text-decoration: none; cursor: pointer; font-family: inherit;
-    transition: transform 400ms cubic-bezier(0.34,1.56,0.64,1), opacity 140ms ease;
+    transition: transform var(--dur-base) var(--ease-spring), opacity var(--dur-fast) ease;
   }
   .tab-item:active { transform: scale(0.94); transition: transform 80ms ease-in; }
   .tab-item.active { color: var(--primary); opacity: 1; }

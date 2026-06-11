@@ -197,7 +197,7 @@
           </svg>
         </a>
         <button
-          class="auto-btn"
+          class="auto-btn pressable"
           class:loading={isScheduling}
           on:click={handleAutoSchedule}
           disabled={isScheduling}
