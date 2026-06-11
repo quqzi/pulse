@@ -74,7 +74,7 @@
     <span class="no-data">{$t.readiness.noData}</span>
   {/if}
 
-  <button class="start-btn" on:click={() => goto('/exam')}>{$t.readiness.startExam}</button>
+  <button class="start-btn pressable" on:click={() => goto('/exam')}>{$t.readiness.startExam}</button>
 </div>
 
 <style>
