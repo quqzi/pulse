@@ -8,72 +8,86 @@
   $: covered = subjectTopics.filter(t => t.done).length;
   $: total = subjectTopics.length;
   $: pct = total > 0 ? Math.round((covered / total) * 100) : 0;
-
-  const R = 24;
-  const C = 2 * Math.PI * R;
-  $: dash = (pct / 100) * C;
 </script>
 
-<button class="subject-tile" style="--subject-color: {subject.color};" on:click>
-  <div class="ring-wrap">
-    <svg class="ring" viewBox="0 0 56 56" aria-hidden="true">
-      <circle class="ring-track" cx="28" cy="28" r={R} />
-      <circle class="ring-arc" cx="28" cy="28" r={R} style="stroke-dasharray:{dash} {C - dash}" />
-    </svg>
-    <span class="symbol">{subject.symbol}</span>
+<button class="subject-tile" style="--subject-color: {subject.color}; --subject-rgb: {subject.colorRgb};" on:click>
+  <span class="chip">{subject.symbol}</span>
+  <div class="meta">
+    <div class="name">{subject.name}</div>
+    <div class="progress-row">
+      <div class="bar"><div class="bar-fill" style="transform: scaleX({pct / 100});"></div></div>
+      <span class="pct">{pct}%</span>
+    </div>
   </div>
-  <div class="pct">{pct}<span class="pct-sign">%</span></div>
-  <div class="name">{subject.name}</div>
 </button>
 
 <style>
   .subject-tile {
     background: var(--bg2);
     border-radius: 14px;
-    padding: 14px 10px 12px;
+    padding: 12px;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 6px;
+    gap: 10px;
     border: 1px solid var(--border);
     cursor: pointer;
-    transition: transform 160ms ease-out, box-shadow 160ms ease-out, background 160ms ease-out;
+    transition: transform var(--dur-base) var(--ease-spring), box-shadow 160ms ease-out, background 160ms ease-out;
     width: 100%;
-    text-align: center;
+    text-align: left;
   }
   .subject-tile:hover {
-    transform: translateY(-2px) scale(1.03);
+    transform: translateY(-2px);
     box-shadow: var(--shadow-md);
     background: var(--bg3);
   }
-  .subject-tile:active { transform: scale(0.96); }
+  .subject-tile:active { transform: scale(0.96); transition-duration: var(--dur-fast); }
 
-  .ring-wrap { position: relative; width: 56px; height: 56px; }
-  .ring { width: 56px; height: 56px; transform: rotate(-90deg); }
-  .ring-track { fill: none; stroke: var(--bg3); stroke-width: 4; }
-  .ring-arc {
-    fill: none; stroke: var(--subject-color); stroke-width: 4; stroke-linecap: round;
-    transition: stroke-dasharray var(--dur-slow, 500ms) var(--ease-out, ease);
+  /* iOS app-icon style chip: tinted squircle, symbol in the subject colour. */
+  .chip {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--subject-color);
+    background: rgba(var(--subject-rgb), 0.14);
   }
-  .symbol {
-    position: absolute; inset: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px; font-weight: 700; color: var(--subject-color); line-height: 1;
-  }
-  .pct {
-    font-size: 13px; font-weight: 700; color: var(--text); line-height: 1;
-    font-variant-numeric: tabular-nums;
-  }
-  .pct-sign { font-size: 10px; font-weight: 600; color: var(--muted); }
+
+  .meta { flex: 1; min-width: 0; }
   .name {
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 600;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
+    color: var(--text);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100%;
+    margin-bottom: 5px;
+  }
+
+  .progress-row { display: flex; align-items: center; gap: 6px; }
+  .bar {
+    flex: 1;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--bg3);
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--subject-color);
+    transform-origin: left;
+    transition: transform var(--dur-slow) var(--ease-out);
+  }
+  .pct {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
   }
 </style>
