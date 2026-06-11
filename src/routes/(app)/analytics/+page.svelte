@@ -6,7 +6,9 @@
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
   import StudyTrendChart from '$lib/components/analytics/StudyTrendChart.svelte';
   import { sessionsRepo } from '$lib/data/entities';
+  import { toast } from '$lib/stores/toast';
   import { t, fmt } from '$lib/i18n';
+  import { get } from 'svelte/store';
   import type { StudySession } from '$lib/types';
 
   function getWeekStart(date: Date): Date {
@@ -102,8 +104,13 @@
   }
   async function doDeleteSession() {
     if (!pendingDeleteSession) return;
-    await sessionsRepo.remove(pendingDeleteSession.id);
+    const snapshot = pendingDeleteSession;
     pendingDeleteSession = null;
+    await sessionsRepo.remove(snapshot.id);
+    toast.success(get(t).common.deletedUndo, {
+      label: get(t).common.undo,
+      fn: () => sessionsRepo.save(snapshot),
+    });
   }
 </script>
 

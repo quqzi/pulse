@@ -6,7 +6,9 @@
   import ScoreForm from '$lib/components/scores/ScoreForm.svelte';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
   import BottomSheet from '$lib/components/BottomSheet.svelte';
+  import { toast } from '$lib/stores/toast';
   import { t, fmt } from '$lib/i18n';
+  import { get } from 'svelte/store';
   import type { MockScore } from '$lib/types';
 
   onMount(() => loadData($auth));
@@ -89,9 +91,13 @@
 
   async function doDeleteScore() {
     if (!pendingDeleteScore) return;
-    const score = pendingDeleteScore;
+    const snapshot = pendingDeleteScore;
     pendingDeleteScore = null;
-    await scoresRepo.remove(score.id);
+    await scoresRepo.remove(snapshot.id);
+    toast.success(get(t).common.deletedUndo, {
+      label: get(t).common.undo,
+      fn: () => scoresRepo.save(snapshot),
+    });
   }
 </script>
 

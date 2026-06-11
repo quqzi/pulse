@@ -230,6 +230,8 @@ export const en = {
     cannotUndo: 'This cannot be undone.',
     remove: 'Remove',
     areYouSure: 'Are you sure?',
+    undo: 'Undo',
+    deletedUndo: 'Deleted',
     errSave: "Couldn't save — try again",
     errDelete: "Couldn't delete — try again",
   },

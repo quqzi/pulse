@@ -8,15 +8,14 @@
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
   import TaskForm from '$lib/components/tasks/TaskForm.svelte';
   import TaskItem from '$lib/components/tasks/TaskItem.svelte';
+  import { toast } from '$lib/stores/toast';
   import { t } from '$lib/i18n';
+  import { get } from 'svelte/store';
 
   type Filter = 'active' | 'all' | 'done';
 
   let filter: Filter = 'all';
   let adding = false;
-
-  let undoTask: Task | null = null;
-  let undoTimer: ReturnType<typeof setTimeout> | null = null;
 
   $: filtered = $tasks.filter(tp => {
     if (filter === 'active') return !tp.completedAt;
@@ -71,29 +70,14 @@
     taskConfirmOpen = true;
   }
 
-  function doDeleteTask() {
+  async function doDeleteTask() {
     if (!pendingDeleteTask) return;
-    const task = pendingDeleteTask;
+    const snapshot = pendingDeleteTask;
     pendingDeleteTask = null;
-    if (undoTimer) clearTimeout(undoTimer);
-    tasks.update(all => all.filter(tp => tp.id !== task.id));
-    undoTask = task;
-    undoTimer = setTimeout(async () => {
-      undoTask = null;
-      undoTimer = null;
-      await tasksRepo.remove(task.id);
-    }, 4000);
-  }
-
-  function undoDelete() {
-    if (!undoTask) return;
-    if (undoTimer) { clearTimeout(undoTimer); undoTimer = null; }
-    const restored = undoTask;
-    undoTask = null;
-    tasks.update(all => {
-      const exists = all.find(tp => tp.id === restored.id);
-      if (exists) return all;
-      return [restored, ...all];
+    await tasksRepo.remove(snapshot.id);
+    toast.success(get(t).common.deletedUndo, {
+      label: get(t).common.undo,
+      fn: () => tasksRepo.save(snapshot),
     });
   }
 
@@ -153,13 +137,6 @@
   {/if}
 </div>
 
-{#if undoTask}
-  <div class="toast">
-    <span>{$t.tasks.deleted}</span>
-    <button class="undo-btn" on:click={undoDelete}>{$t.tasks.undo}</button>
-  </div>
-{/if}
-
 <style>
   .page { padding: 20px 16px 80px; max-width: 600px; margin: 0 auto; }
   .header-row { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
@@ -192,32 +169,10 @@
 
   .empty { text-align: center; color: var(--muted); font-size: 14px; padding: 48px 0; }
 
-  .toast {
-    position: fixed; bottom: calc(var(--tab-bar-height, 60px) + 12px); left: 50%;
-    transform: translateX(-50%);
-    display: flex; align-items: center; gap: 12px;
-    background: var(--text); color: var(--bg);
-    padding: 10px 16px; border-radius: 12px;
-    font-size: 14px; font-weight: 500;
-    box-shadow: 0 4px 16px rgba(0,0,0,.2);
-    z-index: 200; animation: slide-up 180ms ease;
-  }
-  .undo-btn {
-    background: none; border: none; color: inherit; font-family: inherit;
-    font-size: 14px; font-weight: 700; cursor: pointer; padding: 0;
-    opacity: .8;
-  }
-  .undo-btn:hover { opacity: 1; }
-
   :global(body) {
     --priority-high: var(--danger);
     --priority-med:  var(--warning);
     --priority-low:  #6b7280;
-  }
-
-  @keyframes slide-up {
-    from { transform: translateX(-50%) translateY(8px); opacity: 0; }
-    to   { transform: translateX(-50%) translateY(0);   opacity: 1; }
   }
 
   @media (max-width: 768px) {
