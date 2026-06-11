@@ -28,6 +28,7 @@ export interface Settings {
   maxBlocksPerDay: number;     // 0 = no cap
   restDays: number[];          // 1–7 Mon–Sun; auto-schedule leaves these free
   subjectWeights: Record<string, number>; // subjectId → 0.5 | 1 | 2 (default 1)
+  readinessHoursTarget: number; // hours per subject per 30 days = full hours score
 }
 
 export function defaults(): Settings {
@@ -50,6 +51,7 @@ export function defaults(): Settings {
     maxBlocksPerDay: 0,
     restDays: [],
     subjectWeights: {},
+    readinessHoursTarget: 20,
   };
 }
 

@@ -28,9 +28,16 @@
     </div>
     <div class="legend">
       {#each SEGMENTS as seg (seg.key)}
+        {@const stats = $readinessScore.stats}
         <div class="legend-row">
           <span class="legend-swatch" style="opacity:{seg.opacity}"></span>
           <span class="legend-name">{$t.readiness[seg.labelKey]}</span>
+          <span class="legend-real">
+            {#if seg.key === 'coverage'}{$t.readiness.topicsOf(stats.topicsDone, stats.topicsTotal)}
+            {:else if seg.key === 'hours'}{$t.readiness.hoursOf(stats.recentHours, stats.hoursTarget)}
+            {:else if stats.examCount === 0}{$t.readiness.examsNone}
+            {:else}{$t.readiness.examsOf(stats.examAccuracy, stats.examCount)}{/if}
+          </span>
           <span class="legend-pts">{$t.readiness.ptsOf($readinessScore.parts[seg.key], seg.max)}</span>
         </div>
       {/each}
@@ -46,6 +53,7 @@
           <svg class="chev" class:flip={expandedId === subj.id} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
         </button>
         {#if expandedId === subj.id && parts}
+          {@const st = $readinessScore.statsBySubject[subj.id]}
           <div class="subj-detail">
             <div class="seg-bar small" style="--subj-color:{subj.color}" aria-hidden="true">
               {#each SEGMENTS as seg (seg.key)}
@@ -53,9 +61,9 @@
               {/each}
             </div>
             <div class="detail-rows">
-              {#each SEGMENTS as seg (seg.key)}
-                <span class="detail-item">{$t.readiness[seg.labelKey]} <strong>{$t.readiness.ptsOf(parts[seg.key], seg.max)}</strong></span>
-              {/each}
+              <span class="detail-item">{$t.readiness.partCoverage} <strong>{$t.readiness.topicsOf(st.topicsDone, st.topicsTotal)}</strong></span>
+              <span class="detail-item">{$t.readiness.partHours} <strong>{$t.readiness.hoursOf(st.recentHours, st.hoursTarget)}</strong></span>
+              <span class="detail-item">{$t.readiness.partExam} <strong>{st.examCount === 0 ? $t.readiness.examsNone : $t.readiness.examsOf(st.examAccuracy, st.examCount)}</strong></span>
             </div>
           </div>
         {/if}
@@ -84,7 +92,8 @@
   .legend-row { display: flex; align-items: center; gap: 8px; font-size: 12px; }
   .legend-swatch { width: 10px; height: 10px; border-radius: 3px; background: var(--primary); flex-shrink: 0; }
   .legend-name { color: var(--muted); flex: 1; }
-  .legend-pts { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .legend-real { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .legend-pts { color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; min-width: 34px; text-align: right; }
 
   .subject-list { display: flex; flex-direction: column; border-top: 1px solid var(--border); padding-top: 4px; }
   .subject-row {

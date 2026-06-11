@@ -26,6 +26,7 @@ function baseSettings(over: Partial<Settings> = {}): Settings {
     maxBlocksPerDay: 0,
     restDays: [],
     subjectWeights: {},
+    readinessHoursTarget: 20,
     ...over,
   };
 }
