@@ -252,6 +252,36 @@ body.theme-dark {
   --subject-social:    #a78bfa;
 }
 
+/* --- Aurora palette ---
+   A curated, cohesive trio per theme so the ambient background harmonises with
+   each design language's accent instead of the multi-hue subject palette. */
+:root {
+  --aurora-1: #6366f1;  /* indigo */
+  --aurora-2: #a855f7;  /* violet */
+  --aurora-3: #38bdf8;  /* sky    */
+}
+body.design-vercel.theme-dark {
+  --aurora-1: #4f46e5;
+  --aurora-2: #9333ea;
+  --aurora-3: #2563eb;
+}
+body.design-apple {
+  --aurora-1: #0a84ff;  /* apple system blue   */
+  --aurora-2: #5e5ce6;  /* apple system indigo */
+  --aurora-3: #64d2ff;  /* apple system cyan   */
+}
+body.design-apple.theme-dark {
+  --aurora-1: #2997ff;
+  --aurora-2: #7d7aff;
+  --aurora-3: #64d2ff;
+}
+body.design-resend,
+body.design-resend.theme-dark {
+  --aurora-1: #3b82f6;
+  --aurora-2: #8b5cf6;
+  --aurora-3: #22d3ee;
+}
+
 /* --- Focus --- */
 /* One keyboard-focus ring for the whole app; pointer interactions are untouched. */
 :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }

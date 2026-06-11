@@ -40,7 +40,8 @@
   }
   .subject-tile:hover {
     transform: translateY(-2px) scale(1.04);
-    box-shadow: 0 4px 16px rgba(var(--subject-color-rgb), 0.35);
+    box-shadow: var(--shadow-md);
+    background: var(--bg3);
   }
   .subject-tile:active { transform: scale(0.96); }
   .symbol {
