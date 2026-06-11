@@ -7,6 +7,7 @@
   import { parseExamQuestions, examPrompt, type ExamQuestionDraft, type ExamPromptDifficulty } from '$lib/import';
   import { toast } from '$lib/stores/toast';
   import ImportSheet from '$lib/components/ImportSheet.svelte';
+  import EmptyState from '$lib/components/EmptyState.svelte';
   import { t } from '$lib/i18n';
   import { get } from 'svelte/store';
   import type { ExamQuestion } from '$lib/types';
@@ -214,10 +215,11 @@
   {/if}
 
   {#if filteredQuestions.length === 0}
-    <div class="empty-state">
-      <p class="empty-title">{$examQuestions.length === 0 ? $t.exam.emptyNoQuestions : $t.exam.emptyNoMatch}</p>
-      <p class="empty-sub">{$examQuestions.length === 0 ? $t.exam.emptyAddFirst : $t.exam.emptyTryDifferent}</p>
-    </div>
+    <EmptyState
+      icon="doc"
+      title={$examQuestions.length === 0 ? $t.exam.emptyNoQuestions : $t.exam.emptyNoMatch}
+      sub={$examQuestions.length === 0 ? $t.exam.emptyAddFirst : $t.exam.emptyTryDifferent}
+    />
   {:else}
     <div class="question-list">
       {#each filteredQuestions as q (q.id)}
@@ -271,9 +273,6 @@
   .opt-label { font-size: 12px; color: var(--muted); margin-right: 2px; min-width: 52px; }
   .opt-pill { padding: 6px 12px; border-radius: 999px; border: 1.5px solid var(--border); background: var(--bg); color: var(--muted); font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; min-height: 32px; }
   .opt-pill.active { border-color: var(--primary); background: var(--primary-l); color: var(--primary); }
-  .empty-state { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 32px 16px; text-align: center; }
-  .empty-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
-  .empty-sub { font-size: 13px; color: var(--muted); }
   .question-list { display: flex; flex-direction: column; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
   .question-row { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; background: var(--bg2); }
   .q-content { flex: 1; min-width: 0; }
