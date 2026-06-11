@@ -108,7 +108,7 @@
 </script>
 
 <div class="analytics-page">
-  <h1 class="page-title">{$t.analytics.title}</h1>
+  <h1 class="text-large-title page-title">{$t.analytics.title}</h1>
 
   <div class="stat-grid">
     <div class="stat-card">
@@ -239,7 +239,7 @@
 
 <style>
   .analytics-page { padding: 20px 16px 0; max-width: 720px; margin: 0 auto; }
-  .page-title { font-size: 22px; font-weight: 700; margin-bottom: 20px; color: var(--text); }
+  .page-title { margin-bottom: 20px; color: var(--text); }
 
   .stat-grid {
     display: grid;

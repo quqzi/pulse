@@ -252,6 +252,10 @@ body.theme-dark {
   --subject-social:    #a78bfa;
 }
 
+/* --- Focus --- */
+/* One keyboard-focus ring for the whole app; pointer interactions are untouched. */
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
 /* --- Typography --- */
 .text-large-title { font-size: 26px; font-weight: 700; font-family: var(--font-display, var(--font-sans, inherit)); letter-spacing: var(--tracking-display, -0.02em); }
 .text-heading     { font-size: 17px; font-weight: var(--weight-heading, 700); letter-spacing: var(--tracking-body, 0); }
