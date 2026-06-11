@@ -4,13 +4,17 @@
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import { auth } from '$lib/stores/auth';
-  import { topics, flashcards, loadData, getAuthContext } from '$lib/stores/data';
+  import { topics, subjects, flashcards, loadData, getAuthContext } from '$lib/stores/data';
   import { flashcardsRepo, topicsRepo } from '$lib/data/entities';
   import { newId } from '$lib/id';
   import { presetDate } from '$lib/flashcards';
   import { localDateStr } from '$lib/utils';
+  import { parseFlashcards, flashcardPrompt, type FlashcardDraft } from '$lib/import';
+  import { toast } from '$lib/stores/toast';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
+  import ImportSheet from '$lib/components/ImportSheet.svelte';
   import { t } from '$lib/i18n';
+  import { get } from 'svelte/store';
   import type { Flashcard } from '$lib/types';
 
   onMount(() => {
@@ -62,6 +66,26 @@
       createdAt: existing?.createdAt ?? new Date().toISOString(),
     });
     resetForm();
+  }
+
+  // ── AI import ─────────────────────────────────────────────
+  let importOpen = false;
+  $: subjectName = $subjects.find(s => s.id === topic?.subjectId)?.name;
+  $: importPrompt = flashcardPrompt(topic?.name ?? '', subjectName);
+
+  async function handleImport(e: CustomEvent<{ items: unknown[] }>) {
+    if (!topicId) return;
+    const { userId } = getAuthContext();
+    const drafts = e.detail.items as FlashcardDraft[];
+    for (const d of drafts) {
+      await flashcardsRepo.save({
+        id: newId(), userId, topicId,
+        front: d.front, back: d.back,
+        createdAt: new Date().toISOString(),
+      });
+    }
+    importOpen = false;
+    toast.success(get(t).importer.importedToast(drafts.length));
   }
 
   let deleteOpen = false;
@@ -165,8 +189,11 @@
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5m7-7l-7 7 7 7"/></svg>
     </button>
     <h1 class="page-title">{topic?.name ?? '…'}</h1>
+    <button class="import-open-btn" on:click={() => (importOpen = true)}>✦ {$t.importer.open}</button>
     {#if deckCards.length > 0}<button class="study-deck-btn" on:click={startStudy}>{$t.flashcards.study}</button>{/if}
   </div>
+
+  <ImportSheet bind:open={importOpen} prompt={importPrompt} parse={parseFlashcards} on:import={handleImport} on:close={() => (importOpen = false)} />
 
   {#if deckCards.length === 0}
     <p class="deck-empty">{$t.flashcards.deckEmpty}</p>
@@ -206,6 +233,9 @@
   .back-btn { background: var(--bg3); border: none; border-radius: 10px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text); flex-shrink: 0; }
   .page-title { font-size: 20px; font-weight: 700; color: var(--text); margin: 0; margin-right: auto; }
   .study-deck-btn { padding: 8px 16px; border-radius: 16px; border: none; background: var(--primary); color: var(--bg); font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; flex-shrink: 0; }
+  .import-open-btn { padding: 8px 14px; border-radius: 16px; border: 1.5px solid var(--border); background: var(--bg2); color: var(--text); font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; flex-shrink: 0; }
+  .import-open-btn:hover { background: var(--bg3); }
+  @media (max-width: 768px) { .import-open-btn, .study-deck-btn { min-height: 44px; } }
   .deck-empty { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
   .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); }
   .card-list { overflow: hidden; margin-bottom: 16px; }
