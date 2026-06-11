@@ -6,6 +6,7 @@
   import SubjectTile from '$lib/components/SubjectTile.svelte';
   import SubjectEditSheet from '$lib/components/subjects/SubjectEditSheet.svelte';
   import BottomSheet from '$lib/components/BottomSheet.svelte';
+  import EmptyState from '$lib/components/EmptyState.svelte';
   import { templatesRepo, subjectsRepo } from '$lib/data/entities';
   import { newId } from '$lib/id';
   import type { Subject, Template, SubjectPreset } from '$lib/types';
@@ -83,10 +84,9 @@
   </div>
 
   {#if $subjects.length === 0}
-    <div class="empty-state">
-      <p class="text-body empty">{$t.subjects.emptyTitle}</p>
-      <a href="/subjects/templates" class="btn-primary-link">{$t.subjects.browseTemplates}</a>
-    </div>
+    <EmptyState icon="book" title={$t.subjects.emptyTitle}>
+      <a href="/subjects/templates" class="empty-action">{$t.subjects.browseTemplates} →</a>
+    </EmptyState>
   {:else}
     <div class="subjects-grid">
       {#each $subjects as subject (subject.id)}
@@ -136,14 +136,6 @@
     width: 32px; height: 32px; border-radius: 50%; border: none;
     background: var(--primary); color: var(--bg);
     font-size: 20px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center;
-  }
-
-  .empty-state { text-align: center; padding: 48px 0; }
-  .empty { color: var(--muted); margin-bottom: 16px; }
-  .btn-primary-link {
-    display: inline-block; padding: 10px 20px; border-radius: var(--radius-md);
-    background: var(--primary); color: var(--bg); font-size: 14px; font-weight: 600;
-    text-decoration: none;
   }
 
   .subjects-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }

@@ -4,6 +4,7 @@
   import { insights, loadData } from '$lib/stores/data';
   import { t } from '$lib/i18n';
   import InsightCard from '$lib/components/insights/InsightCard.svelte';
+  import EmptyState from '$lib/components/EmptyState.svelte';
 
   onMount(() => loadData($auth));
   $: if ($auth.mode !== 'loading') loadData($auth);
@@ -16,11 +17,9 @@
   </header>
 
   {#if $insights.length === 0}
-    <div class="empty-state">
-      <p class="empty-title">{$t.insights.emptyTitle}</p>
-      <p class="empty-sub">{$t.insights.emptySub}</p>
+    <EmptyState icon="sparkle" title={$t.insights.emptyTitle} sub={$t.insights.emptySub}>
       <a class="empty-action" href="/timer">{$t.insights.emptyAction} →</a>
-    </div>
+    </EmptyState>
   {:else}
     <div class="feed stagger-children">
       {#each $insights as insight (insight.id)}
@@ -36,9 +35,4 @@
   .page-title { margin: 0; color: var(--text); }
   .page-sub { font-size: 13px; color: var(--muted); margin: 4px 0 0; }
   .feed { display: flex; flex-direction: column; gap: 10px; }
-  .empty-state { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 32px 16px; text-align: center; }
-  .empty-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
-  .empty-sub { font-size: 13px; color: var(--muted); }
-  .empty-action { display: inline-block; margin-top: 12px; font-size: 13px; font-weight: 600; color: var(--primary); text-decoration: none; }
-  .empty-action:hover { text-decoration: underline; }
 </style>

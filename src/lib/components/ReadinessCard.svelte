@@ -12,6 +12,20 @@
     { key: 'hours', max: 30, labelKey: 'partHours', opacity: 0.55 },
     { key: 'exam', max: 30, labelKey: 'partExam', opacity: 0.25 },
   ] as const;
+
+  const R = 52;
+  const C = 2 * Math.PI * R;
+  // Three consecutive arcs around the ring — each part's earned points are
+  // already out of a 100-point total (40+30+30), so points map straight to %.
+  $: arcs = (() => {
+    let start = 0;
+    return SEGMENTS.map((seg) => {
+      const len = ($readinessScore.parts[seg.key] / 100) * C;
+      const arc = { len, offset: -start, opacity: seg.opacity };
+      start += len;
+      return arc;
+    });
+  })();
 </script>
 
 <div class="card">
@@ -19,14 +33,23 @@
     <span class="card-label">{$t.readiness.title}</span>
   </div>
 
-  <div class="score-big"><span use:countup={{ value: $readinessScore.overall }}>{$readinessScore.overall}</span><span class="score-pct">%</span></div>
-
   {#if $subjects.length > 0}
-    <div class="seg-bar" aria-hidden="true">
-      {#each SEGMENTS as seg (seg.key)}
-        <div class="seg" style="width:{$readinessScore.parts[seg.key]}%; opacity:{seg.opacity}"></div>
-      {/each}
+    <div class="gauge-wrap">
+      <svg class="gauge" viewBox="0 0 120 120" aria-hidden="true">
+        <circle class="gauge-track" cx="60" cy="60" r={R} />
+        {#each arcs as a, i (i)}
+          <circle
+            class="gauge-arc"
+            cx="60" cy="60" r={R}
+            style="stroke-dasharray:{a.len} {C - a.len}; stroke-dashoffset:{a.offset}; opacity:{a.opacity}"
+          />
+        {/each}
+      </svg>
+      <div class="gauge-center">
+        <span class="gauge-num" use:countup={{ value: $readinessScore.overall }}>{$readinessScore.overall}</span><span class="gauge-pct">%</span>
+      </div>
     </div>
+
     <div class="legend">
       {#each SEGMENTS as seg (seg.key)}
         {@const stats = $readinessScore.stats}
@@ -81,13 +104,20 @@
   .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; display: flex; flex-direction: column; gap: 12px; }
   .card-header { display: flex; justify-content: space-between; align-items: center; }
   .card-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
-  .score-big { font-size: 52px; font-weight: 700; color: var(--primary); line-height: 1; }
-  .score-pct { font-size: 22px; font-weight: 400; }
+  .gauge-wrap { position: relative; width: 124px; height: 124px; align-self: center; margin: 4px 0; }
+  .gauge { width: 124px; height: 124px; transform: rotate(-90deg); }
+  .gauge-track { fill: none; stroke: var(--bg3); stroke-width: 11; }
+  .gauge-arc {
+    fill: none; stroke: var(--primary); stroke-width: 11;
+    transition: stroke-dasharray var(--dur-slow) var(--ease-out), stroke-dashoffset var(--dur-slow) var(--ease-out);
+  }
+  .gauge-center { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+  .gauge-num { font-size: 38px; font-weight: 700; color: var(--primary); line-height: 1; font-variant-numeric: tabular-nums; }
+  .gauge-pct { font-size: 16px; font-weight: 400; color: var(--muted); align-self: flex-start; margin-top: 34px; }
 
-  .seg-bar { display: flex; gap: 2px; height: 8px; border-radius: 4px; background: var(--bg3); overflow: hidden; }
-  .seg-bar.small { height: 5px; margin-bottom: 6px; }
-  .seg { background: var(--primary); border-radius: 2px; min-width: 0; }
-  .seg.subj { background: var(--subj-color); }
+  /* Per-subject mini bar (kept) */
+  .seg-bar.small { display: flex; gap: 2px; height: 5px; border-radius: 4px; background: var(--bg3); overflow: hidden; margin-bottom: 6px; }
+  .seg.subj { background: var(--subj-color); border-radius: 2px; min-width: 0; }
 
   .legend { display: flex; flex-direction: column; gap: 4px; }
   .legend-row { display: flex; align-items: center; gap: 8px; font-size: 12px; }

@@ -4,6 +4,7 @@
   import { topics, subjects, flashcards, loadData } from '$lib/stores/data';
   import { deckState, isDeckDue } from '$lib/flashcards';
   import { localDateStr } from '$lib/utils';
+  import EmptyState from '$lib/components/EmptyState.svelte';
   import { t, fmt } from '$lib/i18n';
   import type { Topic, Subject } from '$lib/types';
 
@@ -40,10 +41,7 @@
   <h1 class="text-large-title page-title">{$t.flashcards.title}</h1>
 
   {#if decks.length === 0}
-    <div class="empty-state">
-      <p class="empty-title">{$t.flashcards.emptyTitle}</p>
-      <p class="empty-sub">{$t.flashcards.emptySub}</p>
-    </div>
+    <EmptyState icon="cards" title={$t.flashcards.emptyTitle} sub={$t.flashcards.emptySub} />
   {:else}
     {#if dueDecks.length > 0}
       <section class="section">
@@ -109,9 +107,6 @@
   .deck-meta.due { color: var(--primary); font-weight: 600; }
   .study-btn { padding: 6px 14px; border-radius: 16px; background: var(--primary); color: var(--bg); font-size: 12px; font-weight: 600; text-decoration: none; flex-shrink: 0; transition: transform 120ms ease; }
   .study-btn:active { transform: scale(0.95); }
-  .empty-state { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 32px 16px; text-align: center; }
-  .empty-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
-  .empty-sub { font-size: 13px; color: var(--muted); }
   .bottom-spacer { height: 40px; }
   @media (max-width: 768px) { .study-btn { min-height: 44px; display: inline-flex; align-items: center; } }
 </style>

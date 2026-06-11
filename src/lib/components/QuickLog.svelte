@@ -43,9 +43,12 @@
   <div class="quick-card card" class:done>
     {#if done}
       <div class="done-state">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20 6L9 17l-5-5"/>
-        </svg>
+        <span class="check-badge">
+          <span class="pulse-ring" aria-hidden="true"></span>
+          <svg class="check" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 6L9 17l-5-5"/>
+          </svg>
+        </span>
         <span>{$t.dashboard.logged}</span>
       </div>
     {:else}
@@ -149,11 +152,44 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 10px;
     padding: 8px 0;
     font-size: 15px;
     font-weight: 600;
     color: var(--primary);
+  }
+  .check-badge {
+    position: relative;
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: color-mix(in srgb, var(--primary) 14%, transparent);
+    color: var(--primary);
+    animation: badge-pop var(--dur-base) var(--ease-spring);
+  }
+  .check { display: block; }
+  .check path {
+    stroke-dasharray: 24;
+    stroke-dashoffset: 0;
+    animation: check-draw 360ms var(--ease-out) 100ms backwards;
+  }
+  .pulse-ring {
+    position: absolute; inset: 0; border-radius: 50%;
+    border: 2px solid var(--primary);
+    opacity: 0;
+    animation: ring-pulse 640ms var(--ease-out);
+  }
+  @keyframes badge-pop {
+    0%   { transform: scale(0); }
+    60%  { transform: scale(1.12); }
+    100% { transform: scale(1); }
+  }
+  @keyframes check-draw {
+    from { stroke-dashoffset: 24; }
+    to   { stroke-dashoffset: 0; }
+  }
+  @keyframes ring-pulse {
+    0%   { opacity: 0.55; transform: scale(0.6); }
+    100% { opacity: 0; transform: scale(2.1); }
   }
 
   @media (max-width: 768px) {
