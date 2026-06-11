@@ -3,6 +3,7 @@
   import { createEventDispatcher } from 'svelte';
   import { browser } from '$app/environment';
   import { anchored } from '$lib/actions/anchored';
+  import { snap, toLocalISO, dayIndexFrom } from './grid-math';
   import CalBlock from './CalBlock.svelte';
   import BlockPopover from './BlockPopover.svelte';
   import { t, fmt } from '$lib/i18n';
@@ -58,11 +59,7 @@
 
   // ── Helpers ───────────────────────────────────────────────────
   function slotDayIdx(slot: ScheduleSlot): number {
-    const start = new Date(slot.startTime);
-    start.setHours(0, 0, 0, 0);
-    const base = new Date(weekStart);
-    base.setHours(0, 0, 0, 0);
-    return Math.round((start.getTime() - base.getTime()) / 86400000);
+    return dayIndexFrom(weekStart, new Date(slot.startTime));
   }
 
   function slotStyle(slot: ScheduleSlot): string {
@@ -88,10 +85,7 @@
     for (let i = 0; i < 7; i++) map.set(i, []);
     for (const task of tasks) {
       if (!task.dueDate || task.completedAt) continue;
-      const due = new Date(task.dueDate + 'T00:00:00');
-      const base = new Date(weekStart);
-      base.setHours(0, 0, 0, 0);
-      const idx = Math.round((due.getTime() - base.getTime()) / 86400000);
+      const idx = dayIndexFrom(weekStart, new Date(task.dueDate + 'T00:00:00'));
       if (idx >= 0 && idx < 7) map.get(idx)!.push(task);
     }
     return map;
@@ -163,19 +157,6 @@
     return d.getFullYear() === now.getFullYear()
       && d.getMonth() === now.getMonth()
       && d.getDate() === now.getDate();
-  }
-
-  // ── Snap & time utils ─────────────────────────────────────────
-  function snap(min: number): number {
-    return Math.round(min / 15) * 15;
-  }
-
-  function toLocalISO(day: Date, totalMinutes: number): string {
-    const clamped = Math.max(START_HOUR * 60, Math.min(END_HOUR * 60, totalMinutes));
-    const d = new Date(day);
-    d.setHours(Math.floor(clamped / 60), clamped % 60, 0, 0);
-    const pad = (n: number) => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:00`;
   }
 
   // ── Drag state ────────────────────────────────────────────────
