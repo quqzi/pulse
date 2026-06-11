@@ -315,6 +315,9 @@
     <div class="question-card">
       <span class="subject-badge">{current.subject.toUpperCase()}</span>
       <p class="question-text">{current.text}</p>
+      {#if current.imageUrl}
+        <img class="question-image" src={current.imageUrl} alt={$t.exam.imageAlt} />
+      {/if}
 
       <div class="choices">
         {#each current.choices as choice, i}
@@ -410,6 +413,10 @@
   .question-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 24px; }
   .subject-badge { display: inline-block; background: var(--primary-l); color: var(--primary); font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 10px; letter-spacing: .5px; margin-bottom: 12px; }
   .question-text { font-size: 15px; font-weight: 500; color: var(--text); line-height: 1.5; margin: 0 0 20px; }
+  .question-image {
+    display: block; max-width: 100%; max-height: 300px; margin: 0 0 16px;
+    border-radius: var(--radius-md); border: 1px solid var(--border);
+  }
   .choices { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
   .choice { display: flex; align-items: center; gap: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px 14px; font-size: 14px; color: var(--text); cursor: pointer; text-align: left; font-family: inherit; }
   .choice.selected { border-color: var(--primary); background: var(--primary-l); color: var(--text); }

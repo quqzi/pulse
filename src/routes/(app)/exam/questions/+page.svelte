@@ -8,6 +8,7 @@
   import { toast } from '$lib/stores/toast';
   import ImportSheet from '$lib/components/ImportSheet.svelte';
   import EmptyState from '$lib/components/EmptyState.svelte';
+  import { fileToDownscaledDataUrl } from '$lib/image';
   import { t } from '$lib/i18n';
   import { get } from 'svelte/store';
   import type { ExamQuestion } from '$lib/types';
@@ -28,6 +29,22 @@
   let formSubject = '';
   let formDifficulty: ExamQuestion['difficulty'] = 'medium';
   let formYear = '';
+  let formImageUrl: string | undefined;
+  let imageLoading = false;
+
+  async function onPickImage(e: Event) {
+    const file = (e.currentTarget as HTMLInputElement).files?.[0];
+    if (!file) return;
+    imageLoading = true;
+    try {
+      formImageUrl = await fileToDownscaledDataUrl(file);
+    } catch {
+      toast.error(get(t).exam.imageError);
+    } finally {
+      imageLoading = false;
+      (e.currentTarget as HTMLInputElement).value = '';
+    }
+  }
 
   $: filteredQuestions = $examQuestions.filter((q) => {
     const matchesSearch = search === '' || q.text.toLowerCase().includes(search.toLowerCase());
@@ -45,6 +62,7 @@
     formSubject = $subjects[0]?.name ?? '';
     formDifficulty = 'medium';
     formYear = '';
+    formImageUrl = undefined;
     showForm = true;
   }
 
@@ -56,6 +74,7 @@
     formSubject = q.subject;
     formDifficulty = q.difficulty;
     formYear = q.year ? String(q.year) : '';
+    formImageUrl = q.imageUrl;
     showForm = true;
   }
 
@@ -76,6 +95,7 @@
       subject: formSubject,
       difficulty: formDifficulty,
       year: formYear ? parseInt(formYear, 10) : undefined,
+      imageUrl: formImageUrl,
       createdAt: editingQuestion?.createdAt ?? new Date().toISOString(),
     };
     await examQuestionsRepo.save(q);
@@ -205,6 +225,19 @@
         </div>
       </div>
 
+      <span class="field-label">{$t.exam.imageLabel}</span>
+      {#if formImageUrl}
+        <div class="image-preview">
+          <img src={formImageUrl} alt={$t.exam.imageAlt} />
+          <button class="image-remove" on:click={() => (formImageUrl = undefined)} aria-label={$t.exam.imageRemove}>✕</button>
+        </div>
+      {:else}
+        <label class="image-drop" class:loading={imageLoading}>
+          <input type="file" accept="image/*" on:change={onPickImage} hidden />
+          <span>{imageLoading ? $t.exam.imageLoading : $t.exam.imageAdd}</span>
+        </label>
+      {/if}
+
       <div class="form-actions">
         <button class="btn-secondary" on:click={cancelForm}>{$t.common.cancel}</button>
         <button class="btn-primary" on:click={saveQuestion} disabled={!formText.trim() || formChoices.some((c) => !c.trim())}>
@@ -224,6 +257,7 @@
     <div class="question-list">
       {#each filteredQuestions as q (q.id)}
         <div class="question-row">
+          {#if q.imageUrl}<img class="q-thumb" src={q.imageUrl} alt={$t.exam.imageAlt} />{/if}
           <div class="q-content">
             <p class="q-text">{q.text}</p>
             <div class="q-tags">
@@ -266,6 +300,29 @@
   .form-row { display: flex; gap: 12px; }
   .form-col { flex: 1; }
   .form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+  .image-drop {
+    display: flex; align-items: center; justify-content: center;
+    padding: 18px; border: 1.5px dashed var(--border); border-radius: var(--radius-md);
+    background: var(--bg); color: var(--muted); font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: border-color 120ms ease, color 120ms ease;
+  }
+  .image-drop:hover { border-color: var(--primary); color: var(--text); }
+  .image-drop.loading { opacity: 0.6; cursor: progress; }
+  .image-preview { position: relative; display: inline-block; max-width: 100%; }
+  .image-preview img {
+    max-width: 100%; max-height: 220px; border-radius: var(--radius-md);
+    border: 1px solid var(--border); display: block;
+  }
+  .image-remove {
+    position: absolute; top: 6px; right: 6px;
+    width: 28px; height: 28px; border-radius: 50%; border: none;
+    background: rgba(0,0,0,0.6); color: #fff; cursor: pointer; font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .q-thumb {
+    width: 48px; height: 48px; object-fit: cover; border-radius: 8px;
+    border: 1px solid var(--border); flex-shrink: 0;
+  }
   .import-subject-row { margin-bottom: 10px; }
   .import-subject-row .field-label { margin-top: 0; }
   .import-options { margin-bottom: 4px; }

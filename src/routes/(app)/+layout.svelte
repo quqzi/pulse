@@ -4,9 +4,12 @@
   import Sidebar from '$lib/components/Sidebar.svelte';
   import MoreDrawer from '$lib/components/MoreDrawer.svelte';
   import Toaster from '$lib/components/Toaster.svelte';
+  import AuroraBackground from '$lib/components/AuroraBackground.svelte';
 
   let drawerOpen = false;
 </script>
+
+<AuroraBackground />
 
 <div class="app-shell">
   <div class="sidebar-slot"><Sidebar /></div>

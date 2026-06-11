@@ -126,6 +126,7 @@ export interface ExamQuestion {
   subject: string;      // subject name (questions are authored free-form)
   difficulty: 'easy' | 'medium' | 'hard';
   year?: number;
+  imageUrl?: string;    // optional downscaled data-URI (diagram / figure)
   createdAt: string;    // ISO timestamp
 }
 
