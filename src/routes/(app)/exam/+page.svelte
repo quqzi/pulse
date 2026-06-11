@@ -219,7 +219,7 @@
   <div class="page">
     <div class="page-header">
       <div>
-        <h1 class="page-title">{$t.exam.title}</h1>
+        <h1 class="text-large-title page-title">{$t.exam.title}</h1>
         <p class="page-sub">{$t.exam.configureSession}</p>
       </div>
       <a href="/exam/questions" class="btn-secondary">{$t.exam.manageQuestions}</a>
@@ -371,7 +371,7 @@
   .page { max-width: 600px; margin: 0 auto; padding: 32px 24px; }
   .page-exam { max-width: 560px; }
   .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; gap: 12px; }
-  .page-title { font-size: 22px; font-weight: 700; color: var(--text); margin: 0 0 2px; }
+  .page-title { color: var(--text); margin: 0 0 2px; }
   .page-sub { font-size: 13px; color: var(--muted); margin: 0; }
   .btn-primary { background: var(--primary); color: var(--bg); border: none; border-radius: var(--radius-md); padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; }
   .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }

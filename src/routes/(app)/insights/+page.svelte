@@ -11,7 +11,7 @@
 
 <div class="insights-page">
   <header class="page-head">
-    <h1 class="page-title">{$t.insights.title}</h1>
+    <h1 class="text-large-title page-title">{$t.insights.title}</h1>
     <p class="page-sub">{$t.insights.sub}</p>
   </header>
 
@@ -33,7 +33,7 @@
 <style>
   .insights-page { padding: 20px 16px 80px; max-width: 720px; margin: 0 auto; }
   .page-head { margin-bottom: 20px; }
-  .page-title { font-size: 22px; font-weight: 700; margin: 0; color: var(--text); }
+  .page-title { margin: 0; color: var(--text); }
   .page-sub { font-size: 13px; color: var(--muted); margin: 4px 0 0; }
   .feed { display: flex; flex-direction: column; gap: 10px; }
   .empty-state { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 32px 16px; text-align: center; }

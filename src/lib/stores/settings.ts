@@ -22,6 +22,12 @@ export interface Settings {
   energyProfile: 'morning' | 'evening' | 'neutral';
   bufferMinutes: number;
   examDate: string | null;
+  studyStart: string;          // "06:00" — earliest auto-scheduled block
+  studyEnd: string;            // "22:00" — latest auto-scheduled block end
+  blockMinutes: number;        // preferred max block length (45 | 60 | 90)
+  maxBlocksPerDay: number;     // 0 = no cap
+  restDays: number[];          // 1–7 Mon–Sun; auto-schedule leaves these free
+  subjectWeights: Record<string, number>; // subjectId → 0.5 | 1 | 2 (default 1)
 }
 
 export function defaults(): Settings {
@@ -38,6 +44,12 @@ export function defaults(): Settings {
     energyProfile: 'neutral',
     bufferMinutes: 10,
     examDate: null,
+    studyStart: '06:00',
+    studyEnd: '22:00',
+    blockMinutes: 90,
+    maxBlocksPerDay: 0,
+    restDays: [],
+    subjectWeights: {},
   };
 }
 

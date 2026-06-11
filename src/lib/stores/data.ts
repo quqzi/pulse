@@ -59,10 +59,19 @@ export const dueDecks = derived([topics, flashcards], ([$topics, $flashcards]) =
 export const readinessScore = derived(
   [subjects, topics, sessions, examSessions],
   ([$subjects, $topics, $sessions, $examSessions]) => {
-    if ($subjects.length === 0) return { overall: 0, bySubject: {} as Record<string, number> };
+    const empty = { coverage: 0, hours: 0, exam: 0 };
+    if ($subjects.length === 0) {
+      return {
+        overall: 0,
+        bySubject: {} as Record<string, number>,
+        parts: empty,
+        partsBySubject: {} as Record<string, ReadinessParts>,
+      };
+    }
 
     const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const bySubject: Record<string, number> = {};
+    const partsBySubject: Record<string, ReadinessParts> = {};
 
     for (const subj of $subjects) {
       const coverage = subjectCoverage($topics.filter(t => t.subjectId === subj.id));
@@ -80,15 +89,25 @@ export const readinessScore = derived(
         .filter((r): r is number => r !== null);
       const examScore = examRatios.length === 0 ? 0 : examRatios.reduce((a, b) => a + b, 0) / examRatios.length;
 
-      bySubject[subj.id] = Math.round((coverage * 0.4 + hoursScore * 0.3 + examScore * 0.3) * 100);
+      // Earned points out of the 40/30/30 split — the breakdown the UI visualizes.
+      const parts = {
+        coverage: Math.round(coverage * 40),
+        hours: Math.round(hoursScore * 30),
+        exam: Math.round(examScore * 30),
+      };
+      partsBySubject[subj.id] = parts;
+      bySubject[subj.id] = parts.coverage + parts.hours + parts.exam;
     }
 
-    const overall = Math.round(
-      Object.values(bySubject).reduce((a, b) => a + b, 0) / $subjects.length
-    );
-    return { overall, bySubject };
+    const avg = (k: keyof ReadinessParts) =>
+      Math.round(Object.values(partsBySubject).reduce((a, p) => a + p[k], 0) / $subjects.length);
+    const parts = { coverage: avg('coverage'), hours: avg('hours'), exam: avg('exam') };
+
+    return { overall: parts.coverage + parts.hours + parts.exam, bySubject, parts, partsBySubject };
   }
 );
+
+export interface ReadinessParts { coverage: number; hours: number; exam: number }
 
 // Study-coach feed: runs the pure insight generators over current store state.
 // Purely derived — no persistence, identical in guest and authenticated mode.

@@ -20,6 +20,12 @@ function baseSettings(over: Partial<Settings> = {}): Settings {
     energyProfile: 'neutral',
     bufferMinutes: 10,
     examDate: null,
+    studyStart: '06:00',
+    studyEnd: '22:00',
+    blockMinutes: 90,
+    maxBlocksPerDay: 0,
+    restDays: [],
+    subjectWeights: {},
     ...over,
   };
 }
@@ -102,6 +108,54 @@ describe('generateSchedule', () => {
     }));
     expect(out.length).toBeGreaterThan(0);
     expect(out[0].subjectId).toBe('sA');
+  });
+
+  it('respects the study time window', () => {
+    const out = generateSchedule(baseInput({
+      subjects: [{ id: 's1', userId: 'u', name: 'Physics', symbol: 'Ph', color: '#0d9488', colorRgb: '13,148,136', orderIndex: 0 }],
+      settings: baseSettings({ studyStart: '09:00', studyEnd: '18:00' }),
+    }));
+    expect(out.length).toBeGreaterThan(0);
+    for (const s of out) {
+      expect(startMin(s.startTime)).toBeGreaterThanOrEqual(9 * 60);
+      expect(startMin(s.endTime)).toBeLessThanOrEqual(18 * 60);
+    }
+  });
+
+  it('leaves rest days completely free', () => {
+    const out = generateSchedule(baseInput({
+      subjects: [{ id: 's1', userId: 'u', name: 'Physics', symbol: 'Ph', color: '#0d9488', colorRgb: '13,148,136', orderIndex: 0 }],
+      settings: baseSettings({ restDays: [1] }), // Monday off
+    }));
+    expect(out.length).toBeGreaterThan(0);
+    expect(out.some(s => s.startTime.startsWith('2026-01-12'))).toBe(false);
+  });
+
+  it('caps block length and blocks per day', () => {
+    const out = generateSchedule(baseInput({
+      subjects: [{ id: 's1', userId: 'u', name: 'Physics', symbol: 'Ph', color: '#0d9488', colorRgb: '13,148,136', orderIndex: 0 }],
+      settings: baseSettings({ blockMinutes: 45, maxBlocksPerDay: 1, dailyGoalHours: 4 }),
+    }));
+    expect(out.length).toBeGreaterThan(0);
+    const byDay: Record<string, number> = {};
+    for (const s of out) {
+      const day = s.startTime.split('T')[0];
+      byDay[day] = (byDay[day] ?? 0) + 1;
+      expect(startMin(s.endTime) - startMin(s.startTime)).toBeLessThanOrEqual(45);
+    }
+    expect(Object.values(byDay).every(n => n <= 1)).toBe(true);
+  });
+
+  it('weights the weekly goal split by subject priority', () => {
+    const subj = (id: string, name: string) =>
+      ({ id, userId: 'u', name, symbol: name[0], color: '#0d9488', colorRgb: '13,148,136', orderIndex: 0 });
+    const out = generateSchedule(baseInput({
+      subjects: [subj('hi', 'Math'), subj('lo', 'Art')],
+      settings: baseSettings({ subjectWeights: { hi: 2, lo: 0.5 }, dailyGoalHours: 1 }),
+    }));
+    const mins = (id: string) => out.filter(s => s.subjectId === id)
+      .reduce((sum, s) => sum + startMin(s.endTime) - startMin(s.startTime), 0);
+    expect(mins('hi')).toBeGreaterThan(mins('lo'));
   });
 
   it('injects a 45-minute block on a task due date', () => {

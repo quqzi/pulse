@@ -37,7 +37,7 @@
 </script>
 
 <div class="flashcards-page">
-  <h1 class="page-title">{$t.flashcards.title}</h1>
+  <h1 class="text-large-title page-title">{$t.flashcards.title}</h1>
 
   {#if decks.length === 0}
     <div class="empty-state">
@@ -93,7 +93,7 @@
 
 <style>
   .flashcards-page { padding: 20px 16px 0; max-width: 720px; margin: 0 auto; }
-  .page-title { font-size: 22px; font-weight: 700; margin-bottom: 20px; color: var(--text); }
+  .page-title { margin-bottom: 20px; color: var(--text); }
   .section { margin-bottom: 20px; }
   .section-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 8px; padding: 0 2px; }
   .subject-group { margin-bottom: 12px; }

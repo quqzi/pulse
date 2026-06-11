@@ -104,7 +104,7 @@
 
 <div class="page">
   <div class="header-row">
-    <h1 class="page-title">{$t.scores.title}</h1>
+    <h1 class="text-large-title page-title">{$t.scores.title}</h1>
     {#if !adding}
       <button class="btn-add-score" on:click={openAdd}>+ {$t.scores.addScore}</button>
     {/if}
@@ -234,7 +234,7 @@
 
 <style>
   .page { padding: 20px 16px 80px; max-width: 640px; margin: 0 auto; }
-  .page-title { font-size: 22px; font-weight: 700; color: var(--text); }
+  .page-title { color: var(--text); }
 
   .header-row {
     display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;
