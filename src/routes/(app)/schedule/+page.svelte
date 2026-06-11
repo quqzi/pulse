@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { fly } from 'svelte/transition';
+  import { cubicOut } from 'svelte/easing';
   import { goto } from '$app/navigation';
   import { auth } from '$lib/stores/auth';
   import { subjects, topics, flashcards, tasks, sessions, scheduleSlots, loadData, loadScheduleSlots, getAuthContext } from '$lib/stores/data';
@@ -36,20 +38,29 @@
 
   $: weekTitle = $fmt.date(viewedWeekStart.toISOString(), { month: 'long', year: 'numeric' });
 
+  // Direction of the last navigation, so the title slides in the matching way.
+  let navDir = 1;
+  let prefersReduced = false;
+  $: titleDur = prefersReduced ? 0 : 220;
+
   function prevWeek() {
+    navDir = -1;
     const d = new Date(viewedWeekStart);
     d.setDate(d.getDate() - 7);
     viewedWeekStart = d;
   }
 
   function nextWeek() {
+    navDir = 1;
     const d = new Date(viewedWeekStart);
     d.setDate(d.getDate() + 7);
     viewedWeekStart = d;
   }
 
   function goToday() {
-    viewedWeekStart = getWeekStart(new Date());
+    const next = getWeekStart(new Date());
+    navDir = next < viewedWeekStart ? -1 : 1;
+    viewedWeekStart = next;
   }
 
   // ── Auto-schedule ─────────────────────────────────────────────
@@ -157,6 +168,7 @@
   }
 
   onMount(async () => {
+    prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     await loadData($auth);
     loadScheduleSlots(viewedWeekStart, weekEnd);
   });
@@ -184,10 +196,18 @@
 
     <header class="cal-header">
       <div class="week-nav">
-        <button class="nav-btn icon-btn" on:click={prevWeek} aria-label={$t.schedule.prevWeek}>‹</button>
-        <button class="nav-btn icon-btn" on:click={nextWeek} aria-label={$t.schedule.nextWeek}>›</button>
-        <span class="week-title">{weekTitle}</span>
-        <button class="today-btn" on:click={goToday}>{$t.schedule.today}</button>
+        <button class="nav-circle pressable" on:click={prevWeek} aria-label={$t.schedule.prevWeek}>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <button class="nav-circle pressable" on:click={nextWeek} aria-label={$t.schedule.nextWeek}>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+        <div class="week-title-wrap">
+          {#key viewedWeekStart.getTime()}
+            <span class="week-title" in:fly={{ x: navDir * 18, duration: titleDur, easing: cubicOut }}>{weekTitle}</span>
+          {/key}
+        </div>
+        <button class="today-pill pressable" on:click={goToday}>{$t.schedule.today}</button>
       </div>
       <div class="header-actions">
         <a class="customize-link" href="/settings" title={$t.schedule.customize} aria-label={$t.schedule.customize}>
@@ -302,40 +322,49 @@
   .week-nav {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
   }
 
+  .week-title-wrap {
+    position: relative;
+    min-width: 132px;
+    height: 22px;
+    margin: 0 2px;
+    overflow: hidden;
+  }
   .week-title {
-    font-size: 15px;
-    font-weight: 600;
-    margin: 0 4px;
-    min-width: 140px;
-  }
-
-  .nav-btn {
-    background: none;
-    border: 1px solid var(--border);
-    border-radius: 6px;
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: var(--tracking-display, -0.01em);
     color: var(--text);
-    cursor: pointer;
-    font-size: 18px;
-    line-height: 1;
-    padding: 2px 8px;
+    white-space: nowrap;
   }
-  .nav-btn:hover { background: var(--bg3); }
 
-  .today-btn {
-    font-size: 12px;
-    font-weight: 500;
-    padding: 4px 10px;
-    border-radius: 6px;
+  .nav-circle {
+    display: flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--bg2); border: 1px solid var(--border);
+    color: var(--text); cursor: pointer;
+    transition: background 140ms ease, transform var(--dur-fast) var(--ease-out);
+  }
+  .nav-circle:hover { background: var(--bg3); }
+
+  .today-pill {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 999px;
     border: 1px solid var(--border);
-    background: var(--bg);
+    background: var(--bg2);
     color: var(--text);
     cursor: pointer;
     margin-left: 4px;
   }
-  .today-btn:hover { background: var(--bg3); }
+  .today-pill:hover { background: var(--bg3); }
 
   .header-actions { display: flex; align-items: center; gap: 8px; }
 
