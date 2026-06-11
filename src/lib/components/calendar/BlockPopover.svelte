@@ -104,7 +104,9 @@
     z-index: 150;
   }
   .block-popover-create {
-    position: absolute;
+    /* In normal flow: the anchored wrapper must measure the popover's real
+       height or floating-ui can't flip it away from the viewport edge. */
+    position: relative;
     z-index: 160;
     background: var(--bg2);
     border: 1px solid var(--border);

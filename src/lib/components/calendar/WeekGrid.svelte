@@ -243,7 +243,7 @@
       dragStartAbsY = holdStartClientY;
       dragStartGridY = gridY;
       ghostDayIdx = dayIdx;
-      ghostTop = snap(gridY);
+      ghostTop = Math.min(snap(gridY), TOTAL_HEIGHT - 60);
       ghostHeight = 60; // default 1 hour
       ghostVisible = true;
       document.removeEventListener('touchmove', onHoldMoveCancel);
@@ -280,7 +280,7 @@
     const touch = e.touches[0];
     const deltaY = touch.clientY - dragStartAbsY;
     if (dragMode === 'create') {
-      ghostHeight = Math.max(15, snap(60 + deltaY));
+      ghostHeight = Math.min(Math.max(15, snap(60 + deltaY)), TOTAL_HEIGHT - ghostTop);
       const newDay = getDayIdxFromClientX(touch.clientX);
       if (newDay !== ghostDayIdx) {
         ghostDayIdx = newDay;
@@ -381,7 +381,7 @@
 
   function onBlockResizeMove(e: CustomEvent<{ dy: number }>) {
     if (dragMode !== 'resize') return;
-    ghostHeight = Math.max(15, snap(dragSlotOrigHeight + e.detail.dy));
+    ghostHeight = Math.min(Math.max(15, snap(dragSlotOrigHeight + e.detail.dy)), TOTAL_HEIGHT - dragSlotOrigTop);
   }
 
   function onBlockResizeEnd() {
@@ -405,9 +405,9 @@
   function onMousemove(e: MouseEvent) {
     const delta = e.clientY - dragStartAbsY;
     if (dragMode === 'create') {
-      const currentY = dragStartGridY + delta;
-      ghostTop = snap(Math.max(0, Math.min(dragStartGridY, currentY)));
-      ghostHeight = Math.max(15, snap(Math.abs(currentY - dragStartGridY)));
+      const currentY = Math.max(0, Math.min(TOTAL_HEIGHT, dragStartGridY + delta));
+      ghostTop = snap(Math.min(dragStartGridY, currentY));
+      ghostHeight = Math.min(Math.max(15, snap(Math.abs(currentY - dragStartGridY))), TOTAL_HEIGHT - ghostTop);
     }
   }
 
