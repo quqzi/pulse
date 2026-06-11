@@ -754,17 +754,22 @@
   }
 
   /* Ghost */
+  /* Soft rounded landing pad instead of the harsh dashed square. */
   .ghost-block {
     position: absolute;
     left: 3px;
     right: 3px;
-    background: rgba(var(--primary-rgb), 0.25);
-    border: 1.5px dashed var(--primary);
-    border-radius: var(--radius-md);
+    background: rgba(var(--primary-rgb), 0.14);
+    border: none;
+    box-shadow: inset 0 0 0 1.5px rgba(var(--primary-rgb), 0.45);
+    border-radius: 12px;
     pointer-events: none;
     z-index: 5;
   }
-  .ghost-block.pending { opacity: 0.5; }
+  .ghost-block.pending { opacity: 0.55; }
+
+  /* A lifted (dragged) block must float above neighbouring slots. */
+  .day-col :global(.slot-wrap:has(.cal-block.lifting)) { z-index: 20; }
 
   /* Load bar row */
   .load-bar-row {
