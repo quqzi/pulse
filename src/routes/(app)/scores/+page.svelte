@@ -152,7 +152,7 @@
       {/if}
     </div>
   {:else}
-    <div class="score-list">
+    <div class="score-list stagger-children">
       {#each filteredScores as score (score.id)}
         {@const color = subjectColor(score.subjectId)}
         {@const pct = score.maxScore > 0 ? Math.round((score.score / score.maxScore) * 100) : 0}

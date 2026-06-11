@@ -22,7 +22,7 @@
       <a class="empty-action" href="/timer">{$t.insights.emptyAction} →</a>
     </div>
   {:else}
-    <div class="feed">
+    <div class="feed stagger-children">
       {#each $insights as insight (insight.id)}
         <InsightCard {insight} />
       {/each}
