@@ -70,8 +70,9 @@
 
   // ── AI import ─────────────────────────────────────────────
   let importOpen = false;
+  let cardCount = 20;
   $: subjectName = $subjects.find(s => s.id === topic?.subjectId)?.name;
-  $: importPrompt = flashcardPrompt(topic?.name ?? '', subjectName);
+  $: importPrompt = flashcardPrompt(topic?.name ?? '', subjectName, cardCount);
 
   async function handleImport(e: CustomEvent<{ items: unknown[] }>) {
     if (!topicId) return;
@@ -193,7 +194,14 @@
     {#if deckCards.length > 0}<button class="study-deck-btn" on:click={startStudy}>{$t.flashcards.study}</button>{/if}
   </div>
 
-  <ImportSheet bind:open={importOpen} prompt={importPrompt} parse={parseFlashcards} on:import={handleImport} on:close={() => (importOpen = false)} />
+  <ImportSheet bind:open={importOpen} prompt={importPrompt} parse={parseFlashcards} on:import={handleImport} on:close={() => (importOpen = false)}>
+    <div slot="options" class="opt-row">
+      <span class="opt-label">{$t.importer.howMany}</span>
+      {#each [10, 20, 30] as n (n)}
+        <button class="opt-pill" class:active={cardCount === n} on:click={() => (cardCount = n)}>{n}</button>
+      {/each}
+    </div>
+  </ImportSheet>
 
   {#if deckCards.length === 0}
     <p class="deck-empty">{$t.flashcards.deckEmpty}</p>
@@ -235,6 +243,10 @@
   .study-deck-btn { padding: 8px 16px; border-radius: 16px; border: none; background: var(--primary); color: var(--bg); font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; flex-shrink: 0; }
   .import-open-btn { padding: 8px 14px; border-radius: 16px; border: 1.5px solid var(--border); background: var(--bg2); color: var(--text); font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; flex-shrink: 0; }
   .import-open-btn:hover { background: var(--bg3); }
+  .opt-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .opt-label { font-size: 12px; color: var(--muted); margin-right: 2px; }
+  .opt-pill { padding: 6px 12px; border-radius: 999px; border: 1.5px solid var(--border); background: var(--bg); color: var(--muted); font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; min-height: 32px; }
+  .opt-pill.active { border-color: var(--primary); background: var(--primary-l); color: var(--primary); }
   @media (max-width: 768px) { .import-open-btn, .study-deck-btn { min-height: 44px; } }
   .deck-empty { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
   .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); }

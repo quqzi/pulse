@@ -98,9 +98,9 @@ export function parseExamQuestions(text: string): ImportResult<ExamQuestionDraft
   return items.length ? { ok: true, items } : { ok: false, error: 'no-valid-items' };
 }
 
-export function flashcardPrompt(topicName: string, subjectName?: string): string {
+export function flashcardPrompt(topicName: string, subjectName?: string, count = 20): string {
   const scope = subjectName ? `the topic "${topicName}" (subject: ${subjectName})` : `the topic "${topicName}"`;
-  return `Create 20 study flashcards for ${scope}, for Thai TCAS university-entrance exam prep.
+  return `Create ${count} study flashcards for ${scope}, for Thai TCAS university-entrance exam prep.
 
 Reply with ONLY a JSON array in this exact format, no other text:
 [{"front": "question or term", "back": "answer or definition"}]
@@ -111,14 +111,19 @@ Rules:
 - Write the cards in the same language as the topic name.`;
 }
 
-export function examPrompt(subjectName: string): string {
-  return `Create 10 multiple-choice questions for the subject "${subjectName}" at Thai TCAS university-entrance exam level.
+export type ExamPromptDifficulty = 'mixed' | 'easy' | 'medium' | 'hard';
+
+export function examPrompt(subjectName: string, count = 10, difficulty: ExamPromptDifficulty = 'mixed'): string {
+  const diffRule = difficulty === 'mixed'
+    ? '- "difficulty" is "easy", "medium", or "hard" — mix them.'
+    : `- Make every question "${difficulty}" difficulty and set "difficulty" to "${difficulty}".`;
+  return `Create ${count} multiple-choice questions for the subject "${subjectName}" at Thai TCAS university-entrance exam level.
 
 Reply with ONLY a JSON array in this exact format, no other text:
 [{"text": "the question", "choices": ["choice A", "choice B", "choice C", "choice D"], "correctIndex": 0, "difficulty": "medium"}]
 
 Rules:
 - Exactly 4 choices per question; "correctIndex" is the 0-based index of the correct one.
-- "difficulty" is "easy", "medium", or "hard" — mix them.
+${diffRule}
 - Write the questions in the same language as the subject name.`;
 }

@@ -99,4 +99,12 @@ describe('prompts', () => {
     expect(p).toContain('"Physics"');
     expect(p).toContain('"correctIndex"');
   });
+  it('prompts honor the requested count', () => {
+    expect(flashcardPrompt('Calculus', undefined, 30)).toContain('Create 30 study flashcards');
+    expect(examPrompt('Physics', 5)).toContain('Create 5 multiple-choice');
+  });
+  it('exam prompt pins a single difficulty when not mixed', () => {
+    expect(examPrompt('Physics', 10, 'hard')).toContain('every question "hard"');
+    expect(examPrompt('Physics', 10, 'mixed')).toContain('mix them');
+  });
 });

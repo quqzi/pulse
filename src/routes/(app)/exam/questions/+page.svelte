@@ -4,7 +4,7 @@
   import { examQuestions, subjects, loadData, getAuthContext } from '$lib/stores/data';
   import { examQuestionsRepo } from '$lib/data/entities';
   import { newId } from '$lib/id';
-  import { parseExamQuestions, examPrompt, type ExamQuestionDraft } from '$lib/import';
+  import { parseExamQuestions, examPrompt, type ExamQuestionDraft, type ExamPromptDifficulty } from '$lib/import';
   import { toast } from '$lib/stores/toast';
   import ImportSheet from '$lib/components/ImportSheet.svelte';
   import { t } from '$lib/i18n';
@@ -89,8 +89,10 @@
   // ── AI import ─────────────────────────────────────────────
   let importOpen = false;
   let importSubject = '';
+  let importCount = 10;
+  let importDifficulty: ExamPromptDifficulty = 'mixed';
   $: if (!importSubject && $subjects.length > 0) importSubject = $subjects[0].name;
-  $: importPromptText = examPrompt(importSubject || 'TCAS');
+  $: importPromptText = examPrompt(importSubject || 'TCAS', importCount, importDifficulty);
 
   async function handleImport(e: CustomEvent<{ items: unknown[] }>) {
     const { userId } = getAuthContext();
@@ -122,13 +124,28 @@
   </div>
 
   <ImportSheet bind:open={importOpen} prompt={importPromptText} parse={parseExamQuestions} on:import={handleImport} on:close={() => (importOpen = false)}>
-    <div slot="options" class="import-subject-row">
-      <label class="field-label" for="import-subject">{$t.exam.subjectLabel}</label>
-      <select id="import-subject" class="field-input" bind:value={importSubject}>
-        {#each $subjects as s}
-          <option value={s.name}>{s.name}</option>
+    <div slot="options" class="import-options">
+      <div class="import-subject-row">
+        <label class="field-label" for="import-subject">{$t.exam.subjectLabel}</label>
+        <select id="import-subject" class="field-input" bind:value={importSubject}>
+          {#each $subjects as s}
+            <option value={s.name}>{s.name}</option>
+          {/each}
+        </select>
+      </div>
+      <div class="opt-row">
+        <span class="opt-label">{$t.importer.howMany}</span>
+        {#each [5, 10, 20] as n (n)}
+          <button class="opt-pill" class:active={importCount === n} on:click={() => (importCount = n)}>{n}</button>
         {/each}
-      </select>
+      </div>
+      <div class="opt-row">
+        <span class="opt-label">{$t.exam.difficulty}</span>
+        <button class="opt-pill" class:active={importDifficulty === 'mixed'} on:click={() => (importDifficulty = 'mixed')}>{$t.importer.diffMixed}</button>
+        <button class="opt-pill" class:active={importDifficulty === 'easy'} on:click={() => (importDifficulty = 'easy')}>{$t.exam.diffEasy}</button>
+        <button class="opt-pill" class:active={importDifficulty === 'medium'} on:click={() => (importDifficulty = 'medium')}>{$t.exam.diffMedium}</button>
+        <button class="opt-pill" class:active={importDifficulty === 'hard'} on:click={() => (importDifficulty = 'hard')}>{$t.exam.diffHard}</button>
+      </div>
     </div>
   </ImportSheet>
 
@@ -249,6 +266,11 @@
   .form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
   .import-subject-row { margin-bottom: 10px; }
   .import-subject-row .field-label { margin-top: 0; }
+  .import-options { margin-bottom: 4px; }
+  .opt-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+  .opt-label { font-size: 12px; color: var(--muted); margin-right: 2px; min-width: 52px; }
+  .opt-pill { padding: 6px 12px; border-radius: 999px; border: 1.5px solid var(--border); background: var(--bg); color: var(--muted); font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; min-height: 32px; }
+  .opt-pill.active { border-color: var(--primary); background: var(--primary-l); color: var(--primary); }
   .empty-state { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 32px 16px; text-align: center; }
   .empty-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
   .empty-sub { font-size: 13px; color: var(--muted); }
