@@ -4,7 +4,11 @@
   import { examQuestions, subjects, loadData, getAuthContext } from '$lib/stores/data';
   import { examQuestionsRepo } from '$lib/data/entities';
   import { newId } from '$lib/id';
+  import { parseExamQuestions, examPrompt, type ExamQuestionDraft } from '$lib/import';
+  import { toast } from '$lib/stores/toast';
+  import ImportSheet from '$lib/components/ImportSheet.svelte';
   import { t } from '$lib/i18n';
+  import { get } from 'svelte/store';
   import type { ExamQuestion } from '$lib/types';
 
   $: diffLabels = { easy: $t.exam.diffEasy, medium: $t.exam.diffMedium, hard: $t.exam.diffHard };
@@ -81,6 +85,27 @@
     if (!confirm($t.exam.deleteConfirm)) return;
     await examQuestionsRepo.remove(q.id);
   }
+
+  // ── AI import ─────────────────────────────────────────────
+  let importOpen = false;
+  let importSubject = '';
+  $: if (!importSubject && $subjects.length > 0) importSubject = $subjects[0].name;
+  $: importPromptText = examPrompt(importSubject || 'TCAS');
+
+  async function handleImport(e: CustomEvent<{ items: unknown[] }>) {
+    const { userId } = getAuthContext();
+    const drafts = e.detail.items as ExamQuestionDraft[];
+    for (const d of drafts) {
+      await examQuestionsRepo.save({
+        id: newId(), userId,
+        text: d.text, choices: d.choices, correctIndex: d.correctIndex,
+        subject: importSubject || 'TCAS', difficulty: d.difficulty, year: d.year,
+        createdAt: new Date().toISOString(),
+      });
+    }
+    importOpen = false;
+    toast.success(get(t).importer.importedToast(drafts.length));
+  }
 </script>
 
 <div class="page">
@@ -91,9 +116,21 @@
     </div>
     <div class="header-actions">
       <a href="/exam" class="btn-secondary">{$t.exam.backToExam}</a>
+      <button class="btn-secondary" on:click={() => (importOpen = true)}>✦ {$t.importer.open}</button>
       <button class="btn-primary" on:click={openAdd}>{$t.exam.addQuestion}</button>
     </div>
   </div>
+
+  <ImportSheet bind:open={importOpen} prompt={importPromptText} parse={parseExamQuestions} on:import={handleImport} on:close={() => (importOpen = false)}>
+    <div slot="options" class="import-subject-row">
+      <label class="field-label" for="import-subject">{$t.exam.subjectLabel}</label>
+      <select id="import-subject" class="field-input" bind:value={importSubject}>
+        {#each $subjects as s}
+          <option value={s.name}>{s.name}</option>
+        {/each}
+      </select>
+    </div>
+  </ImportSheet>
 
   <div class="toolbar">
     <input class="search" type="text" placeholder={$t.exam.searchPlaceholder} bind:value={search} />
@@ -210,6 +247,8 @@
   .form-row { display: flex; gap: 12px; }
   .form-col { flex: 1; }
   .form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+  .import-subject-row { margin-bottom: 10px; }
+  .import-subject-row .field-label { margin-top: 0; }
   .empty-state { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 32px 16px; text-align: center; }
   .empty-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
   .empty-sub { font-size: 13px; color: var(--muted); }
