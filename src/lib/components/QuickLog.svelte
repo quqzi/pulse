@@ -67,6 +67,17 @@
         </select>
       </div>
       <div class="form-row">
+        <div class="dur-pills" role="group" aria-label={$t.common.minutes}>
+          {#each [15, 30, 45, 60] as m}
+            <button
+              class="dur-pill"
+              class:active={durationMin === m}
+              on:click={() => (durationMin = m)}
+            >{m}</button>
+          {/each}
+        </div>
+      </div>
+      <div class="form-row">
         <div class="duration-row">
           <input
             type="number"
@@ -121,6 +132,28 @@
   }
   .field-select:focus { border-color: var(--primary); }
   .field-select:disabled { opacity: 0.5; }
+  /* iOS segmented duration pills — springy selection. */
+  .dur-pills { display: flex; gap: 6px; flex: 1; }
+  .dur-pill {
+    flex: 1;
+    padding: 8px 0;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    background: var(--bg3);
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+    transition: transform var(--dur-base) var(--ease-spring), background 160ms ease, color 160ms ease, border-color 160ms ease;
+  }
+  .dur-pill:active { transform: scale(0.92); transition-duration: var(--dur-fast); }
+  .dur-pill.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--bg);
+    transform: scale(1.04);
+  }
   .duration-row { display: flex; align-items: center; gap: 6px; flex: 1; }
   .duration-input {
     width: 72px;

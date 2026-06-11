@@ -26,7 +26,7 @@
 {#if items.length > 0}
   <section class="plan-section">
     <div class="section-label">{$t.dashboard.todaysPlan}</div>
-    <div class="plan-card card">
+    <div class="plan-card card stagger-children">
       {#each items as item, i}
         <div class="plan-row" class:divider={i > 0}>
           <div class="accent-stripe" style="background: {item.subject.color};"></div>
@@ -68,7 +68,11 @@
     gap: 12px;
     padding: 12px 14px;
     position: relative;
+    transition: background 160ms ease;
   }
+  .plan-row:hover { background: var(--bg3); }
+  .plan-row:hover .accent-stripe { transform: scaleY(1.25); }
+  .accent-stripe { transition: transform var(--dur-base) var(--ease-spring); }
   .plan-row.divider { border-top: 1px solid var(--border); }
   .accent-stripe {
     width: 3px;
@@ -101,5 +105,6 @@
     flex-shrink: 0;
     transition: transform var(--dur-base) var(--ease-spring);
   }
-  .start-btn:active { transform: scale(0.94); transition: transform 80ms ease-in; }
+  .start-btn:hover { transform: scale(1.05); }
+  .start-btn:active { transform: scale(0.92); transition: transform 80ms ease-in; }
 </style>
