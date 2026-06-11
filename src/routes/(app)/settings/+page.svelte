@@ -76,7 +76,7 @@
       <div class="row-right">
         <input type="number" min="1" max="12" step="0.5" value={$settings.dailyGoalHours}
           on:change={e => settings.update(s => ({ ...s, dailyGoalHours: +e.currentTarget.value }))}
-          class="num-input" />
+          class="num-input" aria-label={$t.settings.dailyGoal} />
         <span class="text-muted text-body">{$t.settings.hPerDay}</span>
       </div>
     </div>
@@ -88,7 +88,7 @@
       </div>
       <input type="number" min="1" max="200" value={$settings.readinessHoursTarget}
         on:change={e => settings.update(s => ({ ...s, readinessHoursTarget: Math.max(1, +e.currentTarget.value || 20) }))}
-        class="num-input" />
+        class="num-input" aria-label={$t.settings.readinessTarget} />
     </div>
     <div class="divider"></div>
     <div class="setting-row">
@@ -96,7 +96,7 @@
       <div class="row-right">
         <input type="number" min="5" max="60" step="5" value={$settings.pomodoroWork}
           on:change={e => settings.update(s => ({ ...s, pomodoroWork: +e.currentTarget.value }))}
-          class="num-input" />
+          class="num-input" aria-label={$t.settings.pomodoroWork} />
         <span class="text-muted text-body">{$t.common.minutes}</span>
       </div>
     </div>
@@ -106,7 +106,7 @@
       <div class="row-right">
         <input type="number" min="1" max="30" value={$settings.pomodoroBreak}
           on:change={e => settings.update(s => ({ ...s, pomodoroBreak: +e.currentTarget.value }))}
-          class="num-input" />
+          class="num-input" aria-label={$t.settings.pomodoroBreak} />
         <span class="text-muted text-body">{$t.common.minutes}</span>
       </div>
     </div>
@@ -190,6 +190,7 @@
         step="5"
         bind:value={$settings.bufferMinutes}
         style="width:100px"
+        aria-label={$t.settings.buffer}
       />
     </div>
 
@@ -228,7 +229,7 @@
       </div>
       <input type="number" min="0" max="8" value={$settings.maxBlocksPerDay}
         on:change={e => settings.update(s => ({ ...s, maxBlocksPerDay: Math.max(0, +e.currentTarget.value) }))}
-        class="num-input" />
+        class="num-input" aria-label={$t.settings.maxPerDay} />
     </div>
 
     <div class="divider"></div>

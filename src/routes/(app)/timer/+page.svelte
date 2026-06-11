@@ -132,6 +132,7 @@
       on:change={() => timerStore.update(tp => ({ ...tp, topicId: null }))}
       class="field-select"
       disabled={isRunning || isPaused}
+      aria-label={$t.timer.selectSubject}
       style={selectedSubject ? `color: ${selectedSubject.color}; border-color: ${selectedSubject.color};` : ''}
     >
       <option value={null}>{$t.timer.selectSubject}</option>
@@ -140,7 +141,7 @@
       {/each}
     </select>
     {#if subjectTopics.length > 0}
-      <select bind:value={$timerStore.topicId} class="field-select" disabled={isRunning || isPaused}>
+      <select bind:value={$timerStore.topicId} class="field-select" disabled={isRunning || isPaused} aria-label={$t.timer.selectTopic}>
         <option value={null}>{$t.timer.selectTopic}</option>
         {#each subjectTopics as tp}
           <option value={tp.id}>{tp.name}</option>

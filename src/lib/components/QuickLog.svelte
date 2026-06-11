@@ -50,13 +50,13 @@
       </div>
     {:else}
       <div class="form-row">
-        <select bind:value={selectedSubjectId} class="field-select" style={selectedSubject ? `color: ${selectedSubject.color}` : ''}>
+        <select bind:value={selectedSubjectId} class="field-select" aria-label={$t.dashboard.subjectField} style={selectedSubject ? `color: ${selectedSubject.color}` : ''}>
           <option value="">{$t.dashboard.subjectField}</option>
           {#each subjects as sub}
             <option value={sub.id}>{sub.name}</option>
           {/each}
         </select>
-        <select bind:value={selectedTopicId} class="field-select" disabled={!selectedSubjectId}>
+        <select bind:value={selectedTopicId} class="field-select" disabled={!selectedSubjectId} aria-label={$t.dashboard.topicField}>
           <option value="">{$t.dashboard.topicField}</option>
           {#each subjectTopics as tp}
             <option value={tp.id}>{tp.name}</option>
@@ -71,6 +71,7 @@
             max="720"
             bind:value={durationMin}
             class="field-input duration-input"
+            aria-label={$t.common.minutes}
           />
           <span class="dur-label">{$t.common.minutes}</span>
         </div>
