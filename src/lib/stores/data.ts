@@ -57,29 +57,38 @@ export const dueDecks = derived([topics, flashcards], ([$topics, $flashcards]) =
 // Per-subject + overall exam readiness (0–100), blending topic coverage,
 // recent study hours, and mock-exam accuracy.
 export const readinessScore = derived(
-  [subjects, topics, sessions, examSessions],
-  ([$subjects, $topics, $sessions, $examSessions]) => {
+  [subjects, topics, sessions, examSessions, settings],
+  ([$subjects, $topics, $sessions, $examSessions, $settings]) => {
+    const hoursTarget = Math.max(1, $settings.readinessHoursTarget || 20);
     const empty = { coverage: 0, hours: 0, exam: 0 };
+    const emptyStats: ReadinessStats = {
+      topicsDone: 0, topicsTotal: 0, recentHours: 0, hoursTarget, examCount: 0, examAccuracy: 0,
+    };
     if ($subjects.length === 0) {
       return {
         overall: 0,
         bySubject: {} as Record<string, number>,
         parts: empty,
         partsBySubject: {} as Record<string, ReadinessParts>,
+        stats: emptyStats,
+        statsBySubject: {} as Record<string, ReadinessStats>,
       };
     }
 
     const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const bySubject: Record<string, number> = {};
     const partsBySubject: Record<string, ReadinessParts> = {};
+    const statsBySubject: Record<string, ReadinessStats> = {};
 
     for (const subj of $subjects) {
-      const coverage = subjectCoverage($topics.filter(t => t.subjectId === subj.id));
+      const subjTopics = $topics.filter(t => t.subjectId === subj.id);
+      const coverage = subjectCoverage(subjTopics);
 
       const recentSecs = $sessions
         .filter(s => s.subjectId === subj.id && new Date(s.startedAt) >= cutoff)
         .reduce((sum, s) => sum + s.durationSec, 0);
-      const hoursScore = Math.min(recentSecs / 3600 / 20, 1);
+      const recentHours = recentSecs / 3600;
+      const hoursScore = Math.min(recentHours / hoursTarget, 1);
 
       const examRatios = $examSessions
         .map(es => {
@@ -97,17 +106,45 @@ export const readinessScore = derived(
       };
       partsBySubject[subj.id] = parts;
       bySubject[subj.id] = parts.coverage + parts.hours + parts.exam;
+      statsBySubject[subj.id] = {
+        topicsDone: subjTopics.filter(t => t.done).length,
+        topicsTotal: subjTopics.length,
+        recentHours: Math.round(recentHours * 10) / 10,
+        hoursTarget,
+        examCount: examRatios.length,
+        examAccuracy: Math.round(examScore * 100),
+      };
     }
 
     const avg = (k: keyof ReadinessParts) =>
       Math.round(Object.values(partsBySubject).reduce((a, p) => a + p[k], 0) / $subjects.length);
     const parts = { coverage: avg('coverage'), hours: avg('hours'), exam: avg('exam') };
 
-    return { overall: parts.coverage + parts.hours + parts.exam, bySubject, parts, partsBySubject };
+    const all = Object.values(statsBySubject);
+    const sum = (k: 'topicsDone' | 'topicsTotal' | 'recentHours' | 'examCount') =>
+      all.reduce((a, s) => a + s[k], 0);
+    const stats: ReadinessStats = {
+      topicsDone: sum('topicsDone'),
+      topicsTotal: sum('topicsTotal'),
+      recentHours: Math.round(sum('recentHours') * 10) / 10,
+      hoursTarget: hoursTarget * $subjects.length,
+      examCount: $examSessions.length,
+      examAccuracy: all.length === 0 ? 0 : Math.round(all.reduce((a, s) => a + s.examAccuracy, 0) / all.length),
+    };
+
+    return { overall: parts.coverage + parts.hours + parts.exam, bySubject, parts, partsBySubject, stats, statsBySubject };
   }
 );
 
 export interface ReadinessParts { coverage: number; hours: number; exam: number }
+export interface ReadinessStats {
+  topicsDone: number;
+  topicsTotal: number;
+  recentHours: number;   // last 30 days
+  hoursTarget: number;   // hours for a full hours score
+  examCount: number;     // exam sessions counted for this scope
+  examAccuracy: number;  // 0–100 average
+}
 
 // Study-coach feed: runs the pure insight generators over current store state.
 // Purely derived — no persistence, identical in guest and authenticated mode.

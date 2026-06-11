@@ -82,6 +82,16 @@
     </div>
     <div class="divider"></div>
     <div class="setting-row">
+      <div class="setting-info">
+        <span class="text-body">{$t.settings.readinessTarget}</span>
+        <span class="text-muted" style="font-size:13px">{$t.settings.readinessTargetHelper}</span>
+      </div>
+      <input type="number" min="1" max="200" value={$settings.readinessHoursTarget}
+        on:change={e => settings.update(s => ({ ...s, readinessHoursTarget: Math.max(1, +e.currentTarget.value || 20) }))}
+        class="num-input" />
+    </div>
+    <div class="divider"></div>
+    <div class="setting-row">
       <span class="text-body">{$t.settings.pomodoroWork}</span>
       <div class="row-right">
         <input type="number" min="5" max="60" step="5" value={$settings.pomodoroWork}
