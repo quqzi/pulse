@@ -17,6 +17,14 @@
     return { destroy() { node.remove(); } };
   }
 
+  // Move keyboard focus into the dialog on open; restore it to the previously
+  // focused control when the dialog closes.
+  function focusTrap(node: HTMLElement) {
+    const prev = document.activeElement as HTMLElement | null;
+    (node.querySelector('.btn-confirm') as HTMLElement | null)?.focus();
+    return { destroy() { prev?.focus?.(); } };
+  }
+
   function confirm() { dispatch('confirm'); open = false; }
   function cancel() { dispatch('cancel'); open = false; }
 
@@ -36,7 +44,7 @@
 {#if open}
   <div use:portal class="backdrop" on:click={handleBackdrop} role="dialog" aria-modal="true" tabindex="-1"
     on:keydown|stopPropagation={(e) => e.key === 'Escape' && cancel()}>
-    <div class="dialog">
+    <div class="dialog" use:focusTrap>
       <p class="dialog-title">{title ?? $t.common.areYouSure}</p>
       {#if message}<p class="dialog-message">{message}</p>{/if}
       <div class="dialog-actions">

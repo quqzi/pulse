@@ -232,6 +232,8 @@ export const th: I18n = {
     cannotUndo: 'ไม่สามารถย้อนกลับได้',
     remove: 'ลบออก',
     areYouSure: 'แน่ใจหรือไม่?',
+    undo: 'เลิกทำ',
+    deletedUndo: 'ลบแล้ว',
     errSave: 'บันทึกไม่สำเร็จ — ลองอีกครั้ง',
     errDelete: 'ลบไม่สำเร็จ — ลองอีกครั้ง',
   },
