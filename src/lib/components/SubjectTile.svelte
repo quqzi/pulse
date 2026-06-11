@@ -68,7 +68,7 @@
     height: 100%;
     background: var(--subject-color);
     border-radius: 2px;
-    transition: transform 500ms cubic-bezier(.4,0,.2,1);
+    transition: transform var(--dur-slow) var(--ease-out);
   }
   .name {
     font-size: 10px;
