@@ -145,7 +145,7 @@
       </div>
     </div>
     <div class="energy-options">
-      {#each [['morning', $t.settings.energyMorningLabel, $t.settings.energyMorningDesc], ['neutral', $t.settings.energyNeutralLabel, $t.settings.energyNeutralDesc], ['evening', $t.settings.energyEveningLabel, $t.settings.energyEveningDesc]] as [val, label, desc] ([val, label, desc])}
+      {#each [['morning', $t.settings.energyMorningLabel, $t.settings.energyMorningDesc], ['neutral', $t.settings.energyNeutralLabel, $t.settings.energyNeutralDesc], ['evening', $t.settings.energyEveningLabel, $t.settings.energyEveningDesc]] as [val, label, desc] (val)}
         <button
           class="energy-chip"
           class:active={$settings.energyProfile === val}
