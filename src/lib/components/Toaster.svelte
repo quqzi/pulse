@@ -1,18 +1,21 @@
 <script lang="ts">
-  import { toasts, dismissToast } from '$lib/stores/toast';
+  import { toasts, dismissToast, runToastAction } from '$lib/stores/toast';
 </script>
 
 <div class="toaster" aria-live="polite">
   {#each $toasts as t (t.id)}
-    <button
+    <div
       class="toast"
       class:error={t.kind === 'error'}
       class:success={t.kind === 'success'}
-      type="button"
-      on:click={() => dismissToast(t.id)}
     >
-      {t.message}
-    </button>
+      <button class="toast-msg" type="button" on:click={() => dismissToast(t.id)}>
+        {t.message}
+      </button>
+      {#if t.action}
+        <button class="toast-action" type="button" on:click={() => runToastAction(t.id)}>{t.action.label}</button>
+      {/if}
+    </div>
   {/each}
 </div>
 
@@ -35,19 +38,43 @@
   }
   .toast {
     pointer-events: auto;
-    text-align: left;
-    font-family: inherit;
-    font-size: 14px;
-    font-weight: 500;
-    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 6px 4px 0;
     border-radius: var(--radius-md);
     border: 1px solid var(--border);
     background: var(--bg2);
     color: var(--text);
     box-shadow: var(--shadow-lg);
-    cursor: pointer;
     animation: toast-in 200ms ease-out;
   }
+  .toast-msg {
+    flex: 1;
+    text-align: left;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 8px 10px 8px 16px;
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+  }
+  .toast-action {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary);
+    padding: 8px 12px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    min-height: 36px;
+  }
+  .toast-action:hover { background: var(--bg3); }
   .toast.error { border-color: var(--danger); }
   .toast.success { border-color: var(--success); }
   @keyframes toast-in {
