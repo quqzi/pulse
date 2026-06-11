@@ -175,11 +175,8 @@
   }
   .subjects-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 8px;
-  }
-  @media (max-width: 360px) {
-    .subjects-grid { grid-template-columns: repeat(3, 1fr); }
   }
   .tasks-section { margin-top: 20px; }
   .tasks-card { padding: 4px 0; }

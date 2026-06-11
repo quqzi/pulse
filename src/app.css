@@ -319,9 +319,9 @@ body.design-resend.theme-dark {
 .stagger-children > *:nth-child(7) { animation-delay: 180ms; }
 .stagger-children > *:nth-child(n+8) { animation-delay: 200ms; }
 
-/* Unified press feedback for tap targets. */
-.pressable { transition: transform var(--dur-fast) var(--ease-out); }
-.pressable:active { transform: scale(0.96); }
+/* Unified press feedback for tap targets — quick press in, jelly spring back out. */
+.pressable { transition: transform var(--dur-base) var(--ease-spring); }
+.pressable:active { transform: scale(0.94); transition-duration: var(--dur-fast); }
 
 /* --- Typography --- */
 .text-large-title { font-size: 26px; font-weight: 700; font-family: var(--font-display, var(--font-sans, inherit)); letter-spacing: var(--tracking-display, -0.02em); }
