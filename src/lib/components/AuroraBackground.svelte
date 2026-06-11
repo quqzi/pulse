@@ -23,10 +23,10 @@
 
   .blob {
     position: absolute;
-    width: 46vmax;
-    height: 46vmax;
+    width: 58vmax;
+    height: 58vmax;
     border-radius: 50%;
-    filter: blur(56px);
+    filter: blur(90px);
     will-change: transform;
   }
 
@@ -34,19 +34,19 @@
   .b1 {
     top: -12vmax;
     left: -8vmax;
-    background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--aurora-1) 62%, transparent), transparent 70%);
+    background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--aurora-1) 45%, transparent), transparent 68%);
     animation: drift1 26s ease-in-out infinite;
   }
   .b2 {
     bottom: -14vmax;
     right: -10vmax;
-    background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--aurora-2) 58%, transparent), transparent 70%);
+    background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--aurora-2) 40%, transparent), transparent 68%);
     animation: drift2 32s ease-in-out infinite;
   }
   .b3 {
     bottom: -6vmax;
     left: 18vmax;
-    background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--aurora-3) 55%, transparent), transparent 70%);
+    background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--aurora-3) 38%, transparent), transparent 68%);
     animation: drift3 38s ease-in-out infinite;
   }
 
@@ -59,10 +59,10 @@
     mix-blend-mode: overlay;
   }
 
-  /* Overall intensity — "not too much", tuned per theme. */
-  .aurora { opacity: 0.55; }
-  :global(body:not(.theme-dark)) .aurora { opacity: 0.42; }
-  :global(body.design-resend) .aurora { opacity: 0.34; }
+  /* Overall intensity — a quiet wash, tuned per theme. */
+  .aurora { opacity: 0.38; }
+  :global(body:not(.theme-dark)) .aurora { opacity: 0.28; }
+  :global(body.design-resend) .aurora { opacity: 0.22; }
 
   @keyframes drift1 {
     0%, 100% { transform: translate(0, 0) scale(1); }

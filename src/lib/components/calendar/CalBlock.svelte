@@ -26,6 +26,7 @@
 
   let showPopover = false;
   let didDrag = false;
+  let lifting = false;
   let blockEl: HTMLElement;
 
   $: isShort = (() => {
@@ -61,9 +62,10 @@
   }
 
   const moveDrag = {
-    onStart: () => { if (!showPopover) dispatch('dragStart', { slot }); },
+    onStart: () => { if (!showPopover) { lifting = true; dispatch('dragStart', { slot }); } },
     onMove: (d: { dy: number; event: PointerEvent }) => { if (!showPopover) dispatch('dragMove', { dy: d.dy, clientX: d.event.clientX }); },
     onEnd: (d: { dragged: boolean; event: PointerEvent }) => {
+      lifting = false;
       if (d.dragged) {
         if (d.event.type !== 'pointercancel') didDrag = true;
         if (!showPopover) dispatch('dragEnd');
@@ -92,6 +94,7 @@
 <div
   class="cal-block"
   class:suggested={slot.isAiSuggested}
+  class:lifting
   class:focus-block={slot.isFocusBlock && !!subject}
   style="background: {blockBg}; border: {blockBorder}; color: {blockColor};"
   bind:this={blockEl}
@@ -198,6 +201,17 @@
     box-sizing: border-box;
     min-height: 15px;
     touch-action: none;
+    /* Spring on transform = the iOS "jelly" pick-up/settle feel. */
+    transition: transform var(--dur-base) var(--ease-spring), box-shadow 240ms ease;
+  }
+  @media (hover: hover) {
+    .cal-block:hover { transform: scale(1.015); box-shadow: 0 3px 12px rgba(0,0,0,0.16); z-index: 5; }
+  }
+  .cal-block.lifting {
+    transform: scale(1.05) translateY(-3px);
+    box-shadow: 0 16px 28px rgba(0,0,0,0.30), 0 5px 10px rgba(0,0,0,0.18);
+    z-index: 10;
+    cursor: grabbing;
   }
   .block-content {
     position: absolute;
