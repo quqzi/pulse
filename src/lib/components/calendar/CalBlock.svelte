@@ -27,6 +27,8 @@
   let showPopover = false;
   let didDrag = false;
   let lifting = false;
+  let dragDx = 0;
+  let dragDy = 0;
   let blockEl: HTMLElement;
 
   $: isShort = (() => {
@@ -62,10 +64,18 @@
   }
 
   const moveDrag = {
-    onStart: () => { if (!showPopover) { lifting = true; dispatch('dragStart', { slot }); } },
-    onMove: (d: { dy: number; event: PointerEvent }) => { if (!showPopover) dispatch('dragMove', { dy: d.dy, clientX: d.event.clientX }); },
+    onStart: () => { if (!showPopover) { lifting = true; dragDx = 0; dragDy = 0; dispatch('dragStart', { slot }); } },
+    onMove: (d: { dx: number; dy: number; event: PointerEvent }) => {
+      if (!showPopover) {
+        dragDx = d.dx;
+        dragDy = d.dy;
+        dispatch('dragMove', { dy: d.dy, clientX: d.event.clientX });
+      }
+    },
     onEnd: (d: { dragged: boolean; event: PointerEvent }) => {
       lifting = false;
+      dragDx = 0;
+      dragDy = 0;
       if (d.dragged) {
         if (d.event.type !== 'pointercancel') didDrag = true;
         if (!showPopover) dispatch('dragEnd');
@@ -96,7 +106,7 @@
   class:suggested={slot.isAiSuggested}
   class:lifting
   class:focus-block={slot.isFocusBlock && !!subject}
-  style="background: {blockBg}; border: {blockBorder}; color: {blockColor};"
+  style="background: {blockBg}; border: {blockBorder}; color: {blockColor}; translate: {dragDx}px {dragDy}px;"
   bind:this={blockEl}
   on:click={onBlockClick}
   use:draggable={moveDrag}
@@ -201,8 +211,8 @@
     box-sizing: border-box;
     min-height: 15px;
     touch-action: none;
-    /* Spring on transform = the iOS "jelly" pick-up/settle feel. */
-    transition: transform var(--dur-base) var(--ease-spring), box-shadow 240ms ease;
+    /* Spring on transform/translate = the iOS "jelly" pick-up, trailing follow, and settle. */
+    transition: transform var(--dur-base) var(--ease-spring), translate 180ms var(--ease-spring), box-shadow 240ms ease;
   }
   @media (hover: hover) {
     .cal-block:hover { transform: scale(1.015); box-shadow: 0 3px 12px rgba(0,0,0,0.16); z-index: 5; }
