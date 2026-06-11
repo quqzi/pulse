@@ -206,6 +206,7 @@ export const examQuestionFromRow = (r: Record<string, unknown>): ExamQuestion =>
   subject: r.subject as string,
   difficulty: r.difficulty as ExamQuestion['difficulty'],
   year: (r.year as number | null) ?? undefined,
+  imageUrl: (r.image_url as string | null) ?? undefined,
   createdAt: r.created_at as string,
 });
 
@@ -218,6 +219,7 @@ export const examQuestionToRow = (q: ExamQuestion): Record<string, unknown> => (
   subject: q.subject,
   difficulty: q.difficulty,
   year: q.year ?? null,
+  image_url: q.imageUrl ?? null,
   created_at: q.createdAt,
 });
 
