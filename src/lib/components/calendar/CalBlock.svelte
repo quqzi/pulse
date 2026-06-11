@@ -29,6 +29,24 @@
   let lifting = false;
   let dragDx = 0;
   let dragDy = 0;
+  // Velocity-based squash & stretch — the "soft body" deformation while dragging.
+  let velX = 0;
+  let velY = 0;
+  let prevDx = 0;
+  let prevDy = 0;
+  let relaxTimer: ReturnType<typeof setTimeout> | null = null;
+
+  $: jellySkewX = Math.max(-7, Math.min(7, velX * 0.35));
+  $: jellySkewY = Math.max(-5, Math.min(5, velY * 0.25));
+  $: jellyStretch = Math.min(0.06, Math.hypot(velX, velY) * 0.004);
+  $: liftTransform = lifting
+    ? `translateY(-3px) scale(${(1.05 + jellyStretch).toFixed(4)}, ${(1.05 - jellyStretch).toFixed(4)}) skew(${jellySkewX.toFixed(2)}deg, ${jellySkewY.toFixed(2)}deg)`
+    : '';
+
+  function relaxJelly() {
+    velX = 0;
+    velY = 0;
+  }
   let blockEl: HTMLElement;
 
   $: isShort = (() => {
@@ -64,9 +82,21 @@
   }
 
   const moveDrag = {
-    onStart: () => { if (!showPopover) { lifting = true; dragDx = 0; dragDy = 0; dispatch('dragStart', { slot }); } },
+    onStart: () => {
+      if (!showPopover) {
+        lifting = true;
+        dragDx = 0; dragDy = 0; prevDx = 0; prevDy = 0; velX = 0; velY = 0;
+        dispatch('dragStart', { slot });
+      }
+    },
     onMove: (d: { dx: number; dy: number; event: PointerEvent }) => {
       if (!showPopover) {
+        velX = velX * 0.6 + (d.dx - prevDx) * 0.4;
+        velY = velY * 0.6 + (d.dy - prevDy) * 0.4;
+        prevDx = d.dx;
+        prevDy = d.dy;
+        if (relaxTimer) clearTimeout(relaxTimer);
+        relaxTimer = setTimeout(relaxJelly, 70);
         dragDx = d.dx;
         dragDy = d.dy;
         dispatch('dragMove', { dy: d.dy, clientX: d.event.clientX });
@@ -76,6 +106,9 @@
       lifting = false;
       dragDx = 0;
       dragDy = 0;
+      if (relaxTimer) { clearTimeout(relaxTimer); relaxTimer = null; }
+      velX = 0;
+      velY = 0;
       if (d.dragged) {
         if (d.event.type !== 'pointercancel') didDrag = true;
         if (!showPopover) dispatch('dragEnd');
@@ -106,7 +139,7 @@
   class:suggested={slot.isAiSuggested}
   class:lifting
   class:focus-block={slot.isFocusBlock && !!subject}
-  style="background: {blockBg}; border: {blockBorder}; color: {blockColor}; translate: {dragDx}px {dragDy}px;"
+  style="background: {blockBg}; border: {blockBorder}; color: {blockColor}; translate: {dragDx}px {dragDy}px;{liftTransform ? ` transform: ${liftTransform};` : ''}"
   bind:this={blockEl}
   on:click={onBlockClick}
   use:draggable={moveDrag}
@@ -212,7 +245,7 @@
     min-height: 15px;
     touch-action: none;
     /* Spring on transform/translate = the iOS "jelly" pick-up, trailing follow, and settle. */
-    transition: transform var(--dur-base) var(--ease-spring), translate 180ms var(--ease-spring), box-shadow 240ms ease;
+    transition: transform var(--dur-base) var(--ease-spring), translate 180ms var(--ease-spring), box-shadow 240ms ease, border-radius 240ms ease;
   }
   @media (hover: hover) {
     .cal-block:hover { transform: scale(1.015); box-shadow: 0 3px 12px rgba(0,0,0,0.16); z-index: 5; }
@@ -220,9 +253,11 @@
   .cal-block.lifting {
     transform: scale(1.05) translateY(-3px);
     box-shadow: 0 16px 28px rgba(0,0,0,0.30), 0 5px 10px rgba(0,0,0,0.18);
+    border-radius: 14px;
     z-index: 10;
     cursor: grabbing;
   }
+  .cal-block.lifting .block-content { border-radius: 14px; }
   .block-content {
     position: absolute;
     inset: 0;
