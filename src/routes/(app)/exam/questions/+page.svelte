@@ -9,6 +9,7 @@
   import ImportSheet from '$lib/components/ImportSheet.svelte';
   import EmptyState from '$lib/components/EmptyState.svelte';
   import { fileToDownscaledDataUrl } from '$lib/image';
+  import Picker from '$lib/components/Picker.svelte';
   import { t } from '$lib/i18n';
   import { get } from 'svelte/store';
   import type { ExamQuestion } from '$lib/types';
@@ -148,11 +149,11 @@
     <div slot="options" class="import-options">
       <div class="import-subject-row">
         <label class="field-label" for="import-subject">{$t.exam.subjectLabel}</label>
-        <select id="import-subject" class="field-input" bind:value={importSubject}>
-          {#each $subjects as s}
-            <option value={s.name}>{s.name}</option>
-          {/each}
-        </select>
+        <Picker
+          bind:value={importSubject}
+          options={$subjects.map(s => ({ value: s.name, label: s.name, color: s.color }))}
+          ariaLabel={$t.exam.subjectLabel}
+        />
       </div>
       <div class="opt-row">
         <span class="opt-label">{$t.importer.howMany}</span>
@@ -172,12 +173,12 @@
 
   <div class="toolbar">
     <input class="search" type="text" placeholder={$t.exam.searchPlaceholder} bind:value={search} />
-    <select bind:value={filterSubject}>
-      <option value="all">{$t.exam.allSubjects}</option>
-      {#each subjectOptions as s}
-        <option value={s}>{s}</option>
-      {/each}
-    </select>
+    <Picker
+      value={filterSubject === 'all' ? '' : filterSubject}
+      options={subjectOptions.map(s => ({ value: s, label: s }))}
+      placeholder={$t.exam.allSubjects}
+      on:change={(e) => (filterSubject = e.detail.value || 'all')}
+    />
   </div>
 
   {#if showForm}
@@ -204,20 +205,25 @@
 
       <div class="form-row">
         <div class="form-col">
-          <label class="field-label" for="q-subject">{$t.exam.subjectLabel}</label>
-          <select id="q-subject" class="field-input" bind:value={formSubject}>
-            {#each $subjects as s}
-              <option value={s.name}>{s.name}</option>
-            {/each}
-          </select>
+          <span class="field-label">{$t.exam.subjectLabel}</span>
+          <Picker
+            bind:value={formSubject}
+            options={$subjects.map(s => ({ value: s.name, label: s.name, color: s.color }))}
+            ariaLabel={$t.exam.subjectLabel}
+          />
         </div>
         <div class="form-col">
-          <label class="field-label" for="q-diff">{$t.exam.difficulty}</label>
-          <select id="q-diff" class="field-input" bind:value={formDifficulty}>
-            <option value="easy">{$t.exam.diffEasy}</option>
-            <option value="medium">{$t.exam.diffMedium}</option>
-            <option value="hard">{$t.exam.diffHard}</option>
-          </select>
+          <span class="field-label">{$t.exam.difficulty}</span>
+          <Picker
+            value={formDifficulty}
+            options={[
+              { value: 'easy', label: $t.exam.diffEasy },
+              { value: 'medium', label: $t.exam.diffMedium },
+              { value: 'hard', label: $t.exam.diffHard },
+            ]}
+            ariaLabel={$t.exam.difficulty}
+            on:change={(e) => (formDifficulty = e.detail.value as 'easy' | 'medium' | 'hard')}
+          />
         </div>
         <div class="form-col">
           <label class="field-label" for="q-year">{$t.exam.yearOptional}</label>
@@ -287,7 +293,7 @@
   .btn-secondary { background: var(--bg2); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 8px 14px; font-size: 13px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; }
   .toolbar { display: flex; gap: 10px; margin-bottom: 20px; }
   .search { flex: 1; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 8px 12px; font-size: 13px; color: var(--text); font-family: inherit; }
-  .toolbar select { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 8px 12px; font-size: 13px; color: var(--text); font-family: inherit; }
+  .toolbar > :global(.picker-trigger) { width: auto; min-width: 140px; font-size: 13px; }
   .form-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; margin-bottom: 24px; }
   .form-title { font-size: 15px; font-weight: 600; color: var(--text); margin: 0 0 16px; }
   .field-label { display: block; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin: 12px 0 4px; }

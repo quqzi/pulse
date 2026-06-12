@@ -237,7 +237,7 @@
     position: relative;
     width: 100%;
     height: 100%;
-    border-radius: var(--radius-md);
+    border-radius: 12px;
     cursor: pointer;
     overflow: visible;
     user-select: none;
@@ -262,7 +262,7 @@
     position: absolute;
     inset: 0;
     padding: 3px 6px;
-    border-radius: var(--radius-md);
+    border-radius: 12px;
     overflow: hidden;
     pointer-events: none;
   }

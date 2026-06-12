@@ -2,6 +2,7 @@
   import { createEventDispatcher } from 'svelte';
   import { t } from '$lib/i18n';
   import { localDateStr } from '$lib/utils';
+  import Picker from '$lib/components/Picker.svelte';
   import type { Subject, MockScore } from '$lib/types';
 
   export let subjects: Subject[];
@@ -58,12 +59,12 @@
 <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 <div class="form card" on:keydown={handleKeydown} role="form">
   <div class="form-row">
-    <label class="field-label" for="sf-subject">{$t.scores.subjectLabel}</label>
-    <select id="sf-subject" class="field-select" bind:value={subjectId}>
-      {#each subjects as s}
-        <option value={s.id}>{s.name}</option>
-      {/each}
-    </select>
+    <span class="field-label" id="sf-subject-label">{$t.scores.subjectLabel}</span>
+    <Picker
+      bind:value={subjectId}
+      options={subjects.map(s => ({ value: s.id, label: s.name, color: s.color }))}
+      ariaLabel={$t.scores.subjectLabel}
+    />
   </div>
 
   <div class="form-row score-row">
@@ -125,14 +126,6 @@
     transition: border-color 100ms ease;
   }
   .field-input:focus { border-color: var(--primary); }
-
-  .field-select {
-    height: 30px; padding: 0 8px; border: 1.5px solid var(--border);
-    border-radius: 6px; background: var(--bg); color: var(--text);
-    font-family: inherit; font-size: 13px; outline: none; cursor: pointer;
-    transition: border-color 100ms ease;
-  }
-  .field-select:focus { border-color: var(--primary); }
 
   .score-inputs { display: flex; align-items: center; gap: 6px; }
   .score-inputs.error .field-input { border-color: var(--danger); }

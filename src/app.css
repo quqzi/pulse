@@ -325,8 +325,12 @@ body.design-resend.theme-dark {
 
 /* Every button gets the jelly press by default. Component-scoped transform
    rules (.btn, .pressable, tiles) override this element selector. */
-button { transition: transform var(--dur-base) var(--ease-spring); }
+button { transition: transform var(--dur-base) var(--ease-spring), filter 160ms ease; }
+button:hover:not(:disabled) { filter: brightness(0.95); }
 button:active:not(:disabled) { transform: scale(0.96); transition-duration: var(--dur-fast); }
+.pressable:hover:not(:disabled) { transform: scale(1.03); }
+a { transition: filter 160ms ease; }
+a:hover { filter: brightness(0.93); }
 
 /* --- iOS-feel selects, app-wide --- */
 select {

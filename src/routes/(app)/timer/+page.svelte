@@ -10,6 +10,7 @@
   import { newId } from '$lib/id';
   import { sessionsRepo } from '$lib/data/entities';
   import { t } from '$lib/i18n';
+  import Picker from '$lib/components/Picker.svelte';
 
   let showSummary = false;
   let lastSession: { durationSec: number; subjectName: string; topicName: string | null } | null = null;
@@ -87,6 +88,7 @@
   }
 
   onMount(() => loadData($auth));
+  $: if ($auth.mode !== 'loading') loadData($auth);
 </script>
 
 {#if showSummary && lastSession}
@@ -127,26 +129,21 @@
   </div>
 
   <div class="selector-row">
-    <select
-      bind:value={$timerStore.subjectId}
-      on:change={() => timerStore.update(tp => ({ ...tp, topicId: null }))}
-      class="field-select"
+    <Picker
+      value={$timerStore.subjectId ?? ''}
+      options={$subjects.map(s => ({ value: s.id, label: s.name, color: s.color }))}
+      placeholder={$t.timer.selectSubject}
       disabled={isRunning || isPaused}
-      aria-label={$t.timer.selectSubject}
-      style={selectedSubject ? `color: ${selectedSubject.color}; border-color: ${selectedSubject.color};` : ''}
-    >
-      <option value={null}>{$t.timer.selectSubject}</option>
-      {#each $subjects as sub}
-        <option value={sub.id}>{sub.name}</option>
-      {/each}
-    </select>
+      on:change={(e) => timerStore.update(tp => ({ ...tp, subjectId: e.detail.value || null, topicId: null }))}
+    />
     {#if subjectTopics.length > 0}
-      <select bind:value={$timerStore.topicId} class="field-select" disabled={isRunning || isPaused} aria-label={$t.timer.selectTopic}>
-        <option value={null}>{$t.timer.selectTopic}</option>
-        {#each subjectTopics as tp}
-          <option value={tp.id}>{tp.name}</option>
-        {/each}
-      </select>
+      <Picker
+        value={$timerStore.topicId ?? ''}
+        options={subjectTopics.map(tp => ({ value: tp.id, label: tp.name }))}
+        placeholder={$t.timer.selectTopic}
+        disabled={isRunning || isPaused}
+        on:change={(e) => timerStore.update(tp => ({ ...tp, topicId: e.detail.value || null }))}
+      />
     {/if}
   </div>
 
@@ -243,18 +240,6 @@
   .timer-display.running .time-text { color: var(--primary); }
   .phase-label { font-size: 13px; font-weight: 500; color: var(--muted); margin-top: 8px; }
   .selector-row { display: flex; flex-direction: column; gap: 8px; align-self: stretch; }
-  .field-select {
-    padding: 10px 12px;
-    border: 1.5px solid var(--border);
-    border-radius: 12px;
-    background: var(--bg2);
-    color: var(--text);
-    font-size: 15px;
-    outline: none;
-    width: 100%;
-    transition: border-color 150ms;
-  }
-  .field-select:focus { border-color: var(--primary); }
   .controls { display: flex; gap: 12px; }
   .btn-start {
     display: flex;

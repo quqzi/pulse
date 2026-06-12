@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import { t } from '$lib/i18n';
+  import Picker from '$lib/components/Picker.svelte';
   import type { Subject, Topic } from '$lib/types';
 
   export let subjects: Subject[] = [];
@@ -53,18 +54,17 @@
       </div>
     {:else}
       <div class="form-row">
-        <select bind:value={selectedSubjectId} class="field-select" aria-label={$t.dashboard.subjectField} style={selectedSubject ? `color: ${selectedSubject.color}` : ''}>
-          <option value="">{$t.dashboard.subjectField}</option>
-          {#each subjects as sub}
-            <option value={sub.id}>{sub.name}</option>
-          {/each}
-        </select>
-        <select bind:value={selectedTopicId} class="field-select" disabled={!selectedSubjectId} aria-label={$t.dashboard.topicField}>
-          <option value="">{$t.dashboard.topicField}</option>
-          {#each subjectTopics as tp}
-            <option value={tp.id}>{tp.name}</option>
-          {/each}
-        </select>
+        <Picker
+          bind:value={selectedSubjectId}
+          options={subjects.map(s => ({ value: s.id, label: s.name, color: s.color }))}
+          placeholder={$t.dashboard.subjectField}
+        />
+        <Picker
+          bind:value={selectedTopicId}
+          options={subjectTopics.map(tp => ({ value: tp.id, label: tp.name }))}
+          placeholder={$t.dashboard.topicField}
+          disabled={!selectedSubjectId}
+        />
       </div>
       <div class="form-row">
         <div class="dur-pills" role="group" aria-label={$t.common.minutes}>
@@ -119,19 +119,7 @@
     margin-bottom: 10px;
   }
   .form-row:last-child { margin-bottom: 0; }
-  .field-select {
-    flex: 1;
-    padding: 9px 10px;
-    border: 1.5px solid var(--border);
-    border-radius: 10px;
-    background: var(--bg3);
-    color: var(--text);
-    font-size: 14px;
-    outline: none;
-    min-width: 0;
-  }
-  .field-select:focus { border-color: var(--primary); }
-  .field-select:disabled { opacity: 0.5; }
+  .form-row > :global(.picker-trigger) { flex: 1; }
   /* iOS segmented duration pills — springy selection. */
   .dur-pills { display: flex; gap: 6px; flex: 1; }
   .dur-pill {
@@ -226,7 +214,7 @@
   }
 
   @media (max-width: 768px) {
-    .field-select { min-height: 44px; }
+    .form-row > :global(.picker-trigger) { min-height: 44px; }
     .duration-input { min-height: 44px; }
     .log-btn { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
   }

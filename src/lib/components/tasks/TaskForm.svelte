@@ -2,6 +2,7 @@
   import { createEventDispatcher } from 'svelte';
   import { t } from '$lib/i18n';
   import type { Subject, Priority } from '$lib/types';
+  import Picker from '$lib/components/Picker.svelte';
 
   export let subjects: Subject[] = [];
 
@@ -59,12 +60,11 @@
       {/each}
     </div>
     <input type="date" class="date-input" bind:value={dueDateInput} />
-    <select class="subject-select" bind:value={subjectIdInput}>
-      <option value="">{$t.tasks.noSubject}</option>
-      {#each subjects as s}
-        <option value={s.id}>{s.name}</option>
-      {/each}
-    </select>
+    <Picker
+      bind:value={subjectIdInput}
+      options={subjects.map(s => ({ value: s.id, label: s.name, color: s.color }))}
+      placeholder={$t.tasks.noSubject}
+    />
   </div>
   <div class="form-actions">
     <button class="btn-cancel" on:click={() => dispatch('cancel')}>{$t.common.cancel}</button>
@@ -97,11 +97,7 @@
     font-family: inherit; font-size: 12px; outline: none;
   }
   .date-input:focus { border-color: var(--primary); }
-  .subject-select {
-    height: 28px; padding: 0 8px; border: 1.5px solid var(--border);
-    border-radius: 6px; background: var(--bg); color: var(--text);
-    font-family: inherit; font-size: 12px; outline: none; cursor: pointer;
-  }
+  .form-row > :global(.picker-trigger) { width: auto; font-size: 12px; padding: 5px 10px; }
   .form-actions { display: flex; justify-content: flex-end; gap: 8px; }
   .btn-cancel {
     padding: 6px 14px; border-radius: 8px; border: 1.5px solid var(--border);
