@@ -6,6 +6,7 @@
   import { newId } from '$lib/id';
   import { t } from '$lib/i18n';
   import type { ExamQuestion, ExamSession } from '$lib/types';
+  import MathText from '$lib/components/MathText.svelte';
 
   $: diffLabels = { easy: $t.exam.diffEasy, medium: $t.exam.diffMedium, hard: $t.exam.diffHard };
 
@@ -314,7 +315,7 @@
 
     <div class="question-card">
       <span class="subject-badge">{current.subject.toUpperCase()}</span>
-      <p class="question-text">{current.text}</p>
+      <p class="question-text"><MathText text={current.text} /></p>
       {#if current.imageUrl}
         <img class="question-image" src={current.imageUrl} alt={$t.exam.imageAlt} />
       {/if}
@@ -323,7 +324,7 @@
         {#each current.choices as choice, i}
           <button class="choice" class:selected={answers[currentIndex] === i} on:click={() => selectAnswer(i)}>
             <span class="choice-letter">{String.fromCharCode(65 + i)}</span>
-            {choice}
+            <span class="choice-text"><MathText text={choice} /></span>
           </button>
         {/each}
       </div>

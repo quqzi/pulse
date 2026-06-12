@@ -13,6 +13,7 @@
   import { t } from '$lib/i18n';
   import { get } from 'svelte/store';
   import type { ExamQuestion } from '$lib/types';
+  import MathText from '$lib/components/MathText.svelte';
 
   $: diffLabels = { easy: $t.exam.diffEasy, medium: $t.exam.diffMedium, hard: $t.exam.diffHard };
 
@@ -265,7 +266,7 @@
         <div class="question-row">
           {#if q.imageUrl}<img class="q-thumb" src={q.imageUrl} alt={$t.exam.imageAlt} />{/if}
           <div class="q-content">
-            <p class="q-text">{q.text}</p>
+            <p class="q-text"><MathText text={q.text} /></p>
             <div class="q-tags">
               <span class="tag tag-subject">{q.subject}</span>
               <span class="tag tag-diff">{diffLabels[q.difficulty]}</span>

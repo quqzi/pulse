@@ -13,6 +13,7 @@
   import { toast } from '$lib/stores/toast';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
   import ImportSheet from '$lib/components/ImportSheet.svelte';
+  import MathText from '$lib/components/MathText.svelte';
   import { t } from '$lib/i18n';
   import { get } from 'svelte/store';
   import type { Flashcard } from '$lib/types';
@@ -152,11 +153,11 @@
       </div>
       {#key studyIndex}
         <div class="study-card" in:fly={{ y: 14, duration: dur }}>
-          <p class="study-front">{card.front}</p>
+          <p class="study-front"><MathText text={card.front} /></p>
           {#if revealed}
             <div in:fly={{ y: 8, duration: dur }}>
               <div class="study-divider"></div>
-              <p class="study-back">{card.back}</p>
+              <p class="study-back"><MathText text={card.back} /></p>
             </div>
           {/if}
         </div>
@@ -210,8 +211,8 @@
       {#each deckCards as c, i (c.id)}
         <div class="card-row" class:divider={i > 0}>
           <div class="card-text">
-            <p class="card-front">{c.front}</p>
-            <p class="card-back">{c.back}</p>
+            <p class="card-front"><MathText text={c.front} /></p>
+            <p class="card-back"><MathText text={c.back} /></p>
           </div>
           <div class="card-actions">
             <button class="icon-btn" on:click={() => startEdit(c)} aria-label={$t.flashcards.editCard}>✎</button>
