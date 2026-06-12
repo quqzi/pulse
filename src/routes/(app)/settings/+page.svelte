@@ -52,6 +52,11 @@
           </div>
           <div class="tc-label">{tp.label}</div>
           <div class="tc-sub">{tp.sub}</div>
+          {#if $settings.theme === tp.value}
+            <span class="tc-check" aria-hidden="true">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+            </span>
+          {/if}
         </button>
       {/each}
     </div>
@@ -323,6 +328,7 @@
     background:var(--bg); color:var(--muted); font-family:inherit; font-size:14px;
     font-weight:600; cursor:pointer; min-height:36px;
   }
+  .lang-pill:hover:not(.active) { border-color:var(--muted); color:var(--text); }
   .lang-pill.active { border-color:var(--primary); background:var(--primary-l); color:var(--primary); }
   @media (max-width: 768px) { .lang-pill { min-height: 44px; } }
 
@@ -330,13 +336,24 @@
   @media (max-width:360px) { .theme-grid { grid-template-columns:repeat(2,1fr); } }
 
   .theme-card {
+    position:relative;
     border:2px solid var(--border); border-radius:var(--radius-md);
     background:var(--t-bg); cursor:pointer; padding:10px 8px 8px;
-    transition:border-color 120ms ease, transform 120ms ease;
+    transition:border-color 120ms ease, transform var(--dur-base) var(--ease-spring), box-shadow 160ms ease;
     text-align:center;
   }
-  .theme-card:hover { transform:translateY(-1px); }
-  .theme-card.selected { border-color:var(--t-accent); }
+  .theme-card:hover { transform:translateY(-2px) scale(1.03); }
+  .theme-card:active { transform:scale(0.97); transition-duration:var(--dur-fast); }
+  .theme-card.selected {
+    border-color:var(--t-accent);
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--t-accent) 22%, transparent);
+  }
+  .tc-check {
+    position:absolute; top:6px; right:6px;
+    width:18px; height:18px; border-radius:50%;
+    background:var(--t-accent); color:var(--t-bg);
+    display:flex; align-items:center; justify-content:center;
+  }
 
   .tc-preview {
     background:var(--t-bg); border-radius:var(--t-radius);
@@ -358,16 +375,34 @@
   .toggle { display:flex; align-items:center; cursor:pointer; flex-shrink:0; }
   .toggle input { display:none; }
   .toggle-track {
-    width:44px; height:24px; border-radius:999px; background:var(--border);
-    position:relative; transition:background 150ms ease;
+    width:44px; height:26px; border-radius:999px; background:var(--border);
+    position:relative; transition:background 200ms ease;
   }
   .toggle-track::after {
     content:''; position:absolute; top:2px; left:2px;
-    width:20px; height:20px; border-radius:50%; background:white; /* stylelint-disable-line color-named */
-    transition:transform 150ms ease;
+    width:22px; height:22px; border-radius:50%; background:white; /* stylelint-disable-line color-named */
+    box-shadow:0 1px 3px rgba(0,0,0,0.25);
+    transition:transform 320ms var(--ease-spring);
   }
   .toggle input:checked + .toggle-track { background:var(--primary); }
-  .toggle input:checked + .toggle-track::after { transform:translateX(20px); }
+  .toggle input:checked + .toggle-track::after { transform:translateX(18px); }
+
+  /* iOS-style range slider — accent thumb on a hairline track. */
+  input[type='range'] {
+    appearance:none; -webkit-appearance:none;
+    height:4px; border-radius:2px; background:var(--border); outline:none;
+  }
+  input[type='range']::-webkit-slider-thumb {
+    appearance:none; -webkit-appearance:none;
+    width:18px; height:18px; border-radius:50%; background:var(--primary);
+    box-shadow:0 1px 4px rgba(0,0,0,0.25); cursor:pointer;
+    transition:transform var(--dur-base) var(--ease-spring);
+  }
+  input[type='range']::-webkit-slider-thumb:hover { transform:scale(1.15); }
+  input[type='range']::-moz-range-thumb {
+    width:18px; height:18px; border:none; border-radius:50%; background:var(--primary);
+    box-shadow:0 1px 4px rgba(0,0,0,0.25); cursor:pointer;
+  }
 
   .school-hours-config {
     padding: 10px 0 6px 0;
@@ -382,6 +417,7 @@
     color:var(--text); font-size:11px; font-weight:600;
     cursor:pointer; display:flex; align-items:center; justify-content:center;
   }
+  .day-chip:hover:not(.active) { border-color:var(--muted); }
   .day-chip.active { background:var(--primary); border-color:var(--primary); color:var(--bg); }
   .time-row { display:flex; gap:8px; align-items:center; }
   .time-input {
@@ -407,10 +443,12 @@
     padding:8px 12px; border-radius:8px; border:1.5px solid var(--border);
     background:var(--bg); color:var(--text); cursor:pointer; text-align:left;
   }
+  .energy-chip:hover:not(.active) { border-color:var(--muted); }
   .energy-chip.active {
     border-color:var(--primary);
     background:color-mix(in srgb, var(--primary) 8%, var(--bg));
   }
+  .sign-out:hover span { filter:brightness(1.1); }
   .energy-label { font-size:13px; font-weight:600; }
   .energy-desc { font-size:11px; color:var(--muted); margin-top:1px; }
 

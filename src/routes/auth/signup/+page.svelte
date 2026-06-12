@@ -1,7 +1,10 @@
 <script lang="ts">
   import { supabase } from '$lib/supabase';
   import { goto } from '$app/navigation';
+  import { fly } from 'svelte/transition';
+  import { backOut } from 'svelte/easing';
   import { t } from '$lib/i18n';
+  import AuroraBackground from '$lib/components/AuroraBackground.svelte';
 
   let name = '', email = '', password = '', error = '', loading = false;
   let confirmSent = false;
@@ -24,8 +27,10 @@
   }
 </script>
 
+<AuroraBackground />
+
 <div class="auth-page">
-  <div class="auth-card card">
+  <div class="auth-card glass-panel" in:fly={{ y: 24, duration: 480, easing: backOut }}>
     <div class="logo-row">
       <div class="logo-mark">
         <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
@@ -71,16 +76,39 @@
 </div>
 
 <style>
-  .auth-page { min-height:100dvh; display:flex; align-items:center; justify-content:center; padding:20px; background:var(--bg); }
-  .auth-card { width:100%; max-width:380px; padding:32px 28px; }
+  .auth-page { min-height:100dvh; display:flex; align-items:center; justify-content:center; padding:20px; }
+  .auth-card { width:100%; max-width:380px; padding:32px 28px; border-radius:22px; }
   .logo-row { display:flex; align-items:center; gap:10px; margin-bottom:24px; }
-  .logo-mark { width:36px; height:36px; background:var(--primary); border-radius:9px; display:flex; align-items:center; justify-content:center; }
+  .logo-mark {
+    width:36px; height:36px; background:var(--primary); color:var(--bg); border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:
+      0 4px 14px rgba(var(--primary-rgb), 0.35),
+      inset 0 1px 0 color-mix(in srgb, var(--bg) 25%, transparent);
+  }
+  .logo-mark polyline {
+    stroke-dasharray: 40;
+    animation: pulse-draw 3.6s ease-in-out infinite;
+  }
+  @keyframes pulse-draw {
+    0%   { stroke-dashoffset: 40; opacity: 0.3; }
+    40%  { stroke-dashoffset: 0; opacity: 1; }
+    100% { stroke-dashoffset: 0; opacity: 1; }
+  }
   .logo-word { font-size:22px; font-weight:800; letter-spacing:-0.03em; }
   .auth-form { display:flex; flex-direction:column; gap:14px; margin-bottom:16px; }
   .auth-form label { display:flex; flex-direction:column; gap:5px; }
   .field-label { font-size:13px; font-weight:600; color:var(--muted); }
-  .auth-form input { padding:11px 14px; border-radius:var(--radius-sm); border:1.5px solid var(--border); background:var(--bg); color:var(--text); font-family:inherit; font-size:15px; outline:none; transition:border-color 140ms ease; }
-  .auth-form input:focus { border-color:var(--primary); }
+  .auth-form input {
+    padding:12px 14px; border-radius:12px; border:1.5px solid var(--border);
+    background:color-mix(in srgb, var(--bg) 70%, transparent); color:var(--text);
+    font-family:inherit; font-size:15px; outline:none;
+    transition:border-color 140ms ease, box-shadow 140ms ease;
+  }
+  .auth-form input:focus {
+    border-color:var(--primary);
+    box-shadow:0 0 0 3px rgba(var(--primary-rgb), 0.15);
+  }
   .error-msg { background:var(--danger-soft); color:var(--danger); border-radius:8px; padding:10px 12px; font-size:13px; margin-bottom:14px; }
   .auth-footer { text-align:center; font-size:13px; color:var(--muted); margin-top:16px; }
   .auth-footer a { color:var(--primary); text-decoration:none; font-weight:600; }
