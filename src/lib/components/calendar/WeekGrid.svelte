@@ -614,6 +614,9 @@
     grid-template-columns: 44px repeat(7, 1fr);
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
   }
   .time-gutter { flex-shrink: 0; }
   .day-header-cell {
@@ -677,6 +680,9 @@
     overflow-x: hidden;
     position: relative;
     min-height: 0;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
   }
   .grid-inner {
     display: grid;

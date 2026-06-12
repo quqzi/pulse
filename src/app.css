@@ -332,6 +332,14 @@ button:active:not(:disabled) { transform: scale(0.96); transition-duration: var(
 a { transition: filter 160ms ease; }
 a:hover { filter: brightness(0.93); }
 
+/* iOS/iPadOS: long-pressing a tap target must not start text selection or the
+   copy callout — selection belongs to content, not controls. */
+button, a, [role='button'], .pressable {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
 /* --- iOS-feel selects, app-wide --- */
 select {
   appearance: none;

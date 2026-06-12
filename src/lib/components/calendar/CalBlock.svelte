@@ -241,6 +241,8 @@
     cursor: pointer;
     overflow: visible;
     user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
     box-sizing: border-box;
     min-height: 15px;
     touch-action: none;
