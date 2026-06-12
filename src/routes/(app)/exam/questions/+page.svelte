@@ -13,6 +13,8 @@
   import { t } from '$lib/i18n';
   import { get } from 'svelte/store';
   import type { ExamQuestion } from '$lib/types';
+  import MathText from '$lib/components/MathText.svelte';
+  import MathToolbar from '$lib/components/MathToolbar.svelte';
 
   $: diffLabels = { easy: $t.exam.diffEasy, medium: $t.exam.diffMedium, hard: $t.exam.diffHard };
 
@@ -82,6 +84,23 @@
   function cancelForm() {
     showForm = false;
     editingQuestion = null;
+  }
+
+  let mathOpen = false;
+  let textEl: HTMLTextAreaElement;
+  let choiceEls: (HTMLInputElement | undefined)[] = [undefined, undefined, undefined, undefined];
+  let focusedField: 'text' | number = 'text';
+
+  function insertTex(tex: string) {
+    const el = focusedField === 'text' ? textEl : choiceEls[focusedField];
+    const cur = focusedField === 'text' ? formText : formChoices[focusedField];
+    const start = el?.selectionStart ?? cur.length;
+    const end = el?.selectionEnd ?? start;
+    const next = cur.slice(0, start) + tex + cur.slice(end);
+    const hole = tex.includes('{}') ? tex.indexOf('{}') + 1 : tex.includes('()') ? tex.indexOf('()') + 1 : tex.length;
+    if (focusedField === 'text') formText = next;
+    else formChoices[focusedField] = next;
+    queueMicrotask(() => { el?.focus(); el?.setSelectionRange(start + hole, start + hole); });
   }
 
   async function saveQuestion() {
@@ -186,13 +205,21 @@
       <h3 class="form-title">{editingQuestion ? $t.exam.editQuestionTitle : $t.exam.addQuestionTitle}</h3>
 
       <label class="field-label" for="q-text">{$t.exam.questionLabel}</label>
-      <textarea id="q-text" class="field-input" bind:value={formText} rows={3} placeholder={$t.exam.questionPlaceholder}></textarea>
+      <textarea id="q-text" class="field-input" bind:value={formText} bind:this={textEl} on:focus={() => (focusedField = 'text')} rows={3} placeholder={$t.exam.questionPlaceholder}></textarea>
+
+      <div class="math-row">
+        <button class="math-toggle" class:active={mathOpen} on:click={() => (mathOpen = !mathOpen)} aria-label={$t.common.insertMath} aria-pressed={mathOpen}>√x</button>
+        {#if mathOpen}<MathToolbar on:insert={(e) => insertTex(e.detail.tex)} />{/if}
+      </div>
+      {#if formText.includes('$')}
+        <p class="math-preview"><MathText text={formText} /></p>
+      {/if}
 
       <span class="field-label">{$t.exam.choicesLabel}</span>
       {#each formChoices as _choice, i}
         <div class="choice-row">
           <span class="choice-letter">{String.fromCharCode(65 + i)}</span>
-          <input class="field-input choice-input" bind:value={formChoices[i]} placeholder={$t.exam.choicePlaceholder(String.fromCharCode(65 + i))} aria-label={$t.exam.choiceAria(String.fromCharCode(65 + i))} />
+          <input class="field-input choice-input" bind:value={formChoices[i]} bind:this={choiceEls[i]} on:focus={() => (focusedField = i)} placeholder={$t.exam.choicePlaceholder(String.fromCharCode(65 + i))} aria-label={$t.exam.choiceAria(String.fromCharCode(65 + i))} />
           <button
             class="correct-btn"
             class:selected={formCorrectIndex === i}
@@ -265,7 +292,7 @@
         <div class="question-row">
           {#if q.imageUrl}<img class="q-thumb" src={q.imageUrl} alt={$t.exam.imageAlt} />{/if}
           <div class="q-content">
-            <p class="q-text">{q.text}</p>
+            <p class="q-text"><MathText text={q.text} /></p>
             <div class="q-tags">
               <span class="tag tag-subject">{q.subject}</span>
               <span class="tag tag-diff">{diffLabels[q.difficulty]}</span>
@@ -299,6 +326,14 @@
   .field-label { display: block; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin: 12px 0 4px; }
   .field-input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; font-size: 13px; color: var(--text); box-sizing: border-box; font-family: inherit; }
   .choice-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .math-row { display: flex; align-items: flex-start; gap: 8px; margin: 6px 0 10px; }
+  .math-toggle {
+    flex-shrink: 0; padding: 5px 10px; border-radius: 8px;
+    border: 1.5px solid var(--border); background: none; color: var(--muted);
+    font-family: var(--font-mono); font-size: 12px; font-weight: 600; cursor: pointer;
+  }
+  .math-toggle.active { border-color: var(--primary); color: var(--primary); background: var(--primary-l); }
+  .math-preview { margin: 0 0 10px; padding: 8px 10px; border-radius: 8px; background: var(--bg3); font-size: 14px; color: var(--text); }
   .choice-letter { width: 16px; font-size: 12px; font-weight: 600; color: var(--muted); flex-shrink: 0; }
   .choice-input { flex: 1; }
   .correct-btn { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--border); background: transparent; cursor: pointer; flex-shrink: 0; transition: background 0.15s, border-color 0.15s; }

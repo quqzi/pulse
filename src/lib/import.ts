@@ -108,6 +108,7 @@ Reply with ONLY a JSON array in this exact format, no other text:
 Rules:
 - Keep each side under 200 characters.
 - Cover the most exam-relevant facts, formulas, and definitions.
+- Write any math as LaTeX wrapped in $...$ (e.g. "$\\frac{a}{b}$", "$x^2$") — it will be typeset.
 - Write the cards in the same language as the topic name.`;
 }
 
@@ -125,5 +126,6 @@ Reply with ONLY a JSON array in this exact format, no other text:
 Rules:
 - Exactly 4 choices per question; "correctIndex" is the 0-based index of the correct one.
 ${diffRule}
+- Write any math as LaTeX wrapped in $...$ (e.g. "$\\frac{a}{b}$", "$x^2$") — it will be typeset.
 - Write the questions in the same language as the subject name.`;
 }
