@@ -59,17 +59,59 @@
   .sidebar {
     position: fixed; top: 0; left: 0; bottom: 0;
     width: var(--sidebar-width);
-    background: var(--bg2); border-right: 1px solid var(--border);
+    /* Glass over the aurora — the wash drifts through the panel. */
+    background: color-mix(in srgb, var(--bg2) 72%, transparent);
+    backdrop-filter: blur(24px) saturate(1.5);
+    -webkit-backdrop-filter: blur(24px) saturate(1.5);
+    border-right: 1px solid color-mix(in srgb, var(--text) 10%, transparent);
     padding: 20px 12px; overflow-y: auto; z-index: 100;
     display: flex; flex-direction: column; gap: 24px;
   }
   .logo { display: flex; align-items: center; gap: 10px; padding: 4px 8px 12px; }
-  .logo-mark { width: 32px; height: 32px; background: var(--primary); color: var(--bg); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .logo-mark {
+    width: 34px; height: 34px; background: var(--primary); color: var(--bg);
+    border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    box-shadow:
+      0 4px 14px rgba(var(--primary-rgb), 0.35),
+      inset 0 1px 0 color-mix(in srgb, var(--bg) 25%, transparent);
+    transition: transform var(--dur-base) var(--ease-spring), box-shadow 240ms ease;
+  }
+  .logo:hover .logo-mark {
+    transform: scale(1.1) rotate(-4deg);
+    box-shadow:
+      0 6px 20px rgba(var(--primary-rgb), 0.45),
+      inset 0 1px 0 color-mix(in srgb, var(--bg) 25%, transparent);
+  }
+  /* The waveform redraws itself every few seconds — a literal pulse. */
+  .logo-mark polyline {
+    stroke-dasharray: 40;
+    stroke-dashoffset: 0;
+    animation: pulse-draw 3.6s ease-in-out infinite;
+  }
+  @keyframes pulse-draw {
+    0%   { stroke-dashoffset: 40; opacity: 0.3; }
+    40%  { stroke-dashoffset: 0; opacity: 1; }
+    100% { stroke-dashoffset: 0; opacity: 1; }
+  }
   .logo-word { font-size: 20px; font-weight: 800; letter-spacing: -0.03em; }
   .nav-group { display: flex; flex-direction: column; gap: 2px; }
   .nav-group-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding: 0 8px 4px; }
-  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 10px; text-decoration: none; color: var(--muted); font-size: 14px; font-weight: 500; transition: background 140ms ease, color 140ms ease, transform var(--dur-base) var(--ease-spring); }
+  .nav-item {
+    position: relative;
+    display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 10px;
+    text-decoration: none; color: var(--muted); font-size: 14px; font-weight: 500;
+    transition: background 140ms ease, color 140ms ease, transform var(--dur-base) var(--ease-spring);
+  }
+  /* Accent bar springs open on the active item. */
+  .nav-item::before {
+    content: ''; position: absolute; left: 2px; top: 50%; translate: 0 -50%;
+    width: 3px; height: 0; border-radius: 2px; background: var(--primary);
+    transition: height 280ms var(--ease-spring);
+  }
+  .nav-item.active::before { height: 16px; }
   .nav-item:active { transform: scale(0.96); transition-duration: var(--dur-fast); }
   .nav-item:hover { background: var(--bg3); color: var(--text); }
+  .nav-item:hover svg { transform: scale(1.12); }
+  .nav-item svg { transition: transform var(--dur-base) var(--ease-spring); flex-shrink: 0; }
   .nav-item.active { background: var(--primary-l); color: var(--primary); font-weight: 600; }
 </style>
