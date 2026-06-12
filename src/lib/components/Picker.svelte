@@ -125,7 +125,7 @@
     position: fixed;
     inset: 0;
     z-index: 400;
-    background: rgba(0, 0, 0, 0.32);
+    background: rgba(0, 0, 0, 0.26);
   }
   .picker-panel {
     position: fixed;
@@ -137,10 +137,15 @@
     max-height: min(420px, 70vh);
     display: flex;
     flex-direction: column;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.30);
+    background: color-mix(in srgb, var(--bg2) 62%, transparent);
+    backdrop-filter: blur(28px) saturate(1.7);
+    -webkit-backdrop-filter: blur(28px) saturate(1.7);
+    border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+    border-radius: 22px;
+    box-shadow:
+      0 24px 60px rgba(0, 0, 0, 0.28),
+      inset 0 1px 0 color-mix(in srgb, var(--text) 10%, transparent),
+      inset 0 0 24px color-mix(in srgb, var(--bg) 18%, transparent);
     padding: 8px;
     color: var(--text);
   }
@@ -169,7 +174,7 @@
     text-align: left;
     transition: background 120ms ease, transform var(--dur-base) var(--ease-spring);
   }
-  .panel-option:hover { background: var(--bg3); }
+  .panel-option:hover { background: color-mix(in srgb, var(--text) 8%, transparent); }
   .panel-option:active { transform: scale(0.97); transition-duration: var(--dur-fast); }
   .panel-option.active { background: var(--primary-l); color: var(--primary); font-weight: 600; }
   .opt-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
