@@ -67,16 +67,20 @@
     padding: 16px;
   }
   .dialog {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 12px;
+    background: color-mix(in srgb, var(--bg2) 72%, transparent);
+    backdrop-filter: blur(28px) saturate(1.7);
+    -webkit-backdrop-filter: blur(28px) saturate(1.7);
+    border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+    border-radius: 18px;
     padding: 24px;
     max-width: 360px;
     width: 100%;
     display: flex;
     flex-direction: column;
     gap: 10px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.22),
+      inset 0 1px 0 color-mix(in srgb, var(--text) 10%, transparent);
   }
   .dialog-title { font-size: 16px; font-weight: 700; color: var(--text); margin: 0; }
   .dialog-message { font-size: 14px; color: var(--muted); margin: 0; line-height: 1.5; }

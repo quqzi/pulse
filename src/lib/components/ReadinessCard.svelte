@@ -34,6 +34,7 @@
   </div>
 
   {#if $subjects.length > 0}
+    <div class="gauge-row">
     <div class="gauge-wrap">
       <svg class="gauge" viewBox="0 0 120 120" aria-hidden="true">
         <circle class="gauge-track" cx="60" cy="60" r={R} />
@@ -65,6 +66,7 @@
           <span class="legend-pts">{$t.readiness.ptsOf($readinessScore.parts[seg.key], seg.max)}</span>
         </div>
       {/each}
+    </div>
     </div>
 
     <div class="subject-list">
@@ -104,7 +106,10 @@
   .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; display: flex; flex-direction: column; gap: 12px; }
   .card-header { display: flex; justify-content: space-between; align-items: center; }
   .card-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
-  .gauge-wrap { position: relative; width: 124px; height: 124px; align-self: center; margin: 4px 0; }
+  .gauge-row { display: flex; align-items: center; gap: 24px; }
+  .gauge-row .legend { flex: 1; min-width: 0; }
+  @media (max-width: 640px) { .gauge-row { flex-direction: column; gap: 12px; } .gauge-row .legend { width: 100%; } }
+  .gauge-wrap { position: relative; width: 124px; height: 124px; flex-shrink: 0; align-self: center; margin: 4px 0; }
   .gauge { width: 124px; height: 124px; transform: rotate(-90deg); }
   .gauge-track { fill: none; stroke: var(--bg3); stroke-width: 11; }
   .gauge-arc {

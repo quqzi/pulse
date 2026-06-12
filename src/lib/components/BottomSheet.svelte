@@ -92,10 +92,14 @@
     max-height: 80vh;
     display: flex;
     flex-direction: column;
-    background: var(--bg2);
-    border-top: 1px solid var(--border);
-    border-radius: 16px 16px 0 0;
-    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.25);
+    background: color-mix(in srgb, var(--bg2) 72%, transparent);
+    backdrop-filter: blur(28px) saturate(1.7);
+    -webkit-backdrop-filter: blur(28px) saturate(1.7);
+    border-top: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+    border-radius: 20px 20px 0 0;
+    box-shadow:
+      0 -8px 32px rgba(0, 0, 0, 0.22),
+      inset 0 1px 0 color-mix(in srgb, var(--text) 10%, transparent);
     padding-bottom: env(safe-area-inset-bottom);
     color: var(--text);
   }
