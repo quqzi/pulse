@@ -3,6 +3,7 @@
   import { auth } from '$lib/stores/auth';
   import { subjects, topics, sessions, streak, loadData } from '$lib/stores/data';
   import HeatmapGrid from '$lib/components/journey/HeatmapGrid.svelte';
+  import AchievementWall from '$lib/components/journey/AchievementWall.svelte';
   import { countup } from '$lib/motion/countup';
   import { formatDuration, localDateStr } from '$lib/utils';
   import { HISTORY_WEEKS } from '$lib/constants';
@@ -81,6 +82,13 @@
       <div class="stat-sub">{$t.journey.allTime}</div>
     </div>
   </div>
+
+  <section class="section">
+    <div class="section-header">
+      <span class="section-label">{$t.achievements.title}</span>
+    </div>
+    <AchievementWall />
+  </section>
 
   <section class="section">
     <div class="section-header">
