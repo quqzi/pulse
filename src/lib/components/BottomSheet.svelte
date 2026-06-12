@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from 'svelte';
   import { fly, fade } from 'svelte/transition';
+  import { backOut, cubicOut } from 'svelte/easing';
   import { t } from '$lib/i18n';
 
   export let open = false;
@@ -54,8 +55,10 @@
       class="sheet-panel"
       role="dialog"
       aria-modal="true"
+      class:settling={!dragging}
       style="transform: translateY({dragY}px);"
-      transition:fly={{ y: 400, duration: dur }}
+      in:fly={{ y: 420, duration: prefersReduced ? 0 : 420, easing: backOut }}
+      out:fly={{ y: 400, duration: dur, easing: cubicOut }}
     >
       <!-- svelte-ignore a11y-no-static-element-interactions -->
       <div
@@ -89,13 +92,20 @@
     max-height: 80vh;
     display: flex;
     flex-direction: column;
-    background: var(--bg2);
-    border-top: 1px solid var(--border);
-    border-radius: 16px 16px 0 0;
-    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.25);
+    background: color-mix(in srgb, var(--bg2) 72%, transparent);
+    backdrop-filter: blur(28px) saturate(1.7);
+    -webkit-backdrop-filter: blur(28px) saturate(1.7);
+    border-top: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+    border-radius: 20px 20px 0 0;
+    box-shadow:
+      0 -8px 32px rgba(0, 0, 0, 0.22),
+      inset 0 1px 0 color-mix(in srgb, var(--text) 10%, transparent);
     padding-bottom: env(safe-area-inset-bottom);
     color: var(--text);
   }
+  /* After a released swipe the sheet springs back up — rubber-band feel.
+     No transition while dragging so it tracks the finger 1:1. */
+  .sheet-panel.settling { transition: transform 320ms var(--ease-spring); }
   .sheet-grip {
     display: flex;
     justify-content: center;
@@ -103,6 +113,9 @@
     padding: 10px 0 6px;
     cursor: grab;
     touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
     flex-shrink: 0;
   }
   .sheet-handle {

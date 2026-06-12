@@ -138,8 +138,7 @@
     font-size: 20px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center;
   }
 
-  .subjects-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-  @media (min-width: 480px) { .subjects-grid { grid-template-columns: repeat(4, 1fr); } }
+  .subjects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
 
   .tile-wrapper { position: relative; }
   .due-badge {

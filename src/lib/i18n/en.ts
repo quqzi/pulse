@@ -178,6 +178,7 @@ export const en = {
     noActive: "No active tasks — you're all caught up!",
     noDone: 'No completed tasks yet.',
     noAll: 'No tasks yet. Add one above.',
+    emptyHint: 'Type a task above and press Enter.',
     priorityHigh: 'High',
     priorityMedium: 'Medium',
     priorityLow: 'Low',

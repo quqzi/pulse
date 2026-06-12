@@ -3,6 +3,7 @@
   import { t } from '$lib/i18n';
   import { localDateStr } from '$lib/utils';
   import type { Task, Subject, Priority } from '$lib/types';
+  import Picker from '$lib/components/Picker.svelte';
 
   export let task: Task;
   export let subjects: Subject[];
@@ -68,17 +69,22 @@
       />
       <div class="edit-row">
         <input type="date" class="edit-input" bind:value={editDueDate} />
-        <select class="edit-input" bind:value={editPriority}>
-          <option value="low">{$t.tasks.priorityLow}</option>
-          <option value="medium">{$t.tasks.priorityMedium}</option>
-          <option value="high">{$t.tasks.priorityHigh}</option>
-        </select>
-        <select class="edit-input" bind:value={editSubjectId}>
-          <option value={undefined}>{$t.tasks.noSubject}</option>
-          {#each subjects as s}
-            <option value={s.id}>{s.name}</option>
-          {/each}
-        </select>
+        <Picker
+          value={editPriority}
+          options={[
+            { value: 'low', label: $t.tasks.priorityLow },
+            { value: 'medium', label: $t.tasks.priorityMedium },
+            { value: 'high', label: $t.tasks.priorityHigh },
+          ]}
+          ariaLabel={$t.tasks.priorityMedium}
+          on:change={(e) => (editPriority = e.detail.value as Priority)}
+        />
+        <Picker
+          value={editSubjectId ?? ''}
+          options={subjects.map(s => ({ value: s.id, label: s.name, color: s.color }))}
+          placeholder={$t.tasks.noSubject}
+          on:change={(e) => (editSubjectId = e.detail.value || undefined)}
+        />
       </div>
       <div class="edit-actions">
         <button class="btn-save" on:click={saveEdit}>{$t.common.save}</button>

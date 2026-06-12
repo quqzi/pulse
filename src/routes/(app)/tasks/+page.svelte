@@ -117,10 +117,13 @@
   </div>
 
   {#if filtered.length === 0}
-    <div class="empty">
-      {#if filter === 'active'}{$t.tasks.noActive}
-      {:else if filter === 'done'}{$t.tasks.noDone}
-      {:else}{$t.tasks.noAll}{/if}
+    <div class="empty-state">
+      <p class="empty-title">
+        {#if filter === 'active'}{$t.tasks.noActive}
+        {:else if filter === 'done'}{$t.tasks.noDone}
+        {:else}{$t.tasks.noAll}{/if}
+      </p>
+      <p class="empty-sub">{$t.tasks.emptyHint}</p>
     </div>
   {:else}
     <ul class="task-list">
@@ -167,7 +170,9 @@
 
   .task-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 2px; }
 
-  .empty { text-align: center; color: var(--muted); font-size: 14px; padding: 48px 0; }
+  .empty-state { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 32px 16px; text-align: center; }
+  .empty-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .empty-sub   { font-size: 13px; color: var(--muted); }
 
   :global(body) {
     --priority-high: var(--danger);

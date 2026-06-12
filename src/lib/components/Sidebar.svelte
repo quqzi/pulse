@@ -68,7 +68,8 @@
   .logo-word { font-size: 20px; font-weight: 800; letter-spacing: -0.03em; }
   .nav-group { display: flex; flex-direction: column; gap: 2px; }
   .nav-group-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding: 0 8px 4px; }
-  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 10px; text-decoration: none; color: var(--muted); font-size: 14px; font-weight: 500; transition: background 140ms ease, color 140ms ease; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 10px; text-decoration: none; color: var(--muted); font-size: 14px; font-weight: 500; transition: background 140ms ease, color 140ms ease, transform var(--dur-base) var(--ease-spring); }
+  .nav-item:active { transform: scale(0.96); transition-duration: var(--dur-fast); }
   .nav-item:hover { background: var(--bg3); color: var(--text); }
   .nav-item.active { background: var(--primary-l); color: var(--primary); font-weight: 600; }
 </style>
