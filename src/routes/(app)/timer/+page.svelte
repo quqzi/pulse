@@ -2,7 +2,8 @@
   import { onMount } from 'svelte';
   import { auth } from '$lib/stores/auth';
   import { settings } from '$lib/stores/settings';
-  import { subjects, topics, loadData, getAuthContext } from '$lib/stores/data';
+  import { subjects, topics, tasks, loadData, getAuthContext } from '$lib/stores/data';
+  import { completeTask } from '$lib/tasks';
   import {
     timerStore, remaining, startTimer, pauseTimer, stopTimer, resetTimer,
     type TimerMode
@@ -18,6 +19,9 @@
   $: selectedSubject = $subjects.find(s => s.id === $timerStore.subjectId) ?? null;
   $: subjectTopics = $timerStore.subjectId ? $topics.filter(tp => tp.subjectId === $timerStore.subjectId) : [];
   $: selectedTopic = $topics.find(tp => tp.id === $timerStore.topicId) ?? null;
+  $: linkedTask = $timerStore.taskId
+    ? ($tasks.find(tp => tp.id === $timerStore.taskId && !tp.completedAt) ?? null)
+    : null;
 
   $: displayTime = formatTime($remaining);
   $: canStart = $timerStore.subjectId !== null;
@@ -106,6 +110,11 @@
         {formatTime(lastSession.durationSec)} · {lastSession.subjectName}
         {#if lastSession.topicName} · {lastSession.topicName}{/if}
       </p>
+      {#if linkedTask}
+        <button class="task-done-btn" on:click={() => linkedTask && completeTask(linkedTask)}>
+          ✓ {$t.timer.markTaskDone} · {linkedTask.title}
+        </button>
+      {/if}
       <button class="btn-primary done-btn" on:click={dismissSummary}>{$t.timer.done}</button>
     </div>
   </div>
@@ -292,6 +301,16 @@
     z-index: 200;
     padding: 24px;
   }
+  .task-done-btn {
+    display: block; width: 100%; margin-bottom: 10px;
+    padding: 9px 14px; border-radius: 10px;
+    border: 1.5px solid color-mix(in srgb, var(--primary) 35%, transparent);
+    background: color-mix(in srgb, var(--primary) 8%, transparent);
+    color: var(--primary); font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: inherit;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .task-done-btn:hover { background: color-mix(in srgb, var(--primary) 15%, transparent); }
   .summary-card {
     padding: 28px 24px;
     text-align: center;

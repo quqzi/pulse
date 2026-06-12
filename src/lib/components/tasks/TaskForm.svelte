@@ -7,7 +7,7 @@
   export let subjects: Subject[] = [];
 
   const dispatch = createEventDispatcher<{
-    add: { title: string; priority: Priority; dueDate: string; subjectId: string };
+    add: { title: string; priority: Priority; dueDate: string; subjectId: string; repeat: '' | 'daily' | 'weekly' };
     cancel: void;
   }>();
 
@@ -15,6 +15,7 @@
   let priorityInput: Priority = 'medium';
   let dueDateInput = '';
   let subjectIdInput = '';
+  let repeatInput: '' | 'daily' | 'weekly' = '';
   let titleError = false;
 
   function priorityColor(p: Priority): string {
@@ -27,8 +28,8 @@
       setTimeout(() => titleError = false, 600);
       return;
     }
-    dispatch('add', { title: titleInput.trim(), priority: priorityInput, dueDate: dueDateInput, subjectId: subjectIdInput });
-    titleInput = ''; priorityInput = 'medium'; dueDateInput = ''; subjectIdInput = '';
+    dispatch('add', { title: titleInput.trim(), priority: priorityInput, dueDate: dueDateInput, subjectId: subjectIdInput, repeat: repeatInput });
+    titleInput = ''; priorityInput = 'medium'; dueDateInput = ''; subjectIdInput = ''; repeatInput = '';
   }
 
   function handleKeydown(e: KeyboardEvent) {
@@ -64,6 +65,15 @@
       bind:value={subjectIdInput}
       options={subjects.map(s => ({ value: s.id, label: s.name, color: s.color }))}
       placeholder={$t.tasks.noSubject}
+    />
+    <Picker
+      value={repeatInput}
+      options={[
+        { value: 'daily', label: $t.tasks.repeatDaily },
+        { value: 'weekly', label: $t.tasks.repeatWeekly },
+      ]}
+      placeholder={$t.tasks.repeatNone}
+      on:change={(e) => (repeatInput = e.detail.value as '' | 'daily' | 'weekly')}
     />
   </div>
   <div class="form-actions">
