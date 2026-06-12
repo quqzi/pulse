@@ -248,6 +248,7 @@ export const th: I18n = {
     areYouSure: 'แน่ใจหรือไม่?',
     undo: 'เลิกทำ',
     deletedUndo: 'ลบแล้ว',
+    insertMath: 'แทรกสูตรคณิต',
     errSave: 'บันทึกไม่สำเร็จ — ลองอีกครั้ง',
     errDelete: 'ลบไม่สำเร็จ — ลองอีกครั้ง',
   },

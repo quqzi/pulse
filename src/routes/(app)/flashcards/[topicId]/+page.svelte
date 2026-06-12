@@ -14,6 +14,7 @@
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
   import ImportSheet from '$lib/components/ImportSheet.svelte';
   import MathText from '$lib/components/MathText.svelte';
+  import MathToolbar from '$lib/components/MathToolbar.svelte';
   import { t } from '$lib/i18n';
   import { get } from 'svelte/store';
   import type { Flashcard } from '$lib/types';
@@ -43,6 +44,22 @@
   let editingId: string | null = null;
   let front = '';
   let back = '';
+
+  let mathOpen = false;
+  let frontEl: HTMLInputElement;
+  let backEl: HTMLInputElement;
+  let focusedField: 'front' | 'back' = 'front';
+
+  function insertTex(tex: string) {
+    const el = focusedField === 'front' ? frontEl : backEl;
+    const cur = focusedField === 'front' ? front : back;
+    const start = el?.selectionStart ?? cur.length;
+    const end = el?.selectionEnd ?? start;
+    const next = cur.slice(0, start) + tex + cur.slice(end);
+    const hole = tex.includes('{}') ? tex.indexOf('{}') + 1 : tex.includes('()') ? tex.indexOf('()') + 1 : tex.length;
+    if (focusedField === 'front') front = next; else back = next;
+    queueMicrotask(() => { el?.focus(); el?.setSelectionRange(start + hole, start + hole); });
+  }
 
   function startEdit(c: Flashcard) {
     editingId = c.id;
@@ -224,9 +241,19 @@
   {/if}
 
   <div class="form card">
-    <input class="field" bind:value={front} placeholder={$t.flashcards.frontPlaceholder} />
-    <input class="field" bind:value={back} placeholder={$t.flashcards.backPlaceholder} />
+    <input class="field" bind:value={front} bind:this={frontEl} on:focus={() => (focusedField = 'front')} placeholder={$t.flashcards.frontPlaceholder} />
+    <input class="field" bind:value={back} bind:this={backEl} on:focus={() => (focusedField = 'back')} placeholder={$t.flashcards.backPlaceholder} />
+    {#if mathOpen}
+      <MathToolbar on:insert={(e) => insertTex(e.detail.tex)} />
+    {/if}
+    {#if front.includes('$') || back.includes('$')}
+      <div class="math-preview">
+        {#if front.includes('$')}<p class="preview-line"><MathText text={front} /></p>{/if}
+        {#if back.includes('$')}<p class="preview-line muted"><MathText text={back} /></p>{/if}
+      </div>
+    {/if}
     <div class="form-actions">
+      <button class="math-toggle" class:active={mathOpen} on:click={() => (mathOpen = !mathOpen)} aria-label={$t.common.insertMath} aria-pressed={mathOpen}>√x</button>
       {#if editingId}<button class="btn-cancel" on:click={resetForm}>{$t.common.cancel}</button>{/if}
       <button class="btn-save" disabled={!front.trim() || !back.trim()} on:click={saveCard}>
         {editingId ? $t.flashcards.editCard : $t.flashcards.addCard}
@@ -265,6 +292,15 @@
   .field { height: 36px; padding: 0 10px; border: 1.5px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-family: inherit; font-size: 14px; outline: none; }
   .field:focus { border-color: var(--primary); }
   .form-actions { display: flex; justify-content: flex-end; gap: 8px; }
+  .math-toggle {
+    margin-right: auto; padding: 6px 11px; border-radius: 8px;
+    border: 1.5px solid var(--border); background: none; color: var(--muted);
+    font-family: var(--font-mono); font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  .math-toggle.active { border-color: var(--primary); color: var(--primary); background: var(--primary-l); }
+  .math-preview { padding: 8px 10px; border-radius: 8px; background: var(--bg3); }
+  .preview-line { margin: 0; font-size: 14px; color: var(--text); }
+  .preview-line.muted { color: var(--muted); margin-top: 4px; }
   .btn-cancel { padding: 8px 14px; border-radius: 8px; border: 1.5px solid var(--border); background: none; color: var(--muted); font-family: inherit; font-size: 13px; cursor: pointer; }
   .btn-save { padding: 8px 16px; border-radius: 8px; border: none; background: var(--primary); color: var(--bg); font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
   .btn-save:disabled { opacity: 0.4; cursor: not-allowed; }

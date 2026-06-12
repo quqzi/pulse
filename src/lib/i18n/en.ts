@@ -246,6 +246,7 @@ export const en = {
     areYouSure: 'Are you sure?',
     undo: 'Undo',
     deletedUndo: 'Deleted',
+    insertMath: 'Insert math',
     errSave: "Couldn't save — try again",
     errDelete: "Couldn't delete — try again",
   },
