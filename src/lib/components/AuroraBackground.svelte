@@ -60,9 +60,9 @@
   }
 
   /* Overall intensity — a quiet wash, tuned per theme. */
-  .aurora { opacity: 0.38; }
-  :global(body:not(.theme-dark)) .aurora { opacity: 0.28; }
-  :global(body.design-resend) .aurora { opacity: 0.22; }
+  .aurora { opacity: 0.44; }
+  :global(body:not(.theme-dark)) .aurora { opacity: 0.34; }
+  :global(body.design-resend) .aurora { opacity: 0.27; }
 
   @keyframes drift1 {
     0%, 100% { transform: translate(0, 0) scale(1); }

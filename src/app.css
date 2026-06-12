@@ -33,7 +33,7 @@ body {
    Clean white/near-black, 8 px card radius, stacked hairline shadows
    ============================================================ */
 body, body.design-vercel {
-  --bg:     #fafafa;
+  --bg:     #fdfdfd;
   --bg2:    #ffffff;
   --bg3:    #f5f5f5;
   --border: #ebebeb;
@@ -105,7 +105,7 @@ body.design-vercel.theme-dark {
    #f5f5f7 parchment, 18 px card radius, soft product-style shadows
    ============================================================ */
 body.design-apple {
-  --bg:     #f5f5f7;
+  --bg:     #fafafa;
   --bg2:    #ffffff;
   --bg3:    #fafafc;
   --border: rgba(0,0,0,.08);
@@ -322,6 +322,36 @@ body.design-resend.theme-dark {
 /* Unified press feedback for tap targets — quick press in, jelly spring back out. */
 .pressable { transition: transform var(--dur-base) var(--ease-spring); }
 .pressable:active { transform: scale(0.94); transition-duration: var(--dur-fast); }
+
+/* Every button gets the jelly press by default. Component-scoped transform
+   rules (.btn, .pressable, tiles) override this element selector. */
+button { transition: transform var(--dur-base) var(--ease-spring), filter 160ms ease; }
+button:hover:not(:disabled) { filter: brightness(0.95); }
+button:active:not(:disabled) { transform: scale(0.96); transition-duration: var(--dur-fast); }
+.pressable:hover:not(:disabled) { transform: scale(1.03); }
+a { transition: filter 160ms ease; }
+a:hover { filter: brightness(0.93); }
+
+/* --- iOS-feel selects, app-wide --- */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  background-color: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 30px 8px 12px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23888' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 11px center;
+  cursor: pointer;
+  transition: transform var(--dur-base) var(--ease-spring), border-color 160ms ease, background-color 160ms ease;
+}
+select:hover { border-color: var(--muted); }
+select:active { transform: scale(0.97); transition-duration: var(--dur-fast); }
 
 /* --- Typography --- */
 .text-large-title { font-size: 26px; font-weight: 700; font-family: var(--font-display, var(--font-sans, inherit)); letter-spacing: var(--tracking-display, -0.02em); }

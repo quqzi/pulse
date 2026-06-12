@@ -2,6 +2,7 @@
   import { createEventDispatcher } from 'svelte';
   import { t, fmt } from '$lib/i18n';
   import type { Subject, Topic } from '$lib/types';
+  import Picker from '$lib/components/Picker.svelte';
 
   export let subjects: Subject[] = [];
   export let topics: Topic[] = [];
@@ -78,12 +79,12 @@
 
   {#if filteredTopics.length > 0}
     <div class="field-label" style="margin-top:10px;">{$t.schedule.topicOptional}</div>
-    <select class="topic-select" bind:value={selectedTopicId}>
-      <option value="">{$t.schedule.noneOption}</option>
-      {#each filteredTopics as tp}
-        <option value={tp.id}>{tp.name}</option>
-      {/each}
-    </select>
+    <Picker
+      bind:value={selectedTopicId}
+      options={filteredTopics.map(tp => ({ value: tp.id, label: tp.name }))}
+      placeholder={$t.schedule.noneOption}
+      ariaLabel={$t.schedule.topicOptional}
+    />
   {/if}
 
   <label class="focus-toggle">
@@ -159,15 +160,6 @@
     height: 8px;
     border-radius: 50%;
     flex-shrink: 0;
-  }
-  .topic-select {
-    width: 100%;
-    padding: 6px 8px;
-    border-radius: 6px;
-    border: 1px solid var(--border);
-    background: var(--bg);
-    color: var(--text);
-    font-size: 13px;
   }
   .focus-toggle {
     display: flex;

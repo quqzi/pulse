@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import { t } from '$lib/i18n';
+  import Picker from '$lib/components/Picker.svelte';
   import type { Subject, Topic } from '$lib/types';
 
   export let subjects: Subject[] = [];
@@ -53,18 +54,28 @@
       </div>
     {:else}
       <div class="form-row">
-        <select bind:value={selectedSubjectId} class="field-select" aria-label={$t.dashboard.subjectField} style={selectedSubject ? `color: ${selectedSubject.color}` : ''}>
-          <option value="">{$t.dashboard.subjectField}</option>
-          {#each subjects as sub}
-            <option value={sub.id}>{sub.name}</option>
+        <Picker
+          bind:value={selectedSubjectId}
+          options={subjects.map(s => ({ value: s.id, label: s.name, color: s.color }))}
+          placeholder={$t.dashboard.subjectField}
+        />
+        <Picker
+          bind:value={selectedTopicId}
+          options={subjectTopics.map(tp => ({ value: tp.id, label: tp.name }))}
+          placeholder={$t.dashboard.topicField}
+          disabled={!selectedSubjectId}
+        />
+      </div>
+      <div class="form-row">
+        <div class="dur-pills" role="group" aria-label={$t.common.minutes}>
+          {#each [15, 30, 45, 60] as m}
+            <button
+              class="dur-pill"
+              class:active={durationMin === m}
+              on:click={() => (durationMin = m)}
+            >{m}</button>
           {/each}
-        </select>
-        <select bind:value={selectedTopicId} class="field-select" disabled={!selectedSubjectId} aria-label={$t.dashboard.topicField}>
-          <option value="">{$t.dashboard.topicField}</option>
-          {#each subjectTopics as tp}
-            <option value={tp.id}>{tp.name}</option>
-          {/each}
-        </select>
+        </div>
       </div>
       <div class="form-row">
         <div class="duration-row">
@@ -108,19 +119,29 @@
     margin-bottom: 10px;
   }
   .form-row:last-child { margin-bottom: 0; }
-  .field-select {
+  .form-row > :global(.picker-trigger) { flex: 1; }
+  /* iOS segmented duration pills — springy selection. */
+  .dur-pills { display: flex; gap: 6px; flex: 1; }
+  .dur-pill {
     flex: 1;
-    padding: 9px 10px;
-    border: 1.5px solid var(--border);
+    padding: 8px 0;
     border-radius: 10px;
+    border: 1.5px solid var(--border);
     background: var(--bg3);
-    color: var(--text);
-    font-size: 14px;
-    outline: none;
-    min-width: 0;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+    transition: transform var(--dur-base) var(--ease-spring), background 160ms ease, color 160ms ease, border-color 160ms ease;
   }
-  .field-select:focus { border-color: var(--primary); }
-  .field-select:disabled { opacity: 0.5; }
+  .dur-pill:active { transform: scale(0.92); transition-duration: var(--dur-fast); }
+  .dur-pill.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--bg);
+    transform: scale(1.04);
+  }
   .duration-row { display: flex; align-items: center; gap: 6px; flex: 1; }
   .duration-input {
     width: 72px;
@@ -193,7 +214,7 @@
   }
 
   @media (max-width: 768px) {
-    .field-select { min-height: 44px; }
+    .form-row > :global(.picker-trigger) { min-height: 44px; }
     .duration-input { min-height: 44px; }
     .log-btn { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
   }

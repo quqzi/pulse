@@ -10,6 +10,7 @@
   import { t, fmt } from '$lib/i18n';
   import { get } from 'svelte/store';
   import type { StudySession } from '$lib/types';
+  import Picker from '$lib/components/Picker.svelte';
 
   function getWeekStart(date: Date): Date {
     const d = new Date(date);
@@ -206,11 +207,11 @@
       {#each recentSessions as session (session.id)}
         {#if editingSessionId === session.id}
           <div class="session-edit-row">
-            <select class="sess-edit-input" bind:value={editSessionSubjectId}>
-              {#each $subjects as s}
-                <option value={s.id}>{s.name}</option>
-              {/each}
-            </select>
+            <Picker
+              bind:value={editSessionSubjectId}
+              options={$subjects.map(s => ({ value: s.id, label: s.name, color: s.color }))}
+              ariaLabel={$t.dashboard.subjectField}
+            />
             <input type="number" class="sess-edit-input dur-input" bind:value={editSessionMinutes} min="1" max="480" />
             <span class="dur-label">{$t.common.minutes}</span>
             <button class="btn-save-sm" on:click={saveEditSession}>{$t.common.save}</button>
@@ -352,6 +353,7 @@
     background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
     padding: 4px 8px; font-size: 13px; color: var(--text); font-family: inherit;
   }
+  .session-edit-row > :global(.picker-trigger) { width: auto; flex: 1; padding: 5px 10px; font-size: 13px; }
   .dur-input { width: 60px; }
   .dur-label { font-size: 12px; color: var(--muted); }
   .btn-save-sm {
