@@ -113,6 +113,9 @@
     padding: 10px 0 6px;
     cursor: grab;
     touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
     flex-shrink: 0;
   }
   .sheet-handle {
