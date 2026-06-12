@@ -298,6 +298,14 @@
     max-width: 320px;
     width: 100%;
     animation: scaleIn 200ms ease-out;
+    background: color-mix(in srgb, var(--bg2) 72%, transparent);
+    backdrop-filter: blur(28px) saturate(1.7);
+    -webkit-backdrop-filter: blur(28px) saturate(1.7);
+    border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+    border-radius: 18px;
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.22),
+      inset 0 1px 0 color-mix(in srgb, var(--text) 10%, transparent);
   }
   @keyframes scaleIn {
     from { transform: scale(0.96); opacity: 0; }

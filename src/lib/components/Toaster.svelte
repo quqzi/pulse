@@ -42,11 +42,15 @@
     align-items: center;
     gap: 4px;
     padding: 4px 6px 4px 0;
-    border-radius: var(--radius-md);
-    border: 1px solid var(--border);
-    background: var(--bg2);
+    border-radius: 14px;
+    border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+    background: color-mix(in srgb, var(--bg2) 72%, transparent);
+    backdrop-filter: blur(28px) saturate(1.7);
+    -webkit-backdrop-filter: blur(28px) saturate(1.7);
     color: var(--text);
-    box-shadow: var(--shadow-lg);
+    box-shadow:
+      var(--shadow-lg),
+      inset 0 1px 0 color-mix(in srgb, var(--text) 10%, transparent);
     animation: toast-in 200ms ease-out;
   }
   .toast-msg {
