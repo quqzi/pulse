@@ -180,6 +180,7 @@ export const th: I18n = {
     noActive: 'ไม่มีงานค้าง — เยี่ยมมาก!',
     noDone: 'ยังไม่มีงานที่เสร็จ',
     noAll: 'ยังไม่มีงาน เพิ่มงานด้านบน',
+    emptyHint: 'พิมพ์ชื่องานด้านบนแล้วกด Enter',
     priorityHigh: 'สูง',
     priorityMedium: 'กลาง',
     priorityLow: 'ต่ำ',
