@@ -61,7 +61,7 @@
     <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
     <div class="picker-backdrop" transition:fade={{ duration: 160 }} on:click={() => (open = false)}></div>
     <div
-      class="picker-panel"
+      class="picker-panel glass-panel"
       role="listbox"
       aria-label={ariaLabel || placeholder}
       transition:scale={{ start: 0.88, duration: 320, easing: backOut }}
@@ -137,15 +137,7 @@
     max-height: min(420px, 70vh);
     display: flex;
     flex-direction: column;
-    background: color-mix(in srgb, var(--bg2) 62%, transparent);
-    backdrop-filter: blur(28px) saturate(1.7);
-    -webkit-backdrop-filter: blur(28px) saturate(1.7);
-    border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
     border-radius: 22px;
-    box-shadow:
-      0 24px 60px rgba(0, 0, 0, 0.28),
-      inset 0 1px 0 color-mix(in srgb, var(--text) 10%, transparent),
-      inset 0 0 24px color-mix(in srgb, var(--bg) 18%, transparent);
     padding: 8px;
     color: var(--text);
   }

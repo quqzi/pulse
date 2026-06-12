@@ -19,7 +19,7 @@
 
 {#if open}
   <button class="backdrop" on:click={onClose} aria-label={$t.common.close}></button>
-  <div class="drawer" role="dialog">
+  <div class="drawer glass-panel" role="dialog">
     <div class="drawer-header">
       <span style="font-size:17px;font-weight:700">{$t.nav.more}</span>
       <button class="close-btn" on:click={onClose} aria-label={$t.common.close}>
@@ -38,10 +38,10 @@
   .backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 200; border: none; cursor: pointer; }
   .drawer {
     position: fixed; top: 0; left: 0; bottom: 0; width: 80%; max-width: 320px;
-    background: color-mix(in srgb, var(--bg2) 78%, transparent);
-    backdrop-filter: blur(28px) saturate(1.7);
-    -webkit-backdrop-filter: blur(28px) saturate(1.7);
+    /* right edge only — the other three sides sit at the viewport edge */
+    border: none;
     border-right: 1px solid color-mix(in srgb, var(--text) 12%, transparent);
+    border-radius: 0;
     z-index: 201; padding: 20px 16px; display: flex; flex-direction: column; gap: 8px; animation: slideIn 200ms ease-out;
   }
   @keyframes slideIn { from { transform: translateX(-100%); } to { transform: translateX(0); } }
