@@ -36,7 +36,14 @@
 
 <style>
   .backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 200; border: none; cursor: pointer; }
-  .drawer { position: fixed; top: 0; left: 0; bottom: 0; width: 80%; max-width: 320px; background: var(--bg2); z-index: 201; padding: 20px 16px; display: flex; flex-direction: column; gap: 8px; animation: slideIn 200ms ease-out; }
+  .drawer {
+    position: fixed; top: 0; left: 0; bottom: 0; width: 80%; max-width: 320px;
+    background: color-mix(in srgb, var(--bg2) 78%, transparent);
+    backdrop-filter: blur(28px) saturate(1.7);
+    -webkit-backdrop-filter: blur(28px) saturate(1.7);
+    border-right: 1px solid color-mix(in srgb, var(--text) 12%, transparent);
+    z-index: 201; padding: 20px 16px; display: flex; flex-direction: column; gap: 8px; animation: slideIn 200ms ease-out;
+  }
   @keyframes slideIn { from { transform: translateX(-100%); } to { transform: translateX(0); } }
   .drawer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
   .close-btn { background: none; border: none; cursor: pointer; color: var(--muted); }
