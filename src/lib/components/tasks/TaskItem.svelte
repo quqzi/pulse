@@ -12,6 +12,7 @@
     complete: void;
     delete: void;
     save: Task;
+    start: void;
   }>();
 
   let editing = false;
@@ -19,6 +20,7 @@
   let editDueDate = '';
   let editPriority: Priority = 'medium';
   let editSubjectId: string | undefined = undefined;
+  let editRepeat: '' | 'daily' | 'weekly' = '';
 
   function priorityColor(p: Priority): string {
     return p === 'high' ? 'var(--priority-high)' : p === 'medium' ? 'var(--priority-med)' : 'var(--priority-low)';
@@ -40,6 +42,7 @@
     editDueDate = task.dueDate ?? '';
     editPriority = task.priority;
     editSubjectId = task.subjectId;
+    editRepeat = task.repeat ?? '';
   }
 
   function saveEdit() {
@@ -50,6 +53,7 @@
       dueDate: editDueDate || undefined,
       priority: editPriority,
       subjectId: editSubjectId,
+      repeat: editRepeat || undefined,
     });
     editing = false;
   }
@@ -85,6 +89,15 @@
           placeholder={$t.tasks.noSubject}
           on:change={(e) => (editSubjectId = e.detail.value || undefined)}
         />
+        <Picker
+          value={editRepeat}
+          options={[
+            { value: 'daily', label: $t.tasks.repeatDaily },
+            { value: 'weekly', label: $t.tasks.repeatWeekly },
+          ]}
+          placeholder={$t.tasks.repeatNone}
+          on:change={(e) => (editRepeat = e.detail.value as '' | 'daily' | 'weekly')}
+        />
       </div>
       <div class="edit-actions">
         <button class="btn-save" on:click={saveEdit}>{$t.common.save}</button>
@@ -115,10 +128,24 @@
           </span>
         {/if}
         {#if subj}
-          <span class="subject-chip" style="background:{subj.color}22;color:{subj.color}">{subj.symbol}</span>
+          <span class="subject-chip" style="background:color-mix(in srgb, {subj.color} 13%, transparent);color:{subj.color}">{subj.symbol}</span>
+        {/if}
+        {#if task.repeat}
+          <span class="repeat-badge" title={task.repeat === 'daily' ? $t.tasks.repeatDaily : $t.tasks.repeatWeekly}>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+            </svg>
+            {task.repeat === 'daily' ? $t.tasks.repeatDaily : $t.tasks.repeatWeekly}
+          </span>
         {/if}
       </div>
     </div>
+
+    {#if task.subjectId && !task.completedAt}
+      <button class="start-btn" on:click={() => dispatch('start')} aria-label={$t.tasks.startTaskLabel}>
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,3 21,12 6,21"/></svg>
+      </button>
+    {/if}
 
     <button class="icon-btn" on:click={startEdit} aria-label={$t.tasks.editTaskLabel}>
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -157,6 +184,18 @@
     font-size: 10px; font-weight: 700; padding: 1px 6px;
     border-radius: 999px; flex-shrink: 0;
   }
+  .repeat-badge {
+    display: inline-flex; align-items: center; gap: 3px;
+    font-size: 10px; font-weight: 600; color: var(--muted); flex-shrink: 0;
+  }
+  .start-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; flex-shrink: 0;
+    border: none; border-radius: 999px; cursor: pointer;
+    background: color-mix(in srgb, var(--primary) 12%, transparent);
+    color: var(--primary); line-height: 0;
+  }
+  .start-btn:hover { background: color-mix(in srgb, var(--primary) 20%, transparent); transform: scale(1.08); }
   .icon-btn {
     background: none; border: none; color: var(--muted); cursor: pointer;
     padding: 4px; border-radius: 6px; line-height: 0; flex-shrink: 0;

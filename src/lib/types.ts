@@ -60,6 +60,7 @@ export interface Task {
   title: string;
   priority: Priority;
   dueDate?: string;      // YYYY-MM-DD
+  repeat?: 'daily' | 'weekly';  // completing spawns the next occurrence
   completedAt?: string;  // ISO timestamp, undefined = incomplete
   createdAt: string;     // ISO timestamp
 }

@@ -7,6 +7,7 @@ export const taskFromRow = (r: Record<string, unknown>): Task => ({
   title: r.title as string,
   priority: r.priority as Task['priority'],
   dueDate: (r.due_date as string | null) ?? undefined,
+  repeat: (r.repeat as Task['repeat'] | null) ?? undefined,
   completedAt: (r.completed_at as string | null) ?? undefined,
   createdAt: r.created_at as string,
 });
@@ -18,6 +19,7 @@ export const taskToRow = (t: Task): Record<string, unknown> => ({
   title: t.title,
   priority: t.priority,
   due_date: t.dueDate ?? null,
+  repeat: t.repeat ?? null,
   completed_at: t.completedAt ?? null,
   created_at: t.createdAt,
 });

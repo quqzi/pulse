@@ -13,6 +13,7 @@ export interface TimerState {
   total: number;
   subjectId: string | null;
   topicId: string | null;
+  taskId: string | null;   // set when the session was started from a task
   startedAt: string | null;
   pomodoroRound: number;
   focusMode: boolean;
@@ -27,6 +28,7 @@ function defaults(): TimerState {
     total: 25 * 60,
     subjectId: null,
     topicId: null,
+    taskId: null,
     startedAt: null,
     pomodoroRound: 1,
     focusMode: false,
