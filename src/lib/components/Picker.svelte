@@ -18,12 +18,38 @@
   const dispatch = createEventDispatcher<{ change: { value: string } }>();
 
   let open = false;
+  let triggerEl: HTMLButtonElement;
 
   $: selected = options.find(o => o.value === value);
 
   function portal(node: HTMLElement) {
     document.body.appendChild(node);
     return { destroy() { node.remove(); } };
+  }
+
+  // Anchor the panel to the trigger (below, flipping above if it would clip)
+  // and clamp inside the viewport. The transform-origin points back at the
+  // trigger so the entrance stretches out of the thing that was clicked.
+  function placePanel(node: HTMLElement) {
+    const r = triggerEl.getBoundingClientRect();
+    const margin = 12;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const pw = node.offsetWidth;
+    const ph = node.offsetHeight;
+    let left = r.left + r.width / 2 - pw / 2;
+    left = Math.min(Math.max(margin, left), vw - margin - pw);
+    let top = r.bottom + 8;
+    let openedAbove = false;
+    if (top + ph > vh - margin) {
+      top = r.top - 8 - ph;
+      openedAbove = true;
+    }
+    if (top < margin) { top = margin; openedAbove = false; }
+    node.style.left = `${left}px`;
+    node.style.top = `${top}px`;
+    const ox = Math.min(Math.max(r.left + r.width / 2 - left, 0), pw);
+    node.style.transformOrigin = `${ox}px ${openedAbove ? `${ph}px` : '0px'}`;
   }
 
   function pick(v: string) {
@@ -40,6 +66,7 @@
 <svelte:window on:keydown={onKeydown} />
 
 <button
+  bind:this={triggerEl}
   type="button"
   class="picker-trigger"
   class:placeholder={!selected}
@@ -64,7 +91,8 @@
       class="picker-panel glass-panel"
       role="listbox"
       aria-label={ariaLabel || placeholder}
-      transition:scale={{ start: 0.88, duration: 320, easing: backOut }}
+      use:placePanel
+      transition:scale={{ start: 0.55, duration: 380, easing: backOut }}
     >
       {#if placeholder}
         <div class="panel-title">{placeholder}</div>
@@ -129,9 +157,6 @@
   }
   .picker-panel {
     position: fixed;
-    left: 50%;
-    top: 50%;
-    translate: -50% -50%;
     z-index: 401;
     width: min(320px, calc(100vw - 48px));
     max-height: min(420px, 70vh);
