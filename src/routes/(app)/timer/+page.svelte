@@ -135,14 +135,8 @@
     <button class="mode-tab" class:active={$timerStore.mode === 'free'} on:click={() => setMode('free')} disabled={isRunning || isPaused}>{$t.timer.free}</button>
   </div>
 
-  <div class="timer-display" class:running={isRunning}>
+  <div class="timer-display" class:running={isRunning} class:engaged={isRunning || isPaused}>
     <svg class="ring" viewBox="0 0 240 240" aria-hidden="true">
-      <defs>
-        <linearGradient id="ring-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="var(--aurora-1)" />
-          <stop offset="100%" stop-color="var(--aurora-2)" />
-        </linearGradient>
-      </defs>
       <circle class="ring-track" cx="120" cy="120" r={RING_R} />
       <circle
         class="ring-arc"
@@ -266,15 +260,24 @@
     margin: 4px 0;
   }
   .ring { width: 100%; height: 100%; transform: rotate(-90deg); }
-  .ring-track { fill: none; stroke: color-mix(in srgb, var(--border) 55%, transparent); stroke-width: 4; }
-  .ring-arc {
-    fill: none; stroke: url(#ring-grad); stroke-width: 5; stroke-linecap: round;
-    opacity: 0.9;
-    transition: stroke-dashoffset 1s linear, opacity 300ms ease, filter 300ms ease;
+  /* Invisible at rest — the ring fades in only while a session is live. */
+  .ring-track {
+    fill: none; stroke: color-mix(in srgb, var(--text) 12%, transparent); stroke-width: 4;
+    opacity: 0; transition: opacity 500ms ease;
   }
+  /* "White" that survives every theme: near-full text color reads as a clean
+     white ring on dark themes and a slim ink line on light ones. */
+  .ring-arc {
+    fill: none; stroke: color-mix(in srgb, var(--text) 90%, transparent);
+    stroke-width: 5; stroke-linecap: round;
+    opacity: 0;
+    transition: stroke-dashoffset 1s linear, opacity 500ms ease, filter 300ms ease;
+  }
+  .timer-display.engaged .ring-track { opacity: 1; }
+  .timer-display.engaged .ring-arc { opacity: 0.92; }
   .timer-display.running .ring-arc {
     opacity: 1;
-    filter: drop-shadow(0 0 8px color-mix(in srgb, var(--aurora-2) 55%, transparent));
+    filter: drop-shadow(0 0 8px color-mix(in srgb, var(--text) 35%, transparent));
   }
   .ring-center {
     position: absolute; inset: 0;
