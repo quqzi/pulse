@@ -212,14 +212,24 @@
   .template-row {
     display: flex; align-items: center; gap: 12px; padding: 14px 16px;
     text-decoration: none; color: var(--text);
+    transition: transform var(--dur-base) var(--ease-spring), border-color 160ms ease, background 160ms ease;
   }
+  @media (hover: hover) {
+    .template-row:hover {
+      transform: translateY(-1px) scale(1.01);
+      background: var(--bg3);
+      border-color: color-mix(in srgb, var(--primary) 25%, var(--border));
+    }
+    .template-row:hover .chevron { transform: translateX(2px); }
+  }
+  .template-row:active { transform: scale(0.985); transition-duration: var(--dur-fast); }
   .template-info { flex: 1; }
   .template-name { font-size: 15px; font-weight: 600; display: block; }
   .template-count { font-size: 12px; color: var(--muted); }
   .preview-dots { display: flex; align-items: center; gap: 4px; }
   .dot { width: 8px; height: 8px; border-radius: 50%; }
   .dot-more { font-size: 11px; color: var(--muted); }
-  .chevron { color: var(--muted); flex-shrink: 0; }
+  .chevron { color: var(--muted); flex-shrink: 0; transition: transform var(--dur-base) var(--ease-spring); }
   .custom-row { padding: 0; }
   .template-link { flex: 1; display: flex; align-items: center; gap: 12px; padding: 14px 0 14px 16px; text-decoration: none; color: var(--text); }
   .delete-tpl-btn { background: none; border: none; cursor: pointer; color: var(--muted); padding: 14px 16px; }

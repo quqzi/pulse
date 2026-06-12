@@ -265,19 +265,24 @@
     fill: none; stroke: color-mix(in srgb, var(--text) 12%, transparent); stroke-width: 4;
     opacity: 0; transition: opacity 500ms ease;
   }
-  /* "White" that survives every theme: near-full text color reads as a clean
-     white ring on dark themes and a slim ink line on light ones. */
+  /* Frosted-white ring on every theme: clean glow on dark, and on light the
+     translucent white + soft shadow reads as glass over the aurora instead of
+     an ink circle. (Deliberate white — it's the requested material, with a
+     shadow supplying the contrast the bg can't.) */
   .ring-arc {
-    fill: none; stroke: color-mix(in srgb, var(--text) 90%, transparent);
+    fill: none; stroke: rgba(255, 255, 255, 0.92); /* stylelint-disable-line */
     stroke-width: 5; stroke-linecap: round;
     opacity: 0;
     transition: stroke-dashoffset 1s linear, opacity 500ms ease, filter 300ms ease;
   }
   .timer-display.engaged .ring-track { opacity: 1; }
-  .timer-display.engaged .ring-arc { opacity: 0.92; }
+  .timer-display.engaged .ring-arc {
+    opacity: 0.95;
+    filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.25));
+  }
   .timer-display.running .ring-arc {
     opacity: 1;
-    filter: drop-shadow(0 0 8px color-mix(in srgb, var(--text) 35%, transparent));
+    filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.22)) drop-shadow(0 0 8px rgba(255, 255, 255, 0.55)); /* stylelint-disable-line */
   }
   .ring-center {
     position: absolute; inset: 0;

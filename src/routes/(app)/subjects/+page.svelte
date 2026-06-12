@@ -44,9 +44,13 @@
 
   // overflow menu → save current subjects as a template
   let overflowOpen = false;
+  let templateNameOpen = false;
+  let templateName = '';
 
   async function saveCurrentAsTemplate() {
-    const name = prompt('Template name:');
+    const name = templateName;
+    templateNameOpen = false;
+    templateName = '';
     if (!name?.trim()) return;
     const { userId } = getAuthContext();
     const presets: SubjectPreset[] = $subjects.map((sub) => ({
@@ -88,7 +92,7 @@
       <a href="/subjects/templates" class="empty-action">{$t.subjects.browseTemplates} →</a>
     </EmptyState>
   {:else}
-    <div class="subjects-grid">
+    <div class="subjects-grid stagger-children">
       {#each $subjects as subject (subject.id)}
         <div class="tile-wrapper">
           <SubjectTile
@@ -114,10 +118,23 @@
     class="overflow-action"
     on:click={() => {
       overflowOpen = false;
-      saveCurrentAsTemplate();
+      templateNameOpen = true;
     }}
   >
     {$t.subjects.saveAsTemplate}
+  </button>
+</BottomSheet>
+
+<BottomSheet open={templateNameOpen} on:close={() => (templateNameOpen = false)}>
+  <p class="tpl-sheet-title">{$t.subjects.saveAsTemplate}</p>
+  <input
+    class="tpl-name-input"
+    bind:value={templateName}
+    placeholder={$t.subjects.templateNamePlaceholder}
+    on:keydown={(e) => { if (e.key === 'Enter' && templateName.trim()) saveCurrentAsTemplate(); }}
+  />
+  <button class="tpl-save-btn" disabled={!templateName.trim()} on:click={saveCurrentAsTemplate}>
+    {$t.common.save}
   </button>
 </BottomSheet>
 
@@ -155,6 +172,21 @@
     border-radius: var(--radius-md);
   }
   .overflow-action:hover { background: var(--bg3); }
+
+  .tpl-sheet-title { font-size: 16px; font-weight: 700; color: var(--text); margin: 4px 8px 12px; }
+  .tpl-name-input {
+    width: 100%; box-sizing: border-box; padding: 11px 13px; margin-bottom: 12px;
+    border: 1.5px solid var(--border); border-radius: 12px;
+    background: color-mix(in srgb, var(--bg) 70%, transparent); color: var(--text);
+    font-family: inherit; font-size: 15px; outline: none;
+    transition: border-color 140ms ease, box-shadow 140ms ease;
+  }
+  .tpl-name-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.15); }
+  .tpl-save-btn {
+    width: 100%; padding: 11px; border-radius: var(--radius-md); border: none;
+    background: var(--primary); color: var(--bg); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+  }
+  .tpl-save-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
   @media (max-width: 768px) {
     .add-btn { width: 44px; height: 44px; }

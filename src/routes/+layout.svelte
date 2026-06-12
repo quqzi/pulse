@@ -17,10 +17,13 @@
       }
     });
 
-    supabase.auth.onAuthStateChange((_event, session) => {
+    supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
         auth.set({ mode: 'authenticated', user: session.user, name: session.user.user_metadata?.name ?? 'Student' });
-      } else {
+      } else if (event === 'SIGNED_OUT') {
+        // Only an explicit sign-out downgrades to guest. Transient null sessions
+        // (refresh in flight, network blip, tab refocus) must not log the user out —
+        // the client retries the refresh and fires again with a session.
         auth.set({ mode: 'guest', user: null, name: localStorage.getItem('pulse_guest_name') ?? 'Student' });
       }
     });
