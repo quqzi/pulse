@@ -44,7 +44,7 @@
 {#if open}
   <div use:portal class="backdrop" on:click={handleBackdrop} role="dialog" aria-modal="true" tabindex="-1"
     on:keydown|stopPropagation={(e) => e.key === 'Escape' && cancel()}>
-    <div class="dialog" use:focusTrap>
+    <div class="dialog glass-panel" use:focusTrap>
       <p class="dialog-title">{title ?? $t.common.areYouSure}</p>
       {#if message}<p class="dialog-message">{message}</p>{/if}
       <div class="dialog-actions">
@@ -67,10 +67,6 @@
     padding: 16px;
   }
   .dialog {
-    background: color-mix(in srgb, var(--bg2) 72%, transparent);
-    backdrop-filter: blur(28px) saturate(1.7);
-    -webkit-backdrop-filter: blur(28px) saturate(1.7);
-    border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
     border-radius: 18px;
     padding: 24px;
     max-width: 360px;
@@ -78,9 +74,6 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
-    box-shadow:
-      0 8px 32px rgba(0, 0, 0, 0.22),
-      inset 0 1px 0 color-mix(in srgb, var(--text) 10%, transparent);
   }
   .dialog-title { font-size: 16px; font-weight: 700; color: var(--text); margin: 0; }
   .dialog-message { font-size: 14px; color: var(--muted); margin: 0; line-height: 1.5; }

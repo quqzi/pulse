@@ -18,12 +18,38 @@
   const dispatch = createEventDispatcher<{ change: { value: string } }>();
 
   let open = false;
+  let triggerEl: HTMLButtonElement;
 
   $: selected = options.find(o => o.value === value);
 
   function portal(node: HTMLElement) {
     document.body.appendChild(node);
     return { destroy() { node.remove(); } };
+  }
+
+  // Anchor the panel to the trigger (below, flipping above if it would clip)
+  // and clamp inside the viewport. The transform-origin points back at the
+  // trigger so the entrance stretches out of the thing that was clicked.
+  function placePanel(node: HTMLElement) {
+    const r = triggerEl.getBoundingClientRect();
+    const margin = 12;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const pw = node.offsetWidth;
+    const ph = node.offsetHeight;
+    let left = r.left + r.width / 2 - pw / 2;
+    left = Math.min(Math.max(margin, left), vw - margin - pw);
+    let top = r.bottom + 8;
+    let openedAbove = false;
+    if (top + ph > vh - margin) {
+      top = r.top - 8 - ph;
+      openedAbove = true;
+    }
+    if (top < margin) { top = margin; openedAbove = false; }
+    node.style.left = `${left}px`;
+    node.style.top = `${top}px`;
+    const ox = Math.min(Math.max(r.left + r.width / 2 - left, 0), pw);
+    node.style.transformOrigin = `${ox}px ${openedAbove ? `${ph}px` : '0px'}`;
   }
 
   function pick(v: string) {
@@ -40,6 +66,7 @@
 <svelte:window on:keydown={onKeydown} />
 
 <button
+  bind:this={triggerEl}
   type="button"
   class="picker-trigger"
   class:placeholder={!selected}
@@ -61,10 +88,11 @@
     <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
     <div class="picker-backdrop" transition:fade={{ duration: 160 }} on:click={() => (open = false)}></div>
     <div
-      class="picker-panel"
+      class="picker-panel glass-panel"
       role="listbox"
       aria-label={ariaLabel || placeholder}
-      transition:scale={{ start: 0.88, duration: 320, easing: backOut }}
+      use:placePanel
+      transition:scale={{ start: 0.55, duration: 380, easing: backOut }}
     >
       {#if placeholder}
         <div class="panel-title">{placeholder}</div>
@@ -129,23 +157,12 @@
   }
   .picker-panel {
     position: fixed;
-    left: 50%;
-    top: 50%;
-    translate: -50% -50%;
     z-index: 401;
     width: min(320px, calc(100vw - 48px));
     max-height: min(420px, 70vh);
     display: flex;
     flex-direction: column;
-    background: color-mix(in srgb, var(--bg2) 62%, transparent);
-    backdrop-filter: blur(28px) saturate(1.7);
-    -webkit-backdrop-filter: blur(28px) saturate(1.7);
-    border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
     border-radius: 22px;
-    box-shadow:
-      0 24px 60px rgba(0, 0, 0, 0.28),
-      inset 0 1px 0 color-mix(in srgb, var(--text) 10%, transparent),
-      inset 0 0 24px color-mix(in srgb, var(--bg) 18%, transparent);
     padding: 8px;
     color: var(--text);
   }

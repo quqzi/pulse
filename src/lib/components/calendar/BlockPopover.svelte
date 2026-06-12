@@ -50,7 +50,7 @@
 <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
 <div class="popover-backdrop" on:click={() => dispatch('cancel')}></div>
 
-<div class="block-popover-create">
+<div class="block-popover-create glass-panel">
   <div class="pop-time-label">{timeLabel}</div>
 
   <div class="field-label">{$t.schedule.subject}</div>
@@ -109,16 +109,9 @@
        height or floating-ui can't flip it away from the viewport edge. */
     position: relative;
     z-index: 160;
-    background: color-mix(in srgb, var(--bg2) 72%, transparent);
-    backdrop-filter: blur(28px) saturate(1.7);
-    -webkit-backdrop-filter: blur(28px) saturate(1.7);
-    border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
     border-radius: 16px;
     padding: 14px 16px;
     min-width: 220px;
-    box-shadow:
-      0 6px 24px rgba(0,0,0,0.16),
-      inset 0 1px 0 color-mix(in srgb, var(--text) 10%, transparent);
     color: var(--text);
   }
   .pop-time-label {

@@ -52,7 +52,7 @@
     <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
     <div class="sheet-backdrop" on:click={close} transition:fade={{ duration: dur }} aria-hidden="true"></div>
     <div
-      class="sheet-panel"
+      class="sheet-panel glass-panel"
       role="dialog"
       aria-modal="true"
       class:settling={!dragging}
@@ -92,9 +92,8 @@
     max-height: 80vh;
     display: flex;
     flex-direction: column;
-    background: color-mix(in srgb, var(--bg2) 72%, transparent);
-    backdrop-filter: blur(28px) saturate(1.7);
-    -webkit-backdrop-filter: blur(28px) saturate(1.7);
+    /* top edge only — the sheet's sides and bottom sit at the viewport edge */
+    border: none;
     border-top: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
     border-radius: 20px 20px 0 0;
     box-shadow:
