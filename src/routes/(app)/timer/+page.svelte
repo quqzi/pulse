@@ -137,6 +137,12 @@
 
   <div class="timer-display" class:running={isRunning}>
     <svg class="ring" viewBox="0 0 240 240" aria-hidden="true">
+      <defs>
+        <linearGradient id="ring-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="var(--aurora-1)" />
+          <stop offset="100%" stop-color="var(--aurora-2)" />
+        </linearGradient>
+      </defs>
       <circle class="ring-track" cx="120" cy="120" r={RING_R} />
       <circle
         class="ring-arc"
@@ -260,15 +266,15 @@
     margin: 4px 0;
   }
   .ring { width: 100%; height: 100%; transform: rotate(-90deg); }
-  .ring-track { fill: none; stroke: var(--bg3); stroke-width: 7; }
+  .ring-track { fill: none; stroke: color-mix(in srgb, var(--border) 55%, transparent); stroke-width: 4; }
   .ring-arc {
-    fill: none; stroke: var(--primary); stroke-width: 7; stroke-linecap: round;
-    opacity: 0.85;
+    fill: none; stroke: url(#ring-grad); stroke-width: 5; stroke-linecap: round;
+    opacity: 0.9;
     transition: stroke-dashoffset 1s linear, opacity 300ms ease, filter 300ms ease;
   }
   .timer-display.running .ring-arc {
     opacity: 1;
-    filter: drop-shadow(0 0 6px rgba(var(--primary-rgb), 0.45));
+    filter: drop-shadow(0 0 8px color-mix(in srgb, var(--aurora-2) 55%, transparent));
   }
   .ring-center {
     position: absolute; inset: 0;
