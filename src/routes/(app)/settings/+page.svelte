@@ -6,6 +6,8 @@
   import { supabase } from '$lib/supabase';
   import { goto } from '$app/navigation';
   import { t } from '$lib/i18n';
+  import { openWhatsNew } from '$lib/whatsNew';
+  import { LATEST_VERSION } from '$lib/changelog';
 
   onMount(() => loadData($auth));
   $: if ($auth.mode !== 'loading') loadData($auth);
@@ -311,6 +313,14 @@
       </a>
     </div>
   {/if}
+
+  <p class="section-label" style="margin-top:20px">{$t.settings.about}</p>
+  <div class="card section-card">
+    <button class="setting-row" on:click={openWhatsNew}>
+      <span class="text-body">{$t.pwa.whatsNew}</span>
+      <span class="row-right text-muted">v{LATEST_VERSION} ›</span>
+    </button>
+  </div>
 </div>
 
 <style>

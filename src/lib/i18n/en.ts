@@ -129,6 +129,7 @@ export const en = {
     pomodoroWork: 'Pomodoro work',
     pomodoroBreak: 'Pomodoro break',
     account: 'Account',
+    about: 'About',
     signOut: 'Sign out',
     signedInAs: 'Signed in as',
     appearance: 'Appearance',
@@ -561,6 +562,14 @@ export const en = {
     actionReview: 'Study flashcards',
     actionScores: 'View scores',
     actionAnalytics: 'See analytics',
+  },
+  pwa: {
+    installTitle: 'Install Pulse',
+    installBody: 'Add Pulse to your home screen for a faster, full-screen app.',
+    install: 'Install',
+    notNow: 'Not now',
+    whatsNew: "What's new",
+    gotIt: 'Got it',
   },
 };
 

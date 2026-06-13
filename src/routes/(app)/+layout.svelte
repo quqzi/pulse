@@ -1,12 +1,18 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import TabBar from '$lib/components/TabBar.svelte';
   import Sidebar from '$lib/components/Sidebar.svelte';
   import MoreDrawer from '$lib/components/MoreDrawer.svelte';
   import Toaster from '$lib/components/Toaster.svelte';
   import AuroraBackground from '$lib/components/AuroraBackground.svelte';
+  import WhatsNew from '$lib/components/WhatsNew.svelte';
+  import InstallPrompt from '$lib/components/InstallPrompt.svelte';
+  import { maybeShowWhatsNew } from '$lib/whatsNew';
 
   let drawerOpen = false;
+
+  onMount(maybeShowWhatsNew);
 </script>
 
 <AuroraBackground />
@@ -19,6 +25,8 @@
     <MoreDrawer open={drawerOpen} onClose={() => (drawerOpen = false)} />
   </div>
   <Toaster />
+  <InstallPrompt />
+  <WhatsNew />
 </div>
 
 <style>
