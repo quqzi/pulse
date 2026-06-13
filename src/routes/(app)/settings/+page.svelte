@@ -8,6 +8,9 @@
   import { t } from '$lib/i18n';
   import { openWhatsNew } from '$lib/whatsNew';
   import { LATEST_VERSION } from '$lib/changelog';
+  import ProfileSheet from '$lib/components/ProfileSheet.svelte';
+
+  let profileOpen = false;
 
   onMount(() => loadData($auth));
   $: if ($auth.mode !== 'loading') loadData($auth);
@@ -291,6 +294,11 @@
   {#if $auth.mode === 'authenticated'}
     <p class="section-label" style="margin-top:20px">{$t.settings.account}</p>
     <div class="card section-card">
+      <button class="setting-row" on:click={() => (profileOpen = true)}>
+        <span class="text-body">{$t.settings.profile}</span>
+        <span class="row-right text-muted">{$auth.name} ›</span>
+      </button>
+      <div class="divider"></div>
       <div class="setting-row">
         <span class="text-body text-muted">{$t.settings.signedInAs}</span>
         <span class="text-body">{$auth.user?.email}</span>
@@ -303,6 +311,11 @@
   {:else}
     <p class="section-label" style="margin-top:20px">{$t.settings.account}</p>
     <div class="card section-card">
+      <button class="setting-row" on:click={() => (profileOpen = true)}>
+        <span class="text-body">{$t.settings.displayName}</span>
+        <span class="row-right text-muted">{$auth.name} ›</span>
+      </button>
+      <div class="divider"></div>
       <div class="setting-row">
         <span class="text-body text-muted">{$t.settings.mode}</span>
         <span class="text-body">{$t.settings.guest}</span>
@@ -322,6 +335,8 @@
     </button>
   </div>
 </div>
+
+<ProfileSheet bind:open={profileOpen} />
 
 <style>
   .section-card { padding:6px 16px; }
