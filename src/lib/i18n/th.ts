@@ -131,6 +131,7 @@ export const th: I18n = {
     pomodoroWork: 'โพโมโดโรทำงาน',
     pomodoroBreak: 'โพโมโดโรพัก',
     account: 'บัญชี',
+    about: 'เกี่ยวกับ',
     signOut: 'ออกจากระบบ',
     signedInAs: 'เข้าสู่ระบบในชื่อ',
     appearance: 'รูปลักษณ์',
@@ -563,5 +564,13 @@ export const th: I18n = {
     actionReview: 'เรียนแฟลชการ์ด',
     actionScores: 'ดูคะแนน',
     actionAnalytics: 'ดูสถิติ',
+  },
+  pwa: {
+    installTitle: 'ติดตั้ง Pulse',
+    installBody: 'เพิ่ม Pulse ไปที่หน้าโฮมเพื่อใช้งานแบบเต็มจอเหมือนแอป',
+    install: 'ติดตั้ง',
+    notNow: 'ไว้ทีหลัง',
+    whatsNew: 'มีอะไรใหม่',
+    gotIt: 'รับทราบ',
   },
 };
