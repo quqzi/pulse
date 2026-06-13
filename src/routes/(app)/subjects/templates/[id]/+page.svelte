@@ -146,6 +146,10 @@
   .preset-row {
     display: flex; align-items: center; gap: 12px; padding: 11px 14px;
     width: 100%; text-align: left; cursor: pointer;
+    /* Explicit flat border — without this the <button> inherits the UA
+       1.6px "outset" bevel, which the selected accent tinted into a heavy
+       dark outline. */
+    border: 1px solid transparent;
     transition: background 140ms ease, border-color 160ms ease, transform var(--dur-base) var(--ease-spring);
   }
   .preset-row:hover:not(:disabled) { background: var(--bg3); transform: scale(1.01); }

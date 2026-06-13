@@ -24,7 +24,8 @@ export const BUILTIN_TEMPLATES: Template[] = [
     presets: [
       p('Physics',     'Ph', '#0d9488', '13,148,136'),
       p('Chemistry',   'Ch', '#d97706', '217,119,6'),
-      p('Mathematics', 'Ma', '#3b82f6', '59,130,246'),
+      p('Math 1',      'M1', '#3b82f6', '59,130,246'),
+      p('Math 2',      'M2', '#2563eb', '37,99,235'),
       p('Biology',     'Bi', '#22c55e', '34,197,94'),
       p('English',     'En', '#f43f5e', '244,63,94'),
       p('Thai',        'Th', '#8b5cf6', '139,92,246'),
@@ -47,6 +48,8 @@ export const BUILTIN_TEMPLATES: Template[] = [
       p('Biology',        'Bi', '#22c55e', '34,197,94'),
       p('Chemistry',      'Ch', '#d97706', '217,119,6'),
       p('Physics',        'Ph', '#0d9488', '13,148,136'),
+      p('Math 1',         'M1', '#3b82f6', '59,130,246'),
+      p('Math 2',         'M2', '#2563eb', '37,99,235'),
       p('Thai',           'Th', '#8b5cf6', '139,92,246'),
       p('English',        'En', '#f43f5e', '244,63,94'),
       p('Social Studies', 'So', '#6b7280', '107,114,128'),

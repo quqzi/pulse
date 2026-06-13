@@ -13,6 +13,18 @@
     %sveltekit.head%
   </head>
   <body data-sveltekit-preload-data="hover">
+    <script>
+      // Apply the saved design/theme class to <body> before first paint so the
+      // page renders in the user's real theme immediately — no light→dark flash,
+      // no unstyled flash. Mirrors the reactive block in src/routes/+layout.svelte.
+      try {
+        var raw = localStorage.getItem('pulse_settings');
+        var t = (raw && JSON.parse(raw).theme) || 'vercel-light';
+        var design = t === 'resend' ? 'resend' : t.split('-')[0];
+        var dark = t === 'resend' || /-dark$/.test(t);
+        document.body.className = 'design-' + design + (dark ? ' theme-dark' : '');
+      } catch (e) {}
+    </script>
     <div style="display: contents">%sveltekit.body%</div>
   </body>
 </html>
