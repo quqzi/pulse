@@ -359,7 +359,7 @@
 
       {#if weakestSubject}
         <div class="weakest">
-          {$t.exam.weakestArea} <strong>{weakestSubject}</strong> — <a href="/review">{$t.exam.reviewSrs}</a>
+          {$t.exam.weakestArea} <strong>{weakestSubject}</strong>
         </div>
       {/if}
 
@@ -439,7 +439,6 @@
   .breakdown-score { width: 40px; text-align: right; font-weight: 600; color: var(--text); }
   .weakest { font-size: 13px; color: var(--muted); background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; text-align: left; }
   .weakest strong { color: var(--text); }
-  .weakest a { color: var(--primary); }
   .result-actions { display: flex; gap: 10px; justify-content: center; }
 
   @media (max-width: 768px) {

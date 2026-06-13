@@ -393,7 +393,10 @@
 
   .summary-tab { display: none; }
 
-  @media (max-width: 768px) {
+  /* Collapse the side panels (mini-month + week summary) below 1024px so iPad
+     portrait isn't crammed into three columns — the week grid gets full width and
+     the panels move into the bottom-sheet (summary tab). */
+  @media (max-width: 1024px) {
     .left-panel { display: none; }
     :global(.schedule-sidebar) { display: none !important; }
     /* but show it when relocated inside the bottom sheet */
