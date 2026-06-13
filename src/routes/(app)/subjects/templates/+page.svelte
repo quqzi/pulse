@@ -8,6 +8,10 @@
   import { newId } from '$lib/id';
   import type { Template, SubjectPreset } from '$lib/types';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
+  import ImportSheet from '$lib/components/ImportSheet.svelte';
+  import { parseTemplate, templatePrompt, type SubjectPresetDraft } from '$lib/import';
+  import { toast } from '$lib/stores/toast';
+  import { get } from 'svelte/store';
   import { t } from '$lib/i18n';
 
   onMount(() => loadData($auth));
@@ -16,6 +20,32 @@
   let newName = '';
   let newPresets: SubjectPreset[] = [];
   let newSubjectName = '';
+
+  // ── AI / JSON import (same pattern as flashcard & exam import) ──
+  let importOpen = false;
+  let importGoal = 'TCAS';
+  let importCount = 6;
+  $: importPrompt = templatePrompt(importGoal, importCount);
+
+  function handleTemplateImport(e: CustomEvent<{ items: unknown[] }>) {
+    const drafts = e.detail.items as SubjectPresetDraft[];
+    const base = newPresets.length;
+    const added: SubjectPreset[] = drafts.map((d, i) => {
+      const color = SUBJECT_COLOR_PALETTE[(base + i) % SUBJECT_COLOR_PALETTE.length];
+      return {
+        name: d.name,
+        symbol: d.symbol || d.name.replace(/\s+/g, '').slice(0, 2),
+        color: color.hex,
+        colorRgb: color.rgb,
+        topics: d.topics,
+      };
+    });
+    newPresets = [...newPresets, ...added];
+    if (!newName.trim()) newName = importGoal.trim();
+    creating = true;
+    importOpen = false;
+    toast.success(get(t).importer.importedToast(added.length));
+  }
 
   function addPresetRow() {
     const name = newSubjectName.trim();
@@ -190,6 +220,7 @@
           />
           <button class="add-preset-btn" on:click={addPresetRow} disabled={!newSubjectName.trim()}>{$t.common.add}</button>
         </div>
+        <button class="import-tpl-btn in-form" on:click={() => (importOpen = true)}>✦ {$t.importer.open}</button>
       </div>
       <div class="form-actions">
         <button class="btn-cancel" on:click={() => { creating = false; newName = ''; newPresets = []; }}>{$t.common.cancel}</button>
@@ -197,11 +228,25 @@
       </div>
     </div>
   {:else}
-    <button class="new-tpl-btn" on:click={() => creating = true} style="margin-top:20px">
-      + {$t.subjects.newTemplate}
-    </button>
+    <div class="tpl-cta-row" style="margin-top:20px">
+      <button class="new-tpl-btn" on:click={() => creating = true}>+ {$t.subjects.newTemplate}</button>
+      <button class="import-tpl-btn" on:click={() => (importOpen = true)}>✦ {$t.importer.open}</button>
+    </div>
   {/if}
 </div>
+
+<ImportSheet bind:open={importOpen} prompt={importPrompt} parse={parseTemplate} on:import={handleTemplateImport} on:close={() => (importOpen = false)}>
+  <div slot="options" class="opt-block">
+    <label class="opt-label" for="tpl-goal">{$t.importer.goalLabel}</label>
+    <input id="tpl-goal" class="goal-input" bind:value={importGoal} placeholder={$t.importer.goalPlaceholder} />
+    <div class="opt-row">
+      <span class="opt-label">{$t.importer.howMany}</span>
+      {#each [4, 6, 8, 10] as n (n)}
+        <button class="opt-pill" class:active={importCount === n} on:click={() => (importCount = n)}>{n}</button>
+      {/each}
+    </div>
+  </div>
+</ImportSheet>
 
 <style>
   .page { padding: 20px 16px 80px; max-width: 600px; margin: 0 auto; }
@@ -282,4 +327,33 @@
   .topic-input:focus { border-color: var(--primary); }
   .add-topic-btn { font-size: 16px; background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); cursor: pointer; padding: 2px 8px; }
   .add-topic-btn:hover { color: var(--text); background: var(--bg3); }
+
+  .tpl-cta-row { display: flex; gap: 8px; }
+  .tpl-cta-row .new-tpl-btn { flex: 1; width: auto; margin: 0; justify-content: center; }
+  .import-tpl-btn {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 12px 16px; border-radius: var(--radius-md);
+    border: 1.5px solid color-mix(in srgb, var(--primary) 30%, var(--border));
+    background: var(--primary-l); color: var(--primary);
+    font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap;
+    transition: background 140ms ease, border-color 140ms ease;
+  }
+  .import-tpl-btn:hover { background: color-mix(in srgb, var(--primary) 14%, var(--bg2)); }
+  .import-tpl-btn.in-form { width: 100%; margin-top: 10px; }
+
+  .opt-block { display: flex; flex-direction: column; gap: 10px; margin-bottom: 4px; }
+  .goal-input {
+    width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 10px;
+    border: 1.5px solid var(--border); background: var(--bg); color: var(--text);
+    font-family: inherit; font-size: 14px; outline: none;
+  }
+  .goal-input:focus { border-color: var(--primary); }
+  .opt-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .opt-label { font-size: 13px; color: var(--muted); font-weight: 600; }
+  .opt-pill {
+    padding: 7px 14px; border-radius: 999px; border: 1.5px solid var(--border);
+    background: var(--bg); color: var(--muted); font-family: inherit; font-size: 13px;
+    font-weight: 600; cursor: pointer; min-height: 36px;
+  }
+  .opt-pill.active { border-color: var(--primary); background: var(--primary-l); color: var(--primary); }
 </style>

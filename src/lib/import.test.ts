@@ -1,5 +1,54 @@
 import { describe, it, expect } from 'vitest';
-import { parseFlashcards, parseExamQuestions, flashcardPrompt, examPrompt } from '$lib/import';
+import { parseFlashcards, parseExamQuestions, parseTemplate, flashcardPrompt, examPrompt, templatePrompt } from '$lib/import';
+
+describe('parseTemplate', () => {
+  it('parses subjects with string topics', () => {
+    const r = parseTemplate('[{"name":"Physics","symbol":"Ph","topics":["Kinematics","Energy"]}]');
+    expect(r.ok && r.items[0]).toEqual({ name: 'Physics', symbol: 'Ph', topics: ['Kinematics', 'Energy'] });
+  });
+
+  it('accepts subject/title aliases and missing symbol', () => {
+    const r = parseTemplate('[{"subject":"Chemistry","topics":["Atoms"]}]');
+    expect(r.ok && r.items[0]).toEqual({ name: 'Chemistry', symbol: undefined, topics: ['Atoms'] });
+  });
+
+  it('accepts topics as objects with name/title', () => {
+    const r = parseTemplate('[{"name":"Bio","chapters":[{"name":"Cells"},{"title":"Genetics"}]}]');
+    expect(r.ok && r.items[0].topics).toEqual(['Cells', 'Genetics']);
+  });
+
+  it('truncates the symbol to 2 chars and tolerates no topics', () => {
+    const r = parseTemplate('[{"name":"Mathematics","symbol":"Math"}]');
+    expect(r.ok && r.items[0]).toEqual({ name: 'Mathematics', symbol: 'Ma', topics: [] });
+  });
+
+  it('skips entries without a name', () => {
+    const r = parseTemplate('[{"topics":["x"]},{"name":"Thai","topics":[]}]');
+    expect(r.ok && r.items.length).toBe(1);
+    expect(r.ok && r.items[0].name).toBe('Thai');
+  });
+
+  it('strips fences and leading prose', () => {
+    const r = parseTemplate('Here you go:\n```json\n[{"name":"English","topics":["Grammar"]}]\n```');
+    expect(r.ok && r.items.length).toBe(1);
+  });
+
+  it('unwraps an object holding the array', () => {
+    const r = parseTemplate('{"subjects":[{"name":"Physics","topics":[]}]}');
+    expect(r.ok && r.items.length).toBe(1);
+  });
+
+  it('errors on invalid json and empty results', () => {
+    expect(parseTemplate('not json').ok).toBe(false);
+    expect(parseTemplate('[{"foo":"bar"}]').ok).toBe(false);
+  });
+
+  it('templatePrompt embeds the goal and count', () => {
+    const p = templatePrompt('Medicine', 8);
+    expect(p).toContain('Medicine');
+    expect(p).toContain('8 main subjects');
+  });
+});
 
 describe('parseFlashcards', () => {
   it('parses a plain JSON array', () => {

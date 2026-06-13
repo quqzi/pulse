@@ -231,6 +231,8 @@ export const th: I18n = {
     copied: 'ก๊อปปี้แล้ว!',
     showPrompt: 'ดู / แก้ไข',
     howMany: 'จำนวน',
+    goalLabel: 'เรียนเพื่อ',
+    goalPlaceholder: 'เช่น TCAS, สอบแพทย์',
     diffMixed: 'คละกัน',
     pastePlaceholder: 'วางคำตอบ JSON ตรงนี้…',
     errInvalid: 'อ่านไม่ได้ — วางคำตอบ JSON ทั้งหมดจาก AI',
