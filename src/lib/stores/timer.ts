@@ -51,19 +51,27 @@ export function setTimerSubject(subjectId: string, topicId: string | null): void
 
 let _interval: ReturnType<typeof setInterval> | null = null;
 let _onComplete: (() => void) | null = null;
+// Wall-clock anchor — elapsed is derived from real time, not tick counting,
+// so background-tab throttling and interval drift can't skew the timer.
+let _anchorMs = 0;
+let _baseElapsed = 0;
 
 export function startTimer(onComplete?: () => void): void {
   _onComplete = onComplete ?? null;
-  timerStore.update(t => ({
-    ...t,
-    status: 'running',
-    startedAt: t.startedAt ?? new Date().toISOString(),
-  }));
+  timerStore.update(t => {
+    _baseElapsed = t.elapsed;
+    return {
+      ...t,
+      status: 'running',
+      startedAt: t.startedAt ?? new Date().toISOString(),
+    };
+  });
+  _anchorMs = Date.now();
   if (browser) {
     _interval = setInterval(() => {
       timerStore.update(t => {
         if (t.status !== 'running') return t;
-        const newElapsed = t.elapsed + 1;
+        const newElapsed = _baseElapsed + Math.floor((Date.now() - _anchorMs) / 1000);
         if (t.mode === 'pomodoro' && newElapsed >= t.total) {
           clearInterval(_interval!);
           _interval = null;
@@ -72,13 +80,19 @@ export function startTimer(onComplete?: () => void): void {
         }
         return { ...t, elapsed: newElapsed };
       });
-    }, 1000);
+    }, 500);
   }
 }
 
 export function pauseTimer(): void {
   if (_interval) { clearInterval(_interval); _interval = null; }
-  timerStore.update(t => ({ ...t, status: 'paused' }));
+  // Snap elapsed to the exact wall-clock value at the moment of pausing.
+  timerStore.update(t => {
+    if (t.status !== 'running') return { ...t, status: 'paused' };
+    const exact = _baseElapsed + Math.floor((Date.now() - _anchorMs) / 1000);
+    const cap = t.mode === 'pomodoro' && t.total > 0 ? t.total : exact;
+    return { ...t, status: 'paused', elapsed: Math.min(exact, cap) };
+  });
 }
 
 export function stopTimer(): void {

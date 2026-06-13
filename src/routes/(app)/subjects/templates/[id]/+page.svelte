@@ -89,18 +89,25 @@
   {:else}
     <p class="hint">{$t.subjects.selectHint}</p>
 
-    <ul class="preset-list">
+    <ul class="preset-list stagger-children">
       {#each template.presets as preset}
         {@const alreadyAdded = existingNames.has(preset.name.toLowerCase())}
+        {@const topicNames = preset.topics ?? []}
         <li>
           <button
             class="preset-row card"
             class:already={alreadyAdded}
+            class:selected={checked.has(preset.name)}
             on:click={() => toggle(preset.name)}
             disabled={alreadyAdded}
           >
-            <span class="preset-symbol" style="color:{preset.color}">{preset.symbol}</span>
-            <span class="preset-name">{preset.name}</span>
+            <span class="preset-chip" style="background:color-mix(in srgb, {preset.color} 14%, transparent); color:{preset.color}">{preset.symbol}</span>
+            <span class="preset-body">
+              <span class="preset-name">{preset.name}</span>
+              {#if topicNames.length > 0}
+                <span class="preset-topics">{topicNames.slice(0, 3).join(' · ')}{topicNames.length > 3 ? ` +${topicNames.length - 3}` : ''}</span>
+              {/if}
+            </span>
             {#if alreadyAdded}
               <span class="already-label">{$t.subjects.alreadyAdded}</span>
             {:else}
@@ -137,21 +144,36 @@
   .hint { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
   .preset-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
   .preset-row {
-    display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+    display: flex; align-items: center; gap: 12px; padding: 11px 14px;
     width: 100%; text-align: left; cursor: pointer;
-    transition: background 120ms ease;
+    transition: background 140ms ease, border-color 160ms ease, transform var(--dur-base) var(--ease-spring);
   }
-  .preset-row:hover:not(:disabled) { background: var(--bg3); }
+  .preset-row:hover:not(:disabled) { background: var(--bg3); transform: scale(1.01); }
+  .preset-row:active:not(:disabled) { transform: scale(0.985); transition-duration: var(--dur-fast); }
+  .preset-row.selected { border-color: color-mix(in srgb, var(--primary) 35%, var(--border)); background: color-mix(in srgb, var(--primary) 5%, var(--bg2)); }
   .preset-row.already { opacity: 0.5; cursor: default; }
-  .preset-symbol { font-size: 15px; font-weight: 700; width: 28px; flex-shrink: 0; }
-  .preset-name { flex: 1; font-size: 15px; font-weight: 500; color: var(--text); }
+  .preset-chip {
+    width: 36px; height: 36px; border-radius: 11px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 800;
+    transition: transform var(--dur-base) var(--ease-spring);
+  }
+  .preset-row:hover:not(:disabled) .preset-chip { transform: scale(1.08) rotate(-3deg); }
+  .preset-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  .preset-name { font-size: 15px; font-weight: 500; color: var(--text); }
+  .preset-topics { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .already-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
-  .check-circle { flex-shrink: 0; line-height: 0; }
+  .check-circle { flex-shrink: 0; line-height: 0; transition: transform var(--dur-base) var(--ease-spring); }
+  .check-circle.checked { transform: scale(1.15); }
 
   .sticky-footer {
     position: fixed; bottom: 0; left: 0; right: 0;
-    padding: 12px 16px 32px; background: var(--bg2);
-    border-top: 1px solid var(--border); z-index: 100;
+    padding: 12px 16px 32px;
+    background: color-mix(in srgb, var(--bg2) 72%, transparent);
+    backdrop-filter: blur(20px) saturate(1.5);
+    -webkit-backdrop-filter: blur(20px) saturate(1.5);
+    border-top: 1px solid color-mix(in srgb, var(--text) 10%, transparent);
+    z-index: 100;
   }
   .btn-add {
     display: block; width: 100%; max-width: 600px; margin: 0 auto;

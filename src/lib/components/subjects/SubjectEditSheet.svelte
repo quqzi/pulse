@@ -1,5 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
+  import { fade, fly } from 'svelte/transition';
+  import { backOut, cubicOut } from 'svelte/easing';
   import { SUBJECT_COLOR_PALETTE } from '$lib/constants';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
   import type { Subject } from '$lib/types';
@@ -94,10 +96,23 @@
 {#if open}
   <div use:portal>
   <!-- svelte-ignore a11y-click-events-have-key-events -->
-  <div class="sheet-overlay" on:click={close} role="presentation"></div>
-  <div class="sheet" role="dialog" aria-modal="true" aria-label={subject ? $t.subjects.editSubject : $t.subjects.newSubject}>
+  <div class="sheet-overlay" on:click={close} role="presentation" transition:fade={{ duration: 200 }}></div>
+  <div
+    class="sheet glass-panel"
+    role="dialog"
+    aria-modal="true"
+    aria-label={subject ? $t.subjects.editSubject : $t.subjects.newSubject}
+    in:fly={{ y: 380, duration: 420, easing: backOut }}
+    out:fly={{ y: 360, duration: 240, easing: cubicOut }}
+  >
     <div class="sheet-handle"></div>
     <p class="sheet-title">{subject ? $t.subjects.editSubject : $t.subjects.newSubject}</p>
+
+    <!-- Live preview — the tile updates as you type and pick a colour. -->
+    <div class="preview-row">
+      <span class="preview-chip" style="background:rgba({color.rgb}, 0.16); color:{color.hex}">{symbol || '?'}</span>
+      <span class="preview-name" class:placeholder={!name.trim()}>{name.trim() || $t.subjects.namePlaceholder}</span>
+    </div>
 
     <div class="field">
       <label class="field-label" for="subj-name">{$t.subjects.subjectName}</label>
@@ -119,7 +134,11 @@
             style="background:{c.hex}"
             on:click={() => (color = c)}
             aria-label={c.hex}
-          ></button>
+          >
+            {#if color.hex === c.hex}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+            {/if}
+          </button>
         {/each}
       </div>
     </div>
@@ -141,27 +160,51 @@
   }
   .sheet {
     position: fixed; bottom: 0; left: 0; right: 0; z-index: 201;
-    background: var(--bg2); border-radius: 20px 20px 0 0;
+    border-radius: 20px 20px 0 0;
+    /* glass-panel supplies bg/blur/shadow; the sheet sits at the viewport edge */
+    border: none;
+    border-top: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
     padding: 12px 20px 40px; max-width: 600px; margin: 0 auto;
   }
   .sheet-handle { width: 36px; height: 4px; border-radius: 2px; background: var(--border); margin: 0 auto 16px; }
-  .sheet-title { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
+  .sheet-title { font-size: 16px; font-weight: 700; margin-bottom: 14px; }
+  .preview-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; margin-bottom: 16px;
+    background: color-mix(in srgb, var(--bg) 55%, transparent);
+    border: 1px solid var(--border); border-radius: 14px;
+  }
+  .preview-chip {
+    width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 800;
+    transition: background 200ms ease, color 200ms ease, transform var(--dur-base) var(--ease-spring);
+  }
+  .preview-row:hover .preview-chip { transform: scale(1.08) rotate(-3deg); }
+  .preview-name { font-size: 15px; font-weight: 600; color: var(--text); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .preview-name.placeholder { color: var(--muted); font-weight: 500; }
   .field { margin-bottom: 16px; }
   .field-label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
   .field-hint { font-weight: 400; text-transform: none; letter-spacing: 0; }
   .field-input {
-    width: 100%; padding: 10px 12px; border: 1.5px solid var(--border);
-    border-radius: var(--radius-md); background: var(--bg); color: var(--text);
+    width: 100%; padding: 11px 13px; border: 1.5px solid var(--border);
+    border-radius: 12px; background: color-mix(in srgb, var(--bg) 70%, transparent); color: var(--text);
     font-family: inherit; font-size: 15px; outline: none; box-sizing: border-box;
+    transition: border-color 140ms ease, box-shadow 140ms ease;
   }
-  .field-input:focus { border-color: var(--primary); }
+  .field-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.15);
+  }
   .sym-input { width: 72px; text-align: center; font-weight: 700; }
   .color-swatches { display: flex; gap: 8px; flex-wrap: wrap; }
   .swatch {
     width: 30px; height: 30px; border-radius: 50%; border: 2.5px solid transparent;
-    cursor: pointer; transition: transform 100ms ease;
+    cursor: pointer; transition: transform var(--dur-base) var(--ease-spring), border-color 150ms ease;
+    display: flex; align-items: center; justify-content: center; line-height: 0;
   }
-  .swatch.selected { border-color: var(--text); transform: scale(1.15); }
+  .swatch:hover { transform: scale(1.12); }
+  .swatch.selected { border-color: var(--text); transform: scale(1.18); }
   .sheet-actions { display: flex; gap: 8px; margin-top: 24px; }
   .btn-delete {
     padding: 10px 16px; border-radius: var(--radius-md); border: none;

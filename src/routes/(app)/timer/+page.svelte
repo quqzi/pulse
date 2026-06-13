@@ -24,6 +24,13 @@
     : null;
 
   $: displayTime = formatTime($remaining);
+
+  // Progress ring: pomodoro counts down the session; free mode laps once an hour.
+  const RING_R = 110;
+  const RING_C = 2 * Math.PI * RING_R;
+  $: ringFrac = $timerStore.mode === 'pomodoro'
+    ? ($timerStore.total > 0 ? Math.max(0, Math.min(1, $remaining / $timerStore.total)) : 0)
+    : ($timerStore.elapsed % 3600) / 3600;
   $: canStart = $timerStore.subjectId !== null;
   $: isRunning = $timerStore.status === 'running';
   $: isPaused = $timerStore.status === 'paused';
@@ -128,13 +135,23 @@
     <button class="mode-tab" class:active={$timerStore.mode === 'free'} on:click={() => setMode('free')} disabled={isRunning || isPaused}>{$t.timer.free}</button>
   </div>
 
-  <div class="timer-display" class:running={isRunning}>
-    <div class="time-text">{displayTime}</div>
-    {#if $timerStore.mode === 'pomodoro'}
-      <div class="phase-label">{$timerStore.phase === 'work' ? $t.timer.focus : $t.timer.breakLabel} · {$t.timer.round} {$timerStore.pomodoroRound}</div>
-    {:else}
-      <div class="phase-label">{isRunning ? $t.timer.studying : $t.timer.ready}</div>
-    {/if}
+  <div class="timer-display" class:running={isRunning} class:engaged={isRunning || isPaused}>
+    <svg class="ring" viewBox="0 0 240 240" aria-hidden="true">
+      <circle class="ring-track" cx="120" cy="120" r={RING_R} />
+      <circle
+        class="ring-arc"
+        cx="120" cy="120" r={RING_R}
+        style="stroke-dasharray:{RING_C}; stroke-dashoffset:{RING_C * (1 - ringFrac)};"
+      />
+    </svg>
+    <div class="ring-center">
+      <div class="time-text">{displayTime}</div>
+      {#if $timerStore.mode === 'pomodoro'}
+        <div class="phase-label">{$timerStore.phase === 'work' ? $t.timer.focus : $t.timer.breakLabel} · {$t.timer.round} {$timerStore.pomodoroRound}</div>
+      {:else}
+        <div class="phase-label">{isRunning ? $t.timer.studying : $t.timer.ready}</div>
+      {/if}
+    </div>
   </div>
 
   <div class="selector-row">
@@ -236,9 +253,44 @@
     box-shadow: 0 1px 4px rgba(0,0,0,.08);
   }
   .mode-tab:disabled { cursor: not-allowed; }
-  .timer-display { text-align: center; padding: 16px 0; }
+  .timer-display {
+    position: relative;
+    width: min(300px, 76vw);
+    aspect-ratio: 1;
+    margin: 4px 0;
+  }
+  .ring { width: 100%; height: 100%; transform: rotate(-90deg); }
+  /* Invisible at rest — the ring fades in only while a session is live. */
+  .ring-track {
+    fill: none; stroke: color-mix(in srgb, var(--text) 12%, transparent); stroke-width: 4;
+    opacity: 0; transition: opacity 500ms ease;
+  }
+  /* Frosted-white ring on every theme: clean glow on dark, and on light the
+     translucent white + soft shadow reads as glass over the aurora instead of
+     an ink circle. (Deliberate white — it's the requested material, with a
+     shadow supplying the contrast the bg can't.) */
+  .ring-arc {
+    fill: none; stroke: rgba(255, 255, 255, 0.92); /* stylelint-disable-line */
+    stroke-width: 5; stroke-linecap: round;
+    opacity: 0;
+    transition: stroke-dashoffset 1s linear, opacity 500ms ease, filter 300ms ease;
+  }
+  .timer-display.engaged .ring-track { opacity: 1; }
+  .timer-display.engaged .ring-arc {
+    opacity: 0.95;
+    filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.25));
+  }
+  .timer-display.running .ring-arc {
+    opacity: 1;
+    filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.22)) drop-shadow(0 0 8px rgba(255, 255, 255, 0.55)); /* stylelint-disable-line */
+  }
+  .ring-center {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center;
+  }
   .time-text {
-    font-size: 72px;
+    font-size: clamp(44px, 16vw, 60px);
     font-weight: 700;
     letter-spacing: -0.04em;
     color: var(--text);

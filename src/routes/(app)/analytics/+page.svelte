@@ -11,6 +11,7 @@
   import { get } from 'svelte/store';
   import type { StudySession } from '$lib/types';
   import Picker from '$lib/components/Picker.svelte';
+  import { countup } from '$lib/motion/countup';
 
   function getWeekStart(date: Date): Date {
     const d = new Date(date);
@@ -118,7 +119,7 @@
 <div class="analytics-page">
   <h1 class="text-large-title page-title">{$t.analytics.title}</h1>
 
-  <div class="stat-grid">
+  <div class="stat-grid stagger-children">
     <div class="stat-card">
       <div class="stat-label">{$t.analytics.today}</div>
       <div class="stat-value">{fmtH($todayHours)}</div>
@@ -129,7 +130,7 @@
     </div>
     <div class="stat-card">
       <div class="stat-label">{$t.analytics.streak}</div>
-      <div class="stat-value">{$streak}<span class="stat-unit">{$t.analytics.unitD}</span></div>
+      <div class="stat-value"><span use:countup={{ value: $streak }}>{$streak}</span><span class="stat-unit">{$t.analytics.unitD}</span></div>
       <div class="stat-sub">{$streak > 0 ? $t.analytics.streakKeepUp : $t.analytics.streakStudyToday}</div>
     </div>
     <div class="stat-card">
@@ -139,7 +140,7 @@
     </div>
     <div class="stat-card">
       <div class="stat-label">{$t.analytics.srsDue}</div>
-      <div class="stat-value" class:urgent={dueCount > 0}>{dueCount}</div>
+      <div class="stat-value" class:urgent={dueCount > 0}><span use:countup={{ value: dueCount }}>{dueCount}</span></div>
       <div class="stat-sub">{$t.analytics.cardsTotal(totalCards)}</div>
     </div>
   </div>
@@ -262,6 +263,14 @@
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     padding: 14px;
+    transition: transform var(--dur-base) var(--ease-spring), box-shadow 200ms ease, border-color 200ms ease;
+  }
+  @media (hover: hover) {
+    .stat-card:hover {
+      transform: translateY(-2px) scale(1.02);
+      border-color: color-mix(in srgb, var(--primary) 25%, var(--border));
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    }
   }
   .stat-label {
     font-size: 10px;
@@ -302,7 +311,9 @@
 
   .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); }
 
-  .subject-row { padding: 11px 16px; }
+  .subject-row { padding: 11px 16px; transition: background 140ms ease; }
+  .subject-row:hover { background: var(--bg3); }
+  .subject-row:hover .bar-fill { opacity: 1; }
   .subject-row.not-first { border-top: 1px solid var(--border); }
   .subject-meta { display: flex; align-items: center; gap: 7px; margin-bottom: 6px; }
   .subject-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
