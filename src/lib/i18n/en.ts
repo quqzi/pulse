@@ -137,6 +137,7 @@ export const en = {
     pomodoroBreak: 'Pomodoro break',
     account: 'Account',
     about: 'About',
+    userGuide: 'User guide',
     signOut: 'Sign out',
     signedInAs: 'Signed in as',
     appearance: 'Appearance',
@@ -581,6 +582,10 @@ export const en = {
     actionReview: 'Study flashcards',
     actionScores: 'View scores',
     actionAnalytics: 'See analytics',
+  },
+  guide: {
+    title: 'User guide',
+    subtitle: 'Everything Pulse can do, in a minute.',
   },
   pwa: {
     installTitle: 'Install Pulse',
