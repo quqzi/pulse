@@ -139,6 +139,7 @@ export const th: I18n = {
     pomodoroBreak: 'โพโมโดโรพัก',
     account: 'บัญชี',
     about: 'เกี่ยวกับ',
+    userGuide: 'คู่มือการใช้งาน',
     signOut: 'ออกจากระบบ',
     signedInAs: 'เข้าสู่ระบบในชื่อ',
     appearance: 'รูปลักษณ์',
@@ -583,6 +584,10 @@ export const th: I18n = {
     actionReview: 'เรียนแฟลชการ์ด',
     actionScores: 'ดูคะแนน',
     actionAnalytics: 'ดูสถิติ',
+  },
+  guide: {
+    title: 'คู่มือการใช้งาน',
+    subtitle: 'ทุกอย่างที่ Pulse ทำได้ ภายในหนึ่งนาที',
   },
   pwa: {
     installTitle: 'ติดตั้ง Pulse',

@@ -429,6 +429,11 @@
       </button>
       <div class="divider"></div>
     {/if}
+    <a href="/guide" class="setting-row" style="text-decoration:none">
+      <span class="text-body">{$t.settings.userGuide}</span>
+      <span class="row-right text-muted">›</span>
+    </a>
+    <div class="divider"></div>
     <button class="setting-row" on:click={openWhatsNew}>
       <span class="text-body">{$t.pwa.whatsNew}</span>
       <span class="row-right text-muted">v{LATEST_VERSION} ›</span>
