@@ -10,13 +10,37 @@
   import InstallPrompt from '$lib/components/InstallPrompt.svelte';
   import { maybeShowWhatsNew } from '$lib/whatsNew';
   import { initPwaInstall } from '$lib/pwa';
+  import { auth } from '$lib/stores/auth';
+  import { loadData, loadScheduleSlots } from '$lib/stores/data';
+  import { initNotifications } from '$lib/notifications';
 
   let drawerOpen = false;
+
+  // Current Mon–Sun week, so block reminders have this week's slots loaded
+  // app-wide (pages only load slots on /schedule).
+  function currentWeek(): { start: Date; end: Date } {
+    const d = new Date();
+    const diff = d.getDay() === 0 ? -6 : 1 - d.getDay();
+    d.setDate(d.getDate() + diff);
+    d.setHours(0, 0, 0, 0);
+    const end = new Date(d);
+    end.setDate(end.getDate() + 7);
+    return { start: d, end };
+  }
 
   onMount(() => {
     maybeShowWhatsNew();
     initPwaInstall();
+    initNotifications();
   });
+
+  // Keep data + this week's slots warm for reminders. Slots must load after
+  // loadData (it sets the repo's userId).
+  $: if ($auth.mode !== 'loading') {
+    loadData($auth);
+    const { start, end } = currentWeek();
+    loadScheduleSlots(start, end);
+  }
 </script>
 
 <AuroraBackground />

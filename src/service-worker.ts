@@ -30,6 +30,20 @@ sw.addEventListener('activate', (event) => {
   );
 });
 
+// Tapping a study reminder focuses an open tab, or opens the dashboard.
+sw.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    (async () => {
+      const all = await sw.clients.matchAll({ type: 'window', includeUncontrolled: true });
+      for (const client of all) {
+        if ('focus' in client) return client.focus();
+      }
+      return sw.clients.openWindow('/dashboard');
+    })(),
+  );
+});
+
 sw.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
