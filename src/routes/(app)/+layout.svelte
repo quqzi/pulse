@@ -12,15 +12,18 @@
   import { maybeShowWhatsNew } from '$lib/whatsNew';
   import { initPwaInstall } from '$lib/pwa';
   import { auth } from '$lib/stores/auth';
+  import { settings } from '$lib/stores/settings';
   import { loadData, loadScheduleSlots } from '$lib/stores/data';
   import { initNotifications } from '$lib/notifications';
   import { resumeTimer } from '$lib/stores/timer';
   import { logCurrentTimerSession } from '$lib/timerSession';
   import { toast } from '$lib/stores/toast';
   import { t } from '$lib/i18n';
+  import { ensurePushSubscribed } from '$lib/push';
 
   let drawerOpen = false;
   let timerResumed = false;
+  let pushSynced = false;
 
   // A pomodoro that finished while the app was closed/backgrounded — log it from
   // wherever the app reopens, so the session is never lost (the summary modal is
@@ -28,6 +31,16 @@
   async function onAwayComplete() {
     const dur = await logCurrentTimerSession();
     if (dur !== null) toast.success($t.timer.sessionSaved);
+  }
+
+  // Keep this device's push subscription fresh once per app open — only when the
+  // user already opted in and granted permission (so it never prompts on load).
+  function syncPush(): void {
+    if (pushSynced) return;
+    if ($auth.mode !== 'authenticated' || !$settings.notifyEnabled) return;
+    if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+    pushSynced = true;
+    void ensurePushSubscribed();
   }
 
   // Current Mon–Sun week, so block reminders have this week's slots loaded
@@ -54,6 +67,7 @@
     loadData($auth);
     const { start, end } = currentWeek();
     loadScheduleSlots(start, end);
+    syncPush();
   }
 
   // Resume a running/paused timer app-wide once (after auth resolves, so an
