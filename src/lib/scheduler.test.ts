@@ -27,6 +27,7 @@ function baseSettings(over: Partial<Settings> = {}): Settings {
     restDays: [],
     subjectWeights: {},
     readinessHoursTarget: 20,
+    musicUrl: '',
     ...over,
   };
 }

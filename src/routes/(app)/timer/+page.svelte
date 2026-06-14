@@ -12,6 +12,7 @@
   import { sessionsRepo } from '$lib/data/entities';
   import { t } from '$lib/i18n';
   import Picker from '$lib/components/Picker.svelte';
+  import MusicPlayer from '$lib/components/MusicPlayer.svelte';
 
   let showSummary = false;
   let lastSession: { durationSec: number; subjectName: string; topicName: string | null } | null = null;
@@ -204,6 +205,8 @@
       {$timerStore.focusMode ? $t.timer.exitFocus : $t.timer.focusMode}
     </button>
   {/if}
+
+  <MusicPlayer />
 </div>
 
 <style>

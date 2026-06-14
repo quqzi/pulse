@@ -70,6 +70,13 @@ export const en = {
     ready: 'Ready',
     studying: 'Studying',
     round: 'Round',
+    musicAdd: 'Add study music',
+    musicChange: 'Change music',
+    musicPlaceholder: 'Paste a YouTube, Spotify or SoundCloud link',
+    musicInvalid: "That link isn't a supported music link.",
+    musicSave: 'Add',
+    musicRemove: 'Remove',
+    musicTitle: 'Study music',
   },
   subjects: {
     title: 'Subjects',
