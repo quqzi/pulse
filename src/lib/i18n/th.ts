@@ -72,6 +72,13 @@ export const th: I18n = {
     ready: 'พร้อม',
     studying: 'กำลังเรียน',
     round: 'รอบ',
+    musicAdd: 'เพิ่มเพลงสำหรับอ่านหนังสือ',
+    musicChange: 'เปลี่ยนเพลง',
+    musicPlaceholder: 'วางลิงก์ YouTube, Spotify หรือ SoundCloud',
+    musicInvalid: 'ลิงก์นี้ไม่ใช่ลิงก์เพลงที่รองรับ',
+    musicSave: 'เพิ่ม',
+    musicRemove: 'ลบ',
+    musicTitle: 'เพลงสำหรับอ่านหนังสือ',
   },
   subjects: {
     title: 'วิชา',

@@ -29,6 +29,7 @@ export interface Settings {
   restDays: number[];          // 1–7 Mon–Sun; auto-schedule leaves these free
   subjectWeights: Record<string, number>; // subjectId → 0.5 | 1 | 2 (default 1)
   readinessHoursTarget: number; // hours per subject per 30 days = full hours score
+  musicUrl: string;            // study-music link (YouTube/Spotify/SoundCloud/Apple); '' = none
 }
 
 export function defaults(): Settings {
@@ -52,6 +53,7 @@ export function defaults(): Settings {
     restDays: [],
     subjectWeights: {},
     readinessHoursTarget: 20,
+    musicUrl: '',
   };
 }
 
