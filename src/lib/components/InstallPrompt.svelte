@@ -1,56 +1,30 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import { fly } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
+  import { browser } from '$app/environment';
   import { t } from '$lib/i18n';
-
-  // The beforeinstallprompt event (non-standard; not in lib.dom).
-  interface BeforeInstallPromptEvent extends Event {
-    prompt: () => Promise<void>;
-    userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
-  }
+  import { canInstall, promptInstall } from '$lib/pwa';
 
   const DISMISS_KEY = 'pulse.installDismissed';
-  let deferred: BeforeInstallPromptEvent | null = null;
-  let show = false;
+  let dismissed = browser ? !!localStorage.getItem(DISMISS_KEY) : true;
+
+  // The banner respects a one-time dismissal; the Settings button (which reads
+  // canInstall directly) stays available even after the banner is dismissed.
+  $: show = $canInstall && !dismissed;
 
   function portal(node: HTMLElement) {
     document.body.appendChild(node);
     return { destroy() { node.remove(); } };
   }
 
-  onMount(() => {
-    if (localStorage.getItem(DISMISS_KEY)) return;
-
-    const onPrompt = (e: Event) => {
-      e.preventDefault(); // stop Chrome's mini-infobar; we show our own
-      deferred = e as BeforeInstallPromptEvent;
-      show = true;
-    };
-    const onInstalled = () => {
-      show = false;
-      localStorage.setItem(DISMISS_KEY, '1');
-    };
-
-    window.addEventListener('beforeinstallprompt', onPrompt);
-    window.addEventListener('appinstalled', onInstalled);
-    return () => {
-      window.removeEventListener('beforeinstallprompt', onPrompt);
-      window.removeEventListener('appinstalled', onInstalled);
-    };
-  });
-
   async function install() {
-    if (!deferred) return;
-    await deferred.prompt();
-    await deferred.userChoice;
-    deferred = null;
-    show = false;
+    await promptInstall();
+    dismissed = true;
     localStorage.setItem(DISMISS_KEY, '1');
   }
 
   function dismiss() {
-    show = false;
+    dismissed = true;
     localStorage.setItem(DISMISS_KEY, '1');
   }
 </script>

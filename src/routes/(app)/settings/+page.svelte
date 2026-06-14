@@ -8,6 +8,7 @@
   import { t } from '$lib/i18n';
   import { openWhatsNew } from '$lib/whatsNew';
   import { LATEST_VERSION } from '$lib/changelog';
+  import { canInstall, isInstalled, promptInstall } from '$lib/pwa';
   import ProfileSheet from '$lib/components/ProfileSheet.svelte';
 
   let profileOpen = false;
@@ -329,6 +330,13 @@
 
   <p class="section-label" style="margin-top:20px">{$t.settings.about}</p>
   <div class="card section-card">
+    {#if $canInstall && !$isInstalled}
+      <button class="setting-row" on:click={() => promptInstall()}>
+        <span class="text-body">{$t.pwa.installTitle}</span>
+        <span class="row-right text-primary">{$t.pwa.install} ›</span>
+      </button>
+      <div class="divider"></div>
+    {/if}
     <button class="setting-row" on:click={openWhatsNew}>
       <span class="text-body">{$t.pwa.whatsNew}</span>
       <span class="row-right text-muted">v{LATEST_VERSION} ›</span>
@@ -340,7 +348,9 @@
 
 <style>
   .section-card { padding:6px 16px; }
-  .setting-row { display:flex; align-items:center; justify-content:space-between; padding:13px 0; gap:12px; background:none; border:none; width:100%; font-family:inherit; }
+  /* Button rows inherit the UA `buttontext` colour, which ignores the theme —
+     pin it to --text so "Display name"/"What's new" labels match every theme. */
+  .setting-row { display:flex; align-items:center; justify-content:space-between; padding:13px 0; gap:12px; background:none; border:none; width:100%; font-family:inherit; color:var(--text); text-align:left; }
   .row-right { display:flex; align-items:center; gap:8px; }
   .sign-out { cursor:pointer; }
   .divider { height:1px; background:var(--border); }

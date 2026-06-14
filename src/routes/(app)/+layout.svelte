@@ -9,10 +9,14 @@
   import WhatsNew from '$lib/components/WhatsNew.svelte';
   import InstallPrompt from '$lib/components/InstallPrompt.svelte';
   import { maybeShowWhatsNew } from '$lib/whatsNew';
+  import { initPwaInstall } from '$lib/pwa';
 
   let drawerOpen = false;
 
-  onMount(maybeShowWhatsNew);
+  onMount(() => {
+    maybeShowWhatsNew();
+    initPwaInstall();
+  });
 </script>
 
 <AuroraBackground />

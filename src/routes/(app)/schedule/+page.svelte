@@ -319,6 +319,14 @@
     background: var(--bg2);
   }
 
+  /* Phones: let the header wrap instead of forcing the calendar area to scroll
+     sideways — week-nav on the first row, actions drop to a right-aligned row. */
+  @media (max-width: 640px) {
+    .cal-header { flex-wrap: wrap; padding: 10px 12px; row-gap: 8px; }
+    .week-title-wrap { min-width: 96px; }
+    .header-actions { margin-left: auto; }
+  }
+
   .week-nav {
     display: flex;
     align-items: center;

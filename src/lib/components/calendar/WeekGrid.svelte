@@ -602,16 +602,23 @@
     flex: 1;
     overflow: hidden;
     min-height: 0;
+    --cal-gutter: 44px;
   }
 
+  /* Tablets (iPad portrait): keep a comfortable min so days aren't cramped. */
   @media (max-width: 1024px) {
     .week-grid-wrap { min-width: 560px; }
+  }
+  /* Phones: fit the full week to the screen — no sideways scroll. Trim the
+     hour gutter to give each day a little more room. */
+  @media (max-width: 640px) {
+    .week-grid-wrap { min-width: 0; --cal-gutter: 34px; }
   }
 
   /* Header */
   .grid-header {
     display: grid;
-    grid-template-columns: 44px repeat(7, 1fr);
+    grid-template-columns: var(--cal-gutter) repeat(7, 1fr);
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
     user-select: none;
@@ -648,7 +655,7 @@
   /* All-day row */
   .allday-row {
     display: grid;
-    grid-template-columns: 44px repeat(7, 1fr);
+    grid-template-columns: var(--cal-gutter) repeat(7, 1fr);
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
     height: 24px;
@@ -686,7 +693,7 @@
   }
   .grid-inner {
     display: grid;
-    grid-template-columns: 44px repeat(7, 1fr);
+    grid-template-columns: var(--cal-gutter) repeat(7, 1fr);
     position: relative;
   }
 
@@ -780,7 +787,7 @@
   /* Load bar row */
   .load-bar-row {
     display: grid;
-    grid-template-columns: 44px repeat(7, 1fr);
+    grid-template-columns: var(--cal-gutter) repeat(7, 1fr);
     flex-shrink: 0;
     height: 6px;
     border-bottom: 1px solid var(--border);
