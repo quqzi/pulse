@@ -5,7 +5,7 @@
   import { subjects, topics, tasks, loadData, getAuthContext } from '$lib/stores/data';
   import { completeTask } from '$lib/tasks';
   import {
-    timerStore, remaining, startTimer, pauseTimer, stopTimer, resetTimer,
+    timerStore, remaining, startTimer, pauseTimer, stopTimer, resetTimer, resumeTimer,
     type TimerMode
   } from '$lib/stores/timer';
   import { newId } from '$lib/id';
@@ -99,7 +99,13 @@
     lastSession = null;
   }
 
-  onMount(() => loadData($auth));
+  onMount(() => {
+    loadData($auth);
+    // Restore a timer that was running before a reload / tab close / deploy.
+    // If a pomodoro finished while away, resumeTimer fires onPomodoroComplete,
+    // which logs the session and opens the summary.
+    resumeTimer(onPomodoroComplete);
+  });
   $: if ($auth.mode !== 'loading') loadData($auth);
 </script>
 

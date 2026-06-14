@@ -313,6 +313,9 @@
     border-radius: var(--radius-md);
     padding: 10px 12px;
     min-width: 200px;
+    /* Cap the width so many subjects wrap into a tidy grid instead of one
+       very long horizontal strip. */
+    max-width: 280px;
     box-shadow: 0 4px 16px rgba(0,0,0,0.15);
     color: var(--text);
   }
@@ -346,6 +349,9 @@
     flex-wrap: wrap;
     gap: 4px;
     margin-bottom: 10px;
+    /* Long subject lists (full TCAS set) scroll instead of growing tall. */
+    max-height: 132px;
+    overflow-y: auto;
   }
   .pop-chip {
     display: flex;
