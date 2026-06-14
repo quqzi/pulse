@@ -36,14 +36,19 @@
     position: fixed; bottom: 0; left: 0; right: 0;
     height: var(--tab-bar-height);
     padding-bottom: env(safe-area-inset-bottom);
-    background: rgba(249,249,249,.95);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    /* Frosted, theme-aware: translucent so the blur of content scrolling
+       beneath actually shows (was 95% opaque, hiding the blur). */
+    background: color-mix(in srgb, var(--bg2) 78%, transparent);
+    backdrop-filter: blur(20px) saturate(1.6);
+    -webkit-backdrop-filter: blur(20px) saturate(1.6);
     border-top: 1px solid var(--border);
     display: flex; align-items: center; justify-content: space-around;
     z-index: 100;
   }
-  :global(body.theme-dark) .tab-bar { background: rgba(28,28,30,.95); }
+  /* Power-saver / "reduce transparency": go opaque and drop the blur. */
+  @media (prefers-reduced-transparency: reduce) {
+    .tab-bar { background: var(--bg2); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  }
   .tab-item {
     display: flex; flex-direction: column; align-items: center; gap: 2px;
     padding: 6px 12px; border-radius: 10px;

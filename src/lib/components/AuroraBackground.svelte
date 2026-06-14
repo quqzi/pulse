@@ -23,11 +23,17 @@
 
   .blob {
     position: absolute;
-    width: 58vmax;
-    height: 58vmax;
+    width: 46vmax;
+    height: 46vmax;
     border-radius: 50%;
-    filter: blur(90px);
+    /* Smaller layer + lighter blur than before: the blurred texture the GPU has
+       to keep around shrinks a lot, which is what stutters on low-end phones. */
+    filter: blur(64px);
     will-change: transform;
+  }
+  /* Phones get the lightest treatment — they're where it mattered. */
+  @media (max-width: 640px) {
+    .blob { width: 40vmax; height: 40vmax; filter: blur(48px); }
   }
 
   /* Colours come from the per-theme aurora palette → cohesive with each accent. */
@@ -64,16 +70,18 @@
   :global(body:not(.theme-dark)) .aurora { opacity: 0.34; }
   :global(body.design-resend) .aurora { opacity: 0.27; }
 
+  /* Translate-only drift — animating scale forces the blurred layer to
+     re-rasterize every frame; pure translate stays on the compositor. */
   @keyframes drift1 {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    50%      { transform: translate(8vmax, 6vmax) scale(1.15); }
+    0%, 100% { transform: translate(0, 0); }
+    50%      { transform: translate(7vmax, 5vmax); }
   }
   @keyframes drift2 {
-    0%, 100% { transform: translate(0, 0) scale(1.1); }
-    50%      { transform: translate(-7vmax, -5vmax) scale(1); }
+    0%, 100% { transform: translate(0, 0); }
+    50%      { transform: translate(-6vmax, -4vmax); }
   }
   @keyframes drift3 {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    50%      { transform: translate(5vmax, -8vmax) scale(1.2); }
+    0%, 100% { transform: translate(0, 0); }
+    50%      { transform: translate(4vmax, -6vmax); }
   }
 </style>
