@@ -8,13 +8,27 @@
   import AuroraBackground from '$lib/components/AuroraBackground.svelte';
   import WhatsNew from '$lib/components/WhatsNew.svelte';
   import InstallPrompt from '$lib/components/InstallPrompt.svelte';
+  import TimerPill from '$lib/components/TimerPill.svelte';
   import { maybeShowWhatsNew } from '$lib/whatsNew';
   import { initPwaInstall } from '$lib/pwa';
   import { auth } from '$lib/stores/auth';
   import { loadData, loadScheduleSlots } from '$lib/stores/data';
   import { initNotifications } from '$lib/notifications';
+  import { resumeTimer } from '$lib/stores/timer';
+  import { logCurrentTimerSession } from '$lib/timerSession';
+  import { toast } from '$lib/stores/toast';
+  import { t } from '$lib/i18n';
 
   let drawerOpen = false;
+  let timerResumed = false;
+
+  // A pomodoro that finished while the app was closed/backgrounded — log it from
+  // wherever the app reopens, so the session is never lost (the summary modal is
+  // the timer page's job for live completions).
+  async function onAwayComplete() {
+    const dur = await logCurrentTimerSession();
+    if (dur !== null) toast.success($t.timer.sessionSaved);
+  }
 
   // Current Mon–Sun week, so block reminders have this week's slots loaded
   // app-wide (pages only load slots on /schedule).
@@ -41,6 +55,15 @@
     const { start, end } = currentWeek();
     loadScheduleSlots(start, end);
   }
+
+  // Resume a running/paused timer app-wide once (after auth resolves, so an
+  // away-completed session logs under the right user). On mobile the PWA gets
+  // killed in the background; this — plus the TimerPill — is what makes a timer
+  // survive being reopened on any page, not just /timer.
+  $: if ($auth.mode !== 'loading' && !timerResumed) {
+    timerResumed = true;
+    resumeTimer(onAwayComplete);
+  }
 </script>
 
 <AuroraBackground />
@@ -55,6 +78,7 @@
   <Toaster />
   <InstallPrompt />
   <WhatsNew />
+  <TimerPill />
 </div>
 
 <style>

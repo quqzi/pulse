@@ -70,6 +70,8 @@ export const en = {
     ready: 'Ready',
     studying: 'Studying',
     round: 'Round',
+    sessionSaved: 'Session saved',
+    openTimer: 'Open timer',
     musicAdd: 'Add study music',
     musicChange: 'Change music',
     musicPlaceholder: 'Paste a YouTube, Spotify or SoundCloud link',

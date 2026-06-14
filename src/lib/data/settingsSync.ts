@@ -20,10 +20,15 @@ function loadGuestSettings(): Settings {
 }
 
 function doUpsert(userId: string, val: Settings): void {
+  // supabase-js query builders are LAZY: without .then()/await the HTTP request
+  // is never sent. The old `void supabase…upsert(…)` therefore never saved a
+  // single settings row — this `.then()` is what actually dispatches it.
   void supabase.from('user_settings').upsert(
     { user_id: userId, settings: val, updated_at: new Date().toISOString() },
     { onConflict: 'user_id' },
-  );
+  ).then(({ error }) => {
+    if (error) console.warn('[settings] sync failed:', error.message);
+  });
 }
 
 function upsertDebounced(userId: string, val: Settings): void {
@@ -48,13 +53,15 @@ async function hydrate(userId: string): Promise<void> {
     .from('user_settings').select('settings').eq('user_id', userId).maybeSingle();
   hydratedUserId = userId; // from here on, changes sync normally
   if (error) return;       // read failed → keep local; future changes still upsert
-  if (dirtyDuringLoad) {
-    // The user changed a setting while we were fetching — keep their value and
-    // push it to the server instead of clobbering it with the remote one.
+  if (!data || dirtyDuringLoad) {
+    // No saved row yet (first login), or the user changed a setting while we were
+    // fetching — keep the current local value (e.g. their guest theme) and push it
+    // up, rather than clobbering it with defaults / the stale remote one. This also
+    // seeds user_settings on first login so it isn't left empty.
     upsertDebounced(userId, get(settings));
   } else {
     suppress = true;
-    settings.set(mergeRemote(data?.settings as Partial<Settings> | undefined));
+    settings.set(mergeRemote(data.settings as Partial<Settings> | undefined));
     suppress = false;
   }
 }
