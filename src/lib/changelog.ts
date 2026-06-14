@@ -10,6 +10,25 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.2',
+    date: '2026-06-14',
+    title: { en: 'Music, faster setup & your profile', th: 'เพลง ตั้งค่าง่ายขึ้น และโปรไฟล์ของคุณ' },
+    items: [
+      {
+        en: 'Play study music while the timer runs — paste a YouTube, Spotify or SoundCloud link and it plays right on the page.',
+        th: 'เปิดเพลงระหว่างจับเวลาได้แล้ว วางลิงก์ YouTube, Spotify หรือ SoundCloud แล้วเล่นบนหน้าได้เลย',
+      },
+      {
+        en: 'Build a whole template in seconds — ask any AI for your subjects and topics, then paste the result to import them all at once.',
+        th: 'สร้างเทมเพลตทั้งชุดได้ในไม่กี่วินาที ให้ AI ช่วยลิสต์วิชาและหัวข้อ แล้ววางเพื่อนำเข้าทีเดียว',
+      },
+      {
+        en: 'Edit your profile in Settings — change your display name, and your password if you have an account.',
+        th: 'แก้ไขโปรไฟล์ได้ในหน้าตั้งค่า เปลี่ยนชื่อที่แสดง และเปลี่ยนรหัสผ่านได้ถ้ามีบัญชี',
+      },
+    ],
+  },
+  {
     version: '1.1',
     date: '2026-06-13',
     title: { en: 'Polish & performance', th: 'ปรับความลื่นไหลและประสิทธิภาพ' },
