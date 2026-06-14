@@ -49,3 +49,25 @@ export async function promptInstall(): Promise<'accepted' | 'dismissed' | 'unava
   canInstall.set(false);
   return outcome;
 }
+
+export type InstallPlatform = 'prompt' | 'ios' | 'manual' | 'none';
+
+/**
+ * How this device installs the PWA:
+ * - 'prompt' — a native install prompt is ready (Android/desktop Chromium)
+ * - 'ios'    — iOS Safari: manual "Share → Add to Home Screen"
+ * - 'manual' — other mobile browser: install from the browser menu
+ * - 'none'   — already installed, or a desktop browser with no prompt
+ */
+export function installPlatform(canPrompt: boolean, installed: boolean): InstallPlatform {
+  if (installed) return 'none';
+  if (canPrompt) return 'prompt';
+  if (!browser) return 'none';
+  const ua = navigator.userAgent;
+  const iOS = /iphone|ipad|ipod/i.test(ua) ||
+    // iPadOS 13+ reports as Mac; detect via touch.
+    (/Macintosh/.test(ua) && 'ontouchend' in window);
+  if (iOS) return 'ios';
+  if (/android|mobile/i.test(ua)) return 'manual';
+  return 'none';
+}

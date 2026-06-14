@@ -30,6 +30,13 @@ export interface Settings {
   subjectWeights: Record<string, number>; // subjectId → 0.5 | 1 | 2 (default 1)
   readinessHoursTarget: number; // hours per subject per 30 days = full hours score
   musicUrl: string;            // study-music link (YouTube/Spotify/SoundCloud/Apple); '' = none
+  // Study reminders (fire while Pulse is open; needs OS notification permission)
+  notifyEnabled: boolean;      // master switch
+  notifyBlockStart: boolean;   // a scheduled study block is starting
+  notifyDaily: boolean;        // daily study nudge at notifyDailyTime
+  notifyDailyTime: string;     // "19:00"
+  notifyTasksDue: boolean;     // tasks due today (folded into the daily nudge)
+  notifyStreak: boolean;       // evening nudge when the streak is at risk
 }
 
 export function defaults(): Settings {
@@ -54,6 +61,12 @@ export function defaults(): Settings {
     subjectWeights: {},
     readinessHoursTarget: 20,
     musicUrl: '',
+    notifyEnabled: false,
+    notifyBlockStart: true,
+    notifyDaily: true,
+    notifyDailyTime: '19:00',
+    notifyTasksDue: true,
+    notifyStreak: true,
   };
 }
 

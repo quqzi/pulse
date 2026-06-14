@@ -8,10 +8,38 @@
   import { t } from '$lib/i18n';
   import { openWhatsNew } from '$lib/whatsNew';
   import { LATEST_VERSION } from '$lib/changelog';
-  import { canInstall, isInstalled, promptInstall } from '$lib/pwa';
+  import { canInstall, isInstalled, promptInstall, installPlatform } from '$lib/pwa';
+  import {
+    notificationsSupported, requestNotificationPermission, notificationPermission, sendTestNotification,
+  } from '$lib/notifications';
+  import { toast } from '$lib/stores/toast';
   import ProfileSheet from '$lib/components/ProfileSheet.svelte';
+  import InstallSheet from '$lib/components/InstallSheet.svelte';
 
   let profileOpen = false;
+  let installSheetOpen = false;
+
+  $: instPlatform = installPlatform($canInstall, $isInstalled);
+  // Show an install entry whenever the device can install and isn't already installed.
+  $: showInstall = instPlatform !== 'none';
+
+  function handleInstall() {
+    if (instPlatform === 'prompt') void promptInstall();
+    else installSheetOpen = true;
+  }
+
+  async function toggleNotifications(on: boolean) {
+    if (!on) { $settings.notifyEnabled = false; return; }
+    const perm = await requestNotificationPermission();
+    if (perm === 'granted') {
+      $settings.notifyEnabled = true;
+      sendTestNotification();
+      toast.success($t.notifications.enabled);
+    } else {
+      $settings.notifyEnabled = false;
+      toast.error($t.notifications.blocked);
+    }
+  }
 
   onMount(() => loadData($auth));
   $: if ($auth.mode !== 'loading') loadData($auth);
@@ -328,12 +356,76 @@
     </div>
   {/if}
 
+  {#if notificationsSupported()}
+    <p class="section-label" style="margin-top:20px">{$t.notifications.title}</p>
+    <div class="card section-card">
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="text-body">{$t.notifications.enable}</span>
+          <span class="text-muted" style="font-size:13px">{$t.notifications.enableDesc}</span>
+        </div>
+        <label class="toggle">
+          <input
+            type="checkbox"
+            checked={$settings.notifyEnabled}
+            on:change={(e) => toggleNotifications(e.currentTarget.checked)}
+          />
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+
+      {#if $notificationPermission === 'denied'}
+        <div class="divider"></div>
+        <p class="text-muted" style="font-size:13px;padding:10px 0">{$t.notifications.blocked}</p>
+      {:else if $settings.notifyEnabled}
+        <div class="divider"></div>
+        <div class="setting-row">
+          <span class="text-body">{$t.notifications.blockStart}</span>
+          <label class="toggle">
+            <input type="checkbox" bind:checked={$settings.notifyBlockStart} />
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+        <div class="divider"></div>
+        <div class="setting-row">
+          <span class="text-body">{$t.notifications.daily}</span>
+          <label class="toggle">
+            <input type="checkbox" bind:checked={$settings.notifyDaily} />
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+        {#if $settings.notifyDaily}
+          <div class="setting-row" style="padding-top:0">
+            <span class="text-muted" style="font-size:13px">{$t.notifications.dailyTime}</span>
+            <input type="time" class="time-input" bind:value={$settings.notifyDailyTime} aria-label={$t.notifications.dailyTime} />
+          </div>
+        {/if}
+        <div class="divider"></div>
+        <div class="setting-row">
+          <span class="text-body">{$t.notifications.tasksDue}</span>
+          <label class="toggle">
+            <input type="checkbox" bind:checked={$settings.notifyTasksDue} />
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+        <div class="divider"></div>
+        <div class="setting-row">
+          <span class="text-body">{$t.notifications.streak}</span>
+          <label class="toggle">
+            <input type="checkbox" bind:checked={$settings.notifyStreak} />
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+      {/if}
+    </div>
+  {/if}
+
   <p class="section-label" style="margin-top:20px">{$t.settings.about}</p>
   <div class="card section-card">
-    {#if $canInstall && !$isInstalled}
-      <button class="setting-row" on:click={() => promptInstall()}>
+    {#if showInstall}
+      <button class="setting-row" on:click={handleInstall}>
         <span class="text-body">{$t.pwa.installTitle}</span>
-        <span class="row-right text-primary">{$t.pwa.install} ›</span>
+        <span class="row-right text-primary">{instPlatform === 'prompt' ? $t.pwa.install : $t.pwa.howTo} ›</span>
       </button>
       <div class="divider"></div>
     {/if}
@@ -343,6 +435,8 @@
     </button>
   </div>
 </div>
+
+<InstallSheet bind:open={installSheetOpen} platform={instPlatform} />
 
 <ProfileSheet bind:open={profileOpen} />
 

@@ -28,6 +28,12 @@ function baseSettings(over: Partial<Settings> = {}): Settings {
     subjectWeights: {},
     readinessHoursTarget: 20,
     musicUrl: '',
+    notifyEnabled: false,
+    notifyBlockStart: true,
+    notifyDaily: true,
+    notifyDailyTime: '19:00',
+    notifyTasksDue: true,
+    notifyStreak: true,
     ...over,
   };
 }
