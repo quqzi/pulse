@@ -299,6 +299,8 @@ export const en = {
     step4Sub: "Your study tracker is ready. Let's go.",
     skipSetup: 'Skip setup',
     getStarted: 'Get started',
+    nameTitle: "What's your name?",
+    nameSub: "We'll use it to greet you. You can change it later in Settings.",
     examDateTitle: 'When is your exam?',
     examDateSub: "We'll show a countdown and pace your study plan.",
     whatStudying: 'What are you studying?',

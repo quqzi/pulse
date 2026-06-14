@@ -3,6 +3,7 @@
   import { goto } from '$app/navigation';
   import { settings } from '$lib/stores/settings';
   import { auth } from '$lib/stores/auth';
+  import { supabase } from '$lib/supabase';
   import { BUILTIN_TEMPLATES } from '$lib/constants';
   import { newId } from '$lib/id';
   import { subjectsRepo } from '$lib/data/entities';
@@ -10,18 +11,26 @@
   import { t } from '$lib/i18n';
 
   let step = 0;
+  let name = '';
+  let nameSeeded = false;
   let examDate = '';
   let pickedTemplate: Template | null = null;
   let checked: Set<string> = new Set();
   let dailyGoalHours = 4;
   let targetScores: Record<string, number> = {};
   let saveError = '';
-  const TOTAL = 4;
+  const TOTAL = 5;
+
+  // Seed the name once auth resolves (blank if it's still the "Student" default).
+  $: if (!nameSeeded && $auth.mode !== 'loading') {
+    name = $auth.name === 'Student' ? '' : $auth.name;
+    nameSeeded = true;
+  }
 
   $: checked = new Set((pickedTemplate?.presets ?? []).map(p => p.name));
   $: isAuthenticated = $auth.mode === 'authenticated';
   $: selectedPresets = pickedTemplate?.presets.filter(p => checked.has(p.name)) ?? [];
-  $: nextDisabled = step === 1 && (pickedTemplate === null || selectedPresets.length === 0);
+  $: nextDisabled = step === 2 && (pickedTemplate === null || selectedPresets.length === 0);
 
   function togglePreset(name: string) {
     const next = new Set(checked);
@@ -33,6 +42,15 @@
 
   async function finish() {
     saveError = '';
+    const trimmedName = name.trim();
+    if (trimmedName && trimmedName !== $auth.name) {
+      if (isAuthenticated) {
+        try { await supabase.auth.updateUser({ data: { name: trimmedName } }); } catch { /* non-fatal */ }
+      } else {
+        localStorage.setItem('pulse_guest_name', trimmedName);
+      }
+      auth.update(a => ({ ...a, name: trimmedName }));
+    }
     settings.update(s => ({ ...s, dailyGoalHours }));
     settings.update(s => ({ ...s, examDate: examDate || null }));
     localStorage.setItem('pulse_target_scores', JSON.stringify(targetScores));
@@ -84,11 +102,16 @@
     </div>
 
     {#if step === 0}
+      <h2 class="text-heading">{$t.onboarding.nameTitle}</h2>
+      <p class="text-body text-muted sub">{$t.onboarding.nameSub}</p>
+      <input type="text" bind:value={name} class="field-input" placeholder={$t.auth.namePlaceholder} autocomplete="name" />
+
+    {:else if step === 1}
       <h2 class="text-heading">{$t.onboarding.examDateTitle}</h2>
       <p class="text-body text-muted sub">{$t.onboarding.examDateSub}</p>
       <input type="date" bind:value={examDate} class="field-input" />
 
-    {:else if step === 1}
+    {:else if step === 2}
       {#if !pickedTemplate}
         <h2 class="text-heading">{$t.onboarding.whatStudying}</h2>
         <p class="text-body text-muted sub">{$t.onboarding.pickTemplate}</p>
@@ -130,14 +153,14 @@
         </div>
       {/if}
 
-    {:else if step === 2}
+    {:else if step === 3}
       <h2 class="text-heading">{$t.onboarding.step2Title}</h2>
       <p class="text-body text-muted sub">{$t.onboarding.step2Sub}</p>
       <div class="goal-num text-mono-stat text-primary">{dailyGoalHours}h</div>
       <input type="range" min="1" max="8" step="0.5" bind:value={dailyGoalHours} class="slider" />
       <div class="slider-ends"><span>1h</span><span>8h</span></div>
 
-    {:else if step === 3}
+    {:else if step === 4}
       <h2 class="text-heading">{$t.onboarding.step3Title} <span class="text-muted" style="font-weight:400">({$t.onboarding.optional})</span></h2>
       <p class="text-body text-muted sub">{$t.onboarding.step3AnalyticsSub}</p>
       <div class="score-list">
