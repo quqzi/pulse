@@ -6,7 +6,6 @@
   import { supabase } from '$lib/supabase';
   import { goto } from '$app/navigation';
   import { t } from '$lib/i18n';
-  import { openWhatsNew } from '$lib/whatsNew';
   import { LATEST_VERSION } from '$lib/changelog';
   import { canInstall, isInstalled, promptInstall, installPlatform } from '$lib/pwa';
   import {
@@ -434,10 +433,10 @@
       <span class="row-right text-muted">›</span>
     </a>
     <div class="divider"></div>
-    <button class="setting-row" on:click={openWhatsNew}>
+    <a href="/changelog" class="setting-row" style="text-decoration:none">
       <span class="text-body">{$t.pwa.whatsNew}</span>
       <span class="row-right text-muted">v{LATEST_VERSION} ›</span>
-    </button>
+    </a>
   </div>
 </div>
 

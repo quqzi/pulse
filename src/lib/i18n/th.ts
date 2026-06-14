@@ -591,6 +591,16 @@ export const th: I18n = {
     title: 'คู่มือการใช้งาน',
     subtitle: 'ทุกอย่างที่ Pulse ทำได้ ภายในหนึ่งนาที',
   },
+  countdown: {
+    day: 'วัน',
+    days: 'วัน',
+    untilExam: 'ก่อนสอบ',
+    today: 'วันนี้คือวันสอบ!',
+  },
+  changelog: {
+    title: 'อัปเดต',
+    subtitle: 'มีอะไรเปลี่ยนแปลงในแต่ละเวอร์ชัน',
+  },
   pwa: {
     installTitle: 'ติดตั้ง Pulse',
     installBody: 'เพิ่ม Pulse ไปที่หน้าโฮมเพื่อใช้งานแบบเต็มจอเหมือนแอป',

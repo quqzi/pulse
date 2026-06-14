@@ -589,6 +589,16 @@ export const en = {
     title: 'User guide',
     subtitle: 'Everything Pulse can do, in a minute.',
   },
+  countdown: {
+    day: 'day',
+    days: 'days',
+    untilExam: 'until your exam',
+    today: 'Your exam is today!',
+  },
+  changelog: {
+    title: 'Updates',
+    subtitle: 'What changed in each version.',
+  },
   pwa: {
     installTitle: 'Install Pulse',
     installBody: 'Add Pulse to your home screen for a faster, full-screen app.',
