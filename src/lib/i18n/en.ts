@@ -229,6 +229,8 @@ export const en = {
     copied: 'Copied!',
     showPrompt: 'View / edit',
     howMany: 'How many',
+    goalLabel: 'Studying for',
+    goalPlaceholder: 'e.g. TCAS, med school',
     diffMixed: 'Mixed',
     pastePlaceholder: 'Paste the JSON reply here…',
     errInvalid: "Couldn't read that — paste the AI's full JSON reply",

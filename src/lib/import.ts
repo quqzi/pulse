@@ -14,6 +14,12 @@ export interface ExamQuestionDraft {
   year?: number;
 }
 
+export interface SubjectPresetDraft {
+  name: string;
+  symbol?: string;
+  topics: string[];
+}
+
 export type ImportError = 'invalid-json' | 'not-array' | 'no-valid-items';
 export type ImportResult<T> = { ok: true; items: T[] } | { ok: false; error: ImportError };
 
@@ -96,6 +102,49 @@ export function parseExamQuestions(text: string): ImportResult<ExamQuestionDraft
     });
   }
   return items.length ? { ok: true, items } : { ok: false, error: 'no-valid-items' };
+}
+
+const MAX_TOPICS = 60;
+
+/** A subject can carry its topics as ["A","B"] or [{name:"A"}, …]. */
+function toTopicList(v: unknown): string[] {
+  if (!Array.isArray(v)) return [];
+  const out: string[] = [];
+  for (const t of v) {
+    const name = typeof t === 'string' ? str(t) : str((t as Record<string, unknown>)?.name ?? (t as Record<string, unknown>)?.title);
+    if (name) out.push(name);
+    if (out.length >= MAX_TOPICS) break;
+  }
+  return out;
+}
+
+export function parseTemplate(text: string): ImportResult<SubjectPresetDraft> {
+  const raw = parseRaw(text);
+  if ('error' in raw) return { ok: false, error: raw.error };
+  const items: SubjectPresetDraft[] = [];
+  for (const it of raw.arr.slice(0, MAX_ITEMS)) {
+    if (!it || typeof it !== 'object') continue;
+    const o = it as Record<string, unknown>;
+    const name = str(o.name ?? o.subject ?? o.title);
+    if (!name) continue;
+    const symbolRaw = str(o.symbol ?? o.abbr ?? o.abbreviation);
+    const symbol = symbolRaw ? symbolRaw.slice(0, 2) : undefined;
+    const topics = toTopicList(o.topics ?? o.chapters ?? o.units);
+    items.push({ name, symbol, topics });
+  }
+  return items.length ? { ok: true, items } : { ok: false, error: 'no-valid-items' };
+}
+
+export function templatePrompt(goal = 'TCAS', count = 6): string {
+  return `List the ${count} main subjects a student preparing for ${goal} (Thai university entrance) should study, and the key topics/chapters for each.
+
+Reply with ONLY a JSON array in this exact format, no other text:
+[{"name": "Physics", "symbol": "Ph", "topics": ["Kinematics", "Forces & Newton's laws", "Energy"]}]
+
+Rules:
+- "symbol" is a 1-2 letter abbreviation of the subject.
+- "topics" lists the chapters/units to study for that subject (8-15 each).
+- Write the subjects and topics in the same language as "${goal}".`;
 }
 
 export function flashcardPrompt(topicName: string, subjectName?: string, count = 20): string {
