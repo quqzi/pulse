@@ -72,6 +72,8 @@ export const th: I18n = {
     ready: 'พร้อม',
     studying: 'กำลังเรียน',
     round: 'รอบ',
+    sessionSaved: 'บันทึกเซสชันแล้ว',
+    openTimer: 'เปิดตัวจับเวลา',
     musicAdd: 'เพิ่มเพลงสำหรับอ่านหนังสือ',
     musicChange: 'เปลี่ยนเพลง',
     musicPlaceholder: 'วางลิงก์ YouTube, Spotify หรือ SoundCloud',
