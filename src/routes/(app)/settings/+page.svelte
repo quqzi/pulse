@@ -11,6 +11,7 @@
   import {
     notificationsSupported, requestNotificationPermission, notificationPermission, sendTestNotification,
   } from '$lib/notifications';
+  import { ensurePushSubscribed, removePushSubscription } from '$lib/push';
   import { toast } from '$lib/stores/toast';
   import ProfileSheet from '$lib/components/ProfileSheet.svelte';
   import InstallSheet from '$lib/components/InstallSheet.svelte';
@@ -28,11 +29,16 @@
   }
 
   async function toggleNotifications(on: boolean) {
-    if (!on) { $settings.notifyEnabled = false; return; }
+    if (!on) {
+      $settings.notifyEnabled = false;
+      void removePushSubscription(); // stop closed-app push for this device
+      return;
+    }
     const perm = await requestNotificationPermission();
     if (perm === 'granted') {
       $settings.notifyEnabled = true;
       sendTestNotification();
+      void ensurePushSubscribed(); // register this device for closed-app push (auth only)
       toast.success($t.notifications.enabled);
     } else {
       $settings.notifyEnabled = false;

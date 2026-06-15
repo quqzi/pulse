@@ -30,16 +30,38 @@ sw.addEventListener('activate', (event) => {
   );
 });
 
-// Tapping a study reminder focuses an open tab, or opens the dashboard.
+// Closed-app push from the `send-push` Edge Function. Payload: { title, body, tag, url }.
+sw.addEventListener('push', (event) => {
+  const data = { title: 'Pulse', body: '', tag: 'pulse', url: '/dashboard' };
+  try {
+    if (event.data) Object.assign(data, event.data.json());
+  } catch { /* non-JSON payload → keep defaults */ }
+  event.waitUntil(
+    sw.registration.showNotification(data.title, {
+      body: data.body,
+      tag: data.tag,
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-192.png',
+      data: { url: data.url },
+    }),
+  );
+});
+
+// Tapping a notification focuses an open tab (navigating it to the target), or
+// opens a new window at the notification's URL.
 sw.addEventListener('notificationclick', (event) => {
   event.notification.close();
+  const url = (event.notification.data as { url?: string } | null)?.url ?? '/dashboard';
   event.waitUntil(
     (async () => {
       const all = await sw.clients.matchAll({ type: 'window', includeUncontrolled: true });
       for (const client of all) {
-        if ('focus' in client) return client.focus();
+        if ('focus' in client) {
+          if ('navigate' in client && url) { try { await client.navigate(url); } catch { /* ignore */ } }
+          return client.focus();
+        }
       }
-      return sw.clients.openWindow('/dashboard');
+      return sw.clients.openWindow(url);
     })(),
   );
 });
