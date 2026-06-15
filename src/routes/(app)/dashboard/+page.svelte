@@ -12,6 +12,7 @@
   import { cardTilt } from '$lib/effects';
   import { localDateStr } from '$lib/utils';
   import HeroCard from '$lib/components/HeroCard.svelte';
+  import ExamCountdown from '$lib/components/ExamCountdown.svelte';
   import SubjectTile from '$lib/components/SubjectTile.svelte';
   import TodaysPlan from '$lib/components/TodaysPlan.svelte';
   import QuickLog from '$lib/components/QuickLog.svelte';
@@ -22,18 +23,11 @@
 
   $: name = $auth.name;
   $: greetingKey = greetingKeyFor(new Date().getHours());
-  $: daysToExam = daysToExamFrom($settings.examDate);
 
   function greetingKeyFor(h: number): 'goodMorning' | 'goodAfternoon' | 'goodEvening' {
     if (h < 12) return 'goodMorning';
     if (h < 17) return 'goodAfternoon';
     return 'goodEvening';
-  }
-
-  function daysToExamFrom(examDate: string | null): number | null {
-    if (!examDate) return null;
-    const diff = new Date(examDate).getTime() - Date.now();
-    return Math.max(0, Math.ceil(diff / 86400000));
   }
 
   function handleStart(e: CustomEvent<{ subjectId: string; topicId: string }>) {
@@ -69,14 +63,13 @@
       <h1 class="text-large-title">{$t.dashboard[greetingKey]}, {name}</h1>
       <p class="text-body subtitle">
         {$fmt.date(new Date().toISOString(), { weekday: 'long', month: 'long', day: 'numeric' })}
-        {#if daysToExam !== null}
-          · {$t.dashboard.daysToExam(daysToExam)}
-        {/if}
       </p>
     </div>
   </div>
 
-  <div use:cardTilt>
+  <ExamCountdown />
+
+  <div use:cardTilt class="hero-wrap">
     <HeroCard todayHours={$todayHours} goalHours={$settings.dailyGoalHours} streak={$streak} />
   </div>
 
@@ -162,6 +155,7 @@
   .page { padding: 20px 16px 0; max-width: 600px; margin: 0 auto; }
   .greeting-row { margin-bottom: 20px; }
   .subtitle { color: var(--muted); margin-top: 3px; }
+  .hero-wrap { margin-top: 16px; }
   .readiness-section { margin-top: 16px; }
   .subjects-section { margin-top: 24px; }
   .section-label {
