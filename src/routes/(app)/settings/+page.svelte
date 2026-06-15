@@ -113,6 +113,24 @@
     </div>
   </div>
 
+  <p class="section-label" style="margin-top:20px">{$t.settings.exam}</p>
+  <div class="card section-card">
+    <div class="setting-row">
+      <span class="text-body">{$t.settings.examName}</span>
+      <input type="text" maxlength="40" value={$settings.examName ?? ''}
+        placeholder={$t.settings.examNamePlaceholder}
+        on:change={e => settings.update(s => ({ ...s, examName: e.currentTarget.value.trim() || null }))}
+        class="text-input" aria-label={$t.settings.examName} />
+    </div>
+    <div class="divider"></div>
+    <div class="setting-row">
+      <span class="text-body">{$t.settings.examDate}</span>
+      <input type="date" value={$settings.examDate ?? ''}
+        on:change={e => settings.update(s => ({ ...s, examDate: e.currentTarget.value || null }))}
+        class="date-input" aria-label={$t.settings.examDate} />
+    </div>
+  </div>
+
   <p class="section-label" style="margin-top:20px">{$t.settings.study}</p>
   <div class="card section-card">
     <div class="setting-row">
@@ -460,6 +478,9 @@
   .divider { height:1px; background:var(--border); }
   .num-input { width:58px; padding:6px 10px; border-radius:8px; border:1.5px solid var(--border); background:var(--bg); color:var(--text); font-family:inherit; font-size:15px; text-align:center; outline:none; }
   .num-input:focus { border-color:var(--primary); }
+  .text-input { width:160px; padding:6px 10px; border-radius:8px; border:1.5px solid var(--border); background:var(--bg); color:var(--text); font-family:inherit; font-size:15px; text-align:right; outline:none; }
+  .date-input { padding:6px 10px; border-radius:8px; border:1.5px solid var(--border); background:var(--bg); color:var(--text); font-family:inherit; font-size:15px; outline:none; }
+  .text-input:focus, .date-input:focus { border-color:var(--primary); }
 
   .lang-pills { display:flex; gap:6px; }
   .lang-pill {
@@ -593,6 +614,7 @@
 
   @media (max-width: 768px) {
     .num-input { min-height: 44px; }
+    .text-input, .date-input { min-height: 44px; }
     input[type='range'] { min-height: 44px; }
   }
 </style>
