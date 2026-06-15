@@ -36,9 +36,9 @@
     position: fixed; bottom: 0; left: 0; right: 0;
     height: var(--tab-bar-height);
     padding-bottom: env(safe-area-inset-bottom);
-    /* Frosted, theme-aware: translucent so the blur of content scrolling
-       beneath actually shows (was 95% opaque, hiding the blur). */
-    background: color-mix(in srgb, var(--bg2) 78%, transparent);
+    /* Frosted, theme-aware. Kept mostly opaque so tab labels stay legible over
+       scrolling content even where the blur is throttled/unsupported. */
+    background: color-mix(in srgb, var(--bg2) 90%, transparent);
     backdrop-filter: blur(20px) saturate(1.6);
     -webkit-backdrop-filter: blur(20px) saturate(1.6);
     border-top: 1px solid var(--border);
