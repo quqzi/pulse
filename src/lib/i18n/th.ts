@@ -146,6 +146,10 @@ export const th: I18n = {
     signedInAs: 'เข้าสู่ระบบในชื่อ',
     appearance: 'รูปลักษณ์',
     language: 'ภาษา',
+    exam: 'การสอบ',
+    examName: 'ชื่อการสอบ',
+    examNamePlaceholder: 'เช่น TCAS 68',
+    examDate: 'วันสอบ',
     study: 'การเรียน',
     hPerDay: 'ชม / วัน',
     readinessTarget: 'เป้าชั่วโมงความพร้อม',
@@ -596,6 +600,7 @@ export const th: I18n = {
   countdown: {
     day: 'วัน',
     days: 'วัน',
+    until: 'ก่อน',
     untilExam: 'ก่อนสอบ',
     today: 'วันนี้คือวันสอบ!',
   },

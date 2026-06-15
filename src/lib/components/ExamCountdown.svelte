@@ -27,7 +27,8 @@
         {#if daysLeft === 0}
           {$t.countdown.today}
         {:else}
-          {daysLeft === 1 ? $t.countdown.day : $t.countdown.days} {$t.countdown.untilExam}
+          {daysLeft === 1 ? $t.countdown.day : $t.countdown.days}
+          {$settings.examName ? `${$t.countdown.until} ${$settings.examName}` : $t.countdown.untilExam}
         {/if}
       </div>
       <div class="date">{$fmt.date($settings.examDate + 'T00:00:00', { weekday: 'long', month: 'long', day: 'numeric' })}</div>

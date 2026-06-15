@@ -37,9 +37,14 @@
   $: isPaused = $timerStore.status === 'paused';
 
   function formatTime(secs: number): string {
-    const m = Math.floor(secs / 60).toString().padStart(2, '0');
-    const s = (secs % 60).toString().padStart(2, '0');
-    return `${m}:${s}`;
+    const total = Math.max(0, Math.floor(secs));
+    const h = Math.floor(total / 3600);
+    const m = Math.floor((total % 3600) / 60);
+    const s = total % 60;
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    // Show the hour segment only once the clock reaches 60 min — keeps the
+    // common sub-hour case as MM:SS for both pomodoro and free timers.
+    return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
   }
 
   function setMode(mode: TimerMode) {

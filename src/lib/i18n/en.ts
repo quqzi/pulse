@@ -144,6 +144,10 @@ export const en = {
     signedInAs: 'Signed in as',
     appearance: 'Appearance',
     language: 'Language',
+    exam: 'Exam',
+    examName: 'Exam name',
+    examNamePlaceholder: 'e.g. TCAS 68',
+    examDate: 'Exam date',
     study: 'Study',
     hPerDay: 'h / day',
     readinessTarget: 'Readiness hours target',
@@ -594,6 +598,7 @@ export const en = {
   countdown: {
     day: 'day',
     days: 'days',
+    until: 'until',
     untilExam: 'until your exam',
     today: 'Your exam is today!',
   },

@@ -21,6 +21,7 @@ export interface Settings {
   schoolEnd: string;           // "15:30"
   energyProfile: 'morning' | 'evening' | 'neutral';
   bufferMinutes: number;
+  examName: string | null;     // e.g. "TCAS 68" — shown in the countdown
   examDate: string | null;
   studyStart: string;          // "06:00" — earliest auto-scheduled block
   studyEnd: string;            // "22:00" — latest auto-scheduled block end
@@ -52,6 +53,7 @@ export function defaults(): Settings {
     schoolEnd: '15:30',
     energyProfile: 'neutral',
     bufferMinutes: 10,
+    examName: null,
     examDate: null,
     studyStart: '06:00',
     studyEnd: '22:00',
