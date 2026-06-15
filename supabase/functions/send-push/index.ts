@@ -181,5 +181,35 @@ Deno.serve(async (req) => {
     }
   }
 
-  return Response.json({ sent, due: due.length });
+  // One-off scheduled pushes (e.g. "pomodoro finished") whose time has come.
+  const nowIso = new Date().toISOString();
+  const { data: dueScheduled } = await sb
+    .from('scheduled_pushes')
+    .select('id, user_id, title, body, url, tag')
+    .lte('fire_at', nowIso)
+    .is('sent_at', null);
+  let scheduledSent = 0;
+  for (const sp of dueScheduled ?? []) {
+    // Claim it first (stamp sent_at) so an overlapping run can't double-send.
+    const { data: claimed } = await sb
+      .from('scheduled_pushes')
+      .update({ sent_at: nowIso })
+      .eq('id', sp.id).is('sent_at', null)
+      .select('id');
+    if (!claimed || !claimed.length) continue;
+    const body = JSON.stringify({ title: sp.title, body: sp.body, tag: sp.tag, url: sp.url });
+    for (const sub of byUser.get(sp.user_id as string) ?? []) {
+      try {
+        await webpush.sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } }, body);
+        scheduledSent++;
+      } catch (e) {
+        const code = (e as { statusCode?: number }).statusCode;
+        if (code === 404 || code === 410) await sb.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
+      }
+    }
+  }
+  // Hygiene: drop rows more than a day past their fire time (sent or orphaned).
+  await sb.from('scheduled_pushes').delete().lt('fire_at', new Date(Date.now() - 86_400_000).toISOString());
+
+  return Response.json({ sent: sent + scheduledSent, due: due.length, scheduled: (dueScheduled ?? []).length });
 });

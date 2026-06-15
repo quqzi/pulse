@@ -10,6 +10,7 @@
   } from '$lib/stores/timer';
   import { newId } from '$lib/id';
   import { sessionsRepo } from '$lib/data/entities';
+  import { schedulePomodoroPush, cancelPomodoroPush } from '$lib/pomodoroPush';
   import { t } from '$lib/i18n';
   import Picker from '$lib/components/Picker.svelte';
   import MusicPlayer from '$lib/components/MusicPlayer.svelte';
@@ -60,9 +61,22 @@
 
   function handleStart() {
     startTimer(onPomodoroComplete);
+    void schedulePomodoroPush(); // closed-app "pomodoro done" alert (pomodoro only)
+  }
+
+  // Resume from pause — re-arm the push, since the finish time has shifted.
+  function handleResume() {
+    startTimer(onPomodoroComplete);
+    void schedulePomodoroPush();
+  }
+
+  function handlePause() {
+    pauseTimer();
+    void cancelPomodoroPush(); // paused = no fixed finish time, so drop the alert
   }
 
   async function onPomodoroComplete() {
+    void cancelPomodoroPush(); // it fired (or is about to) — don't leave a stale row
     await logCurrentSession();
     showSummary = true;
   }
@@ -71,6 +85,7 @@
     const elapsed = $timerStore.elapsed;
     if (elapsed >= 60) await logCurrentSession();
     stopTimer();
+    void cancelPomodoroPush();
     if (elapsed >= 60) showSummary = true;
   }
 
@@ -147,6 +162,12 @@
     <button class="mode-tab" class:active={$timerStore.mode === 'free'} on:click={() => setMode('free')} disabled={isRunning || isPaused}>{$t.timer.free}</button>
   </div>
 
+  {#if $timerStore.mode === 'free'}
+    <p class="mode-note">{$t.timer.freeBgNote}</p>
+  {:else}
+    <p class="mode-note">{$t.timer.pomodoroBgNote}</p>
+  {/if}
+
   <div class="timer-display" class:running={isRunning} class:engaged={isRunning || isPaused}>
     <svg class="ring" viewBox="0 0 240 240" aria-hidden="true">
       <circle class="ring-track" cx="120" cy="120" r={RING_R} />
@@ -192,7 +213,7 @@
         {$t.timer.start}
       </button>
     {:else}
-      <button class="btn-ctrl" on:click={() => isRunning ? pauseTimer() : startTimer(onPomodoroComplete)}>
+      <button class="btn-ctrl" on:click={() => isRunning ? handlePause() : handleResume()}>
         {#if isRunning}
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
           {$t.timer.pause}
@@ -240,7 +261,15 @@
     justify-content: center;
   }
   .page-title { align-self: flex-start; }
-  .page.focus .page-title, .page.focus .mode-tabs, .page.focus .selector-row { display: none; }
+  .page.focus .page-title, .page.focus .mode-tabs, .page.focus .selector-row, .page.focus .mode-note { display: none; }
+  .mode-note {
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--muted);
+    text-align: center;
+    max-width: 340px;
+    margin: -2px auto 0;
+  }
   .mode-tabs {
     display: flex;
     gap: 4px;

@@ -71,6 +71,8 @@ export const en = {
     studying: 'Studying',
     round: 'Round',
     sessionSaved: 'Session saved',
+    freeBgNote: 'The free timer restores your time when you reopen Pulse, but it can’t run live in the background or alert you. Use Pomodoro for a “finished” notification even when Pulse is closed.',
+    pomodoroBgNote: 'You’ll get a notification when this pomodoro finishes — even if Pulse is closed (turn on reminders in Settings).',
     openTimer: 'Open timer',
     musicAdd: 'Add study music',
     musicChange: 'Change music',
