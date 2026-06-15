@@ -1,42 +1,89 @@
-# sv
+# Pulse
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+A study tracker for **TCAS** (Thai university-entrance) exam prep. Plan your subjects, run focused study sessions, track readiness, and stay on pace for exam day.
 
-## Creating a project
+**Live:** https://pulse-hazel-ten.vercel.app
 
-If you're seeing this, you've probably already done this step. Congrats!
+Pulse works two ways, and every feature supports both:
 
-```sh
-# create a new project
-npx sv create my-app
+- **Guest** — fully offline, no account, data stored in `localStorage`.
+- **Authenticated** — Supabase + Postgres with row-level security, synced across devices.
+
+Bilingual throughout (English + ไทย).
+
+---
+
+## Features
+
+- **Dashboard** — greeting, multi-exam countdowns, today's study hours vs. goal, day streak, and exam-readiness.
+- **Timer** — Pomodoro and free count-up modes with a progress ring and focus mode. Survives reload / tab close / phone-background (time is reconstructed from a wall-clock stamp on reopen).
+- **Subjects & topics** — per-subject progress, topic checklists, and flashcard decks.
+- **Flashcards** — manual-scheduled decks per topic.
+- **Schedule** — weekly calendar of study blocks with an auto-scheduler that respects school hours, energy profile, and rest days.
+- **Analytics & Insights** — study-hours charts plus a ranked, plain-language insight feed.
+- **Mock exams & scores** — question bank, timed mock sessions, and score tracking.
+- **Web Push notifications** (closed-app) — study-block reminders, a daily nudge, a streak-at-risk alert, and a "pomodoro finished" alert that arrives even when the app is closed.
+- **Five themes** (Vercel / Apple light+dark, Resend) and PWA install.
+
+---
+
+## Tech stack
+
+- **SvelteKit 2** + **TypeScript** (Svelte 4 idiom)
+- **Supabase** (Postgres + Auth + Edge Functions + pg_cron) — auth path
+- **Web Push** via VAPID + a service worker + a Supabase Edge Function
+- Plain CSS custom-property design tokens (no Tailwind)
+- **Vercel** hosting, auto-deploy from `master`
+
+---
+
+## Getting started
+
+```bash
+npm install
+npm run dev          # → http://localhost:5173
 ```
 
-To recreate this project with the same configuration:
+Guest mode runs with no configuration. For the authenticated path, create `.env.local` (never committed):
 
-```sh
-# recreate this project
-npx sv@0.15.3 create --template minimal --types ts --install npm pulse
+```bash
+PUBLIC_SUPABASE_URL=...          # Supabase → Settings → API
+PUBLIC_SUPABASE_ANON_KEY=...     # public anon key (RLS-protected)
+PUBLIC_VAPID_PUBLIC_KEY=...      # Web Push public key (optional; enables notifications)
 ```
 
-## Developing
+See `.env.example` for the full list and key-generation notes.
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## Scripts
 
-```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+```bash
+npm run dev        # dev server
+npm run check      # type-check (zero errors before every commit)
+npm run build      # production build
+npm run preview    # preview the production build
+npx vitest run     # unit tests (data engine, mappers, flashcards, scheduler)
 ```
 
-## Building
+## Project layout
 
-To create a production version of your app:
-
-```sh
-npm run build
+```
+src/
+  app.css            # global styles, design tokens, theme blocks
+  lib/
+    components/      # shared UI + feature subfolders
+    data/            # repository engine (stores ↔ localStorage / Supabase)
+    stores/          # auth, data, settings, timer
+    i18n/            # en.ts + th.ts
+  routes/(app)/      # dashboard, timer, subjects, schedule, ... settings
+supabase/
+  migrations/        # SQL migrations
+  functions/send-push/   # closed-app Web Push sender (Deno Edge Function)
 ```
 
-You can preview the production build with `npm run preview`.
+Contributor and architecture notes live in `CLAUDE.md`; full change history in `docs/CHANGELOG.md`.
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+---
+
+## License
+
+Proprietary — see [LICENSE](./LICENSE). All rights reserved.

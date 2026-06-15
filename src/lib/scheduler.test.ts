@@ -19,6 +19,7 @@ function baseSettings(over: Partial<Settings> = {}): Settings {
     schoolEnd: '15:30',
     energyProfile: 'neutral',
     bufferMinutes: 10,
+    exams: [],
     examName: null,
     examDate: null,
     studyStart: '06:00',

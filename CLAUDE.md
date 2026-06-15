@@ -314,7 +314,9 @@ Guest mode is fully offline (localStorage); no account required.
 
 ### Supabase Tables — all RLS-enabled, policy `auth.uid() = user_id`
 
-`subjects` · `topics` (FK → subject, cascade; `next_study_date` = the deck's manual schedule) · `flashcards` (FK → topic, cascade) · `study_sessions` · `tasks` · `mock_scores` · `templates` · `schedule_slots` · `user_settings` (JSONB per-user) · `exam_questions` · `exam_sessions`. (`srs_cards` still exists in the DB but is retired — no app code reads it.)
+`subjects` · `topics` (FK → subject, cascade; `next_study_date` = the deck's manual schedule) · `flashcards` (FK → topic, cascade) · `study_sessions` · `tasks` · `mock_scores` · `templates` · `schedule_slots` · `user_settings` (JSONB per-user) · `exam_questions` · `exam_sessions` · `push_subscriptions` (one row per device) · `scheduled_pushes` (one-off pushes, e.g. pomodoro finished). (`notification_sends` is a service-role-only dedupe log with **no** RLS policy. `srs_cards` still exists in the DB but is retired — no app code reads it.)
+
+**Web Push (closed-app notifications):** client `src/lib/push.ts` subscribes a device (auth-only) and `src/lib/pomodoroPush.ts` schedules/cancels the pomodoro-finish push; the service-worker `push` handler shows it. The sender is the Deno Edge Function `supabase/functions/send-push/` (VAPID + `web-push`, custom `x-cron-secret` auth so `verify_jwt: false`), fired every minute by a pg_cron job. Times are evaluated in Asia/Bangkok. Function secrets (`VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`/`VAPID_SUBJECT`/`CRON_SECRET`) live on the function, never in the repo; the client reads `PUBLIC_VAPID_PUBLIC_KEY` from Vercel env. Editing the function or applying its migrations is a **production action** — get explicit go-ahead.
 
 ### Coding Rules
 

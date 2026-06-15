@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { settings, type Theme } from '$lib/stores/settings';
+  import { newId } from '$lib/id';
   import { auth } from '$lib/stores/auth';
   import { subjects, loadData } from '$lib/stores/data';
   import { supabase } from '$lib/supabase';
@@ -51,6 +52,25 @@
 
   function setWeight(subjectId: string, w: number) {
     settings.update(s => ({ ...s, subjectWeights: { ...s.subjectWeights, [subjectId]: w } }));
+  }
+
+  // Exams — a list you can add to / remove from. Migrate the legacy single exam
+  // (from onboarding / older versions) into the list once, so nothing is lost.
+  $: if ($settings.exams.length === 0 && $settings.examDate) {
+    settings.update(s => ({
+      ...s,
+      exams: [{ id: newId(), name: s.examName ?? '', date: s.examDate as string }],
+      examName: null, examDate: null,
+    }));
+  }
+  function addExam() {
+    settings.update(s => ({ ...s, exams: [...s.exams, { id: newId(), name: '', date: '' }] }));
+  }
+  function updateExam(id: string, patch: { name?: string; date?: string }) {
+    settings.update(s => ({ ...s, exams: s.exams.map(e => e.id === id ? { ...e, ...patch } : e) }));
+  }
+  function removeExam(id: string) {
+    settings.update(s => ({ ...s, exams: s.exams.filter(e => e.id !== id) }));
   }
 
   const themeBase = [
@@ -115,20 +135,27 @@
 
   <p class="section-label" style="margin-top:20px">{$t.settings.exam}</p>
   <div class="card section-card">
-    <div class="setting-row">
-      <span class="text-body">{$t.settings.examName}</span>
-      <input type="text" maxlength="40" value={$settings.examName ?? ''}
-        placeholder={$t.settings.examNamePlaceholder}
-        on:change={e => settings.update(s => ({ ...s, examName: e.currentTarget.value.trim() || null }))}
-        class="text-input" aria-label={$t.settings.examName} />
-    </div>
-    <div class="divider"></div>
-    <div class="setting-row">
-      <span class="text-body">{$t.settings.examDate}</span>
-      <input type="date" value={$settings.examDate ?? ''}
-        on:change={e => settings.update(s => ({ ...s, examDate: e.currentTarget.value || null }))}
-        class="date-input" aria-label={$t.settings.examDate} />
-    </div>
+    {#if $settings.exams.length === 0}
+      <p class="exam-empty">{$t.settings.examEmpty}</p>
+    {/if}
+    {#each $settings.exams as exam (exam.id)}
+      <div class="exam-row">
+        <input type="text" maxlength="40" value={exam.name}
+          placeholder={$t.settings.examNamePlaceholder}
+          on:change={e => updateExam(exam.id, { name: e.currentTarget.value.trim() })}
+          class="text-input exam-name" aria-label={$t.settings.examName} />
+        <input type="date" value={exam.date}
+          on:change={e => updateExam(exam.id, { date: e.currentTarget.value })}
+          class="date-input" aria-label={$t.settings.examDate} />
+        <button class="exam-remove" on:click={() => removeExam(exam.id)} aria-label={$t.settings.removeExam}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+    {/each}
+    <button class="add-exam" on:click={addExam}>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      {$t.settings.addExam}
+    </button>
   </div>
 
   <p class="section-label" style="margin-top:20px">{$t.settings.study}</p>
@@ -481,6 +508,14 @@
   .text-input { width:160px; padding:6px 10px; border-radius:8px; border:1.5px solid var(--border); background:var(--bg); color:var(--text); font-family:inherit; font-size:15px; text-align:right; outline:none; }
   .date-input { padding:6px 10px; border-radius:8px; border:1.5px solid var(--border); background:var(--bg); color:var(--text); font-family:inherit; font-size:15px; outline:none; }
   .text-input:focus, .date-input:focus { border-color:var(--primary); }
+  .exam-row { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:8px 0; }
+  .exam-row + .exam-row { border-top:1px solid var(--border); }
+  .exam-name { flex:1 1 130px; width:auto; text-align:left; }
+  .exam-remove { display:flex; align-items:center; justify-content:center; width:34px; height:34px; flex-shrink:0; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--muted); cursor:pointer; }
+  .exam-remove:hover { color:var(--warning); border-color:color-mix(in srgb, var(--warning) 40%, var(--border)); }
+  .add-exam { display:flex; align-items:center; gap:6px; margin-top:10px; padding:8px 12px; border:1px dashed var(--border); border-radius:8px; background:transparent; color:var(--text); font-family:inherit; font-size:14px; font-weight:500; cursor:pointer; }
+  .add-exam:hover { border-color:var(--primary); color:var(--primary); }
+  .exam-empty { font-size:13px; color:var(--muted); margin-bottom:4px; }
 
   .lang-pills { display:flex; gap:6px; }
   .lang-pill {

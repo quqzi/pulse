@@ -5,7 +5,7 @@
   import { goto } from '$app/navigation';
   import { auth } from '$lib/stores/auth';
   import { subjects, topics, flashcards, tasks, sessions, scheduleSlots, loadData, loadScheduleSlots, getAuthContext } from '$lib/stores/data';
-  import { settings } from '$lib/stores/settings';
+  import { settings, effectiveExams } from '$lib/stores/settings';
   import { newId } from '$lib/id';
   import { scheduleRepo } from '$lib/data/entities';
   import { generateSchedule } from '$lib/scheduler';
@@ -29,6 +29,9 @@
   }
 
   let viewedWeekStart = getWeekStart(new Date());
+
+  // Soonest exam drives the schedule horizon + banner (multi-exam aware).
+  $: nearestExamDate = effectiveExams($settings)[0]?.date ?? null;
 
   $: weekEnd = (() => {
     const d = new Date(viewedWeekStart);
@@ -88,7 +91,7 @@
       tasks: $tasks,
       existingSlots: filteredSlots,
       settings: $settings,
-      examDate: $settings.examDate,
+      examDate: nearestExamDate,
     }).map(s => ({ ...s, userId }));
     scheduleSlots.update(all => [...all, ...suggested]);
     isScheduling = false;
@@ -192,7 +195,7 @@
 
   <!-- Main calendar area -->
   <div class="main-area">
-    <ExamBanner subjects={$subjects} sessions={$sessions} settings={$settings} examDate={$settings.examDate} />
+    <ExamBanner subjects={$subjects} sessions={$sessions} settings={$settings} examDate={nearestExamDate} />
 
     <header class="cal-header">
       <div class="week-nav">
