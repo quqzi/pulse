@@ -10,12 +10,27 @@ import webpush from 'npm:web-push@3.6.7';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const CRON_SECRET = Deno.env.get('CRON_SECRET')!;
-const VAPID_PUBLIC = Deno.env.get('VAPID_PUBLIC_KEY')!;
-const VAPID_PRIVATE = Deno.env.get('VAPID_PRIVATE_KEY')!;
+const CRON_SECRET = Deno.env.get('CRON_SECRET');
+const VAPID_PUBLIC = Deno.env.get('VAPID_PUBLIC_KEY');
+const VAPID_PRIVATE = Deno.env.get('VAPID_PRIVATE_KEY');
 const VAPID_SUBJECT = Deno.env.get('VAPID_SUBJECT') ?? 'mailto:hello@pulse.app';
 
-webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE);
+// Validate config per-request (not at module load) so a missing secret returns a
+// clear diagnostic instead of crashing the whole function at boot with a bare 500.
+function configError(): Response | null {
+  const missing = [
+    !CRON_SECRET && 'CRON_SECRET',
+    !VAPID_PUBLIC && 'VAPID_PUBLIC_KEY',
+    !VAPID_PRIVATE && 'VAPID_PRIVATE_KEY',
+  ].filter(Boolean);
+  if (missing.length) return Response.json({ error: 'missing_secrets', missing }, { status: 500 });
+  try {
+    webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC!, VAPID_PRIVATE!);
+  } catch (e) {
+    return Response.json({ error: 'invalid_vapid', detail: String(e) }, { status: 500 });
+  }
+  return null;
+}
 
 const TZ = 'Asia/Bangkok';
 const WD: Record<string, number> = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 7 };
@@ -83,6 +98,8 @@ function streakPayload(lang: Lang): Payload {
 }
 
 Deno.serve(async (req) => {
+  const bad = configError();
+  if (bad) return bad;
   if (req.headers.get('x-cron-secret') !== CRON_SECRET) {
     return new Response('forbidden', { status: 403 });
   }
