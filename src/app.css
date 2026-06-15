@@ -338,11 +338,12 @@ body.theme-dark a:hover { filter: brightness(1.2); }
 /* Liquid-glass material for floating surfaces (picker, sheets, dialogs, toasts).
    Components add this class and keep only their own radius/border overrides. */
 .glass-panel {
-  /* More transparent surface, but a much stronger blur so the page behind reads
-     as heavy frost rather than clashing detail — proper frosted glass. */
-  background: color-mix(in srgb, var(--bg2) 64%, transparent);
-  backdrop-filter: blur(48px) saturate(1.8);
-  -webkit-backdrop-filter: blur(48px) saturate(1.8);
+  /* Mostly-opaque surface so text stays readable even where backdrop-filter is
+     unsupported / throttled (common on mobile with large blur radii); the blur
+     adds a light frost on top where it does render. Readability first. */
+  background: color-mix(in srgb, var(--bg2) 92%, transparent);
+  backdrop-filter: blur(24px) saturate(1.5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
   border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.22),
