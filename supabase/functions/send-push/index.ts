@@ -1,5 +1,6 @@
 // send-push — fired once a minute by pg_cron. Sends closed-app Web Push for:
 //   • study block starting   • daily study nudge   • streak at risk
+//   • one-off scheduled pushes (e.g. pomodoro finished)
 // Reads prefs from user_settings; dedupes via notification_sends so each fires
 // once per (user, key). Times are evaluated in Asia/Bangkok (TCAS audience).
 //
@@ -110,54 +111,55 @@ Deno.serve(async (req) => {
     .from('push_subscriptions')
     .select('user_id, endpoint, p256dh, auth');
   const subs = (subRows ?? []) as Sub[];
-  if (!subs.length) return Response.json({ sent: 0, due: 0 });
 
   const byUser = new Map<string, Sub[]>();
   for (const s of subs) (byUser.get(s.user_id) ?? byUser.set(s.user_id, []).get(s.user_id)!).push(s);
   const userIds = [...byUser.keys()];
 
-  const { data: settingsRows } = await sb
-    .from('user_settings').select('user_id, settings').in('user_id', userIds);
-  const settingsByUser = new Map<string, Record<string, unknown>>();
-  for (const r of settingsRows ?? []) settingsByUser.set(r.user_id as string, (r.settings ?? {}) as Record<string, unknown>);
-
   const due: { userId: string; kind: string; payload: Payload }[] = [];
 
-  for (const userId of userIds) {
-    const s = settingsByUser.get(userId) ?? {};
-    if (!s.notifyEnabled) continue;
-    const lang: Lang = s.lang === 'th' ? 'th' : 'en';
+  if (userIds.length) {
+    const { data: settingsRows } = await sb
+      .from('user_settings').select('user_id, settings').in('user_id', userIds);
+    const settingsByUser = new Map<string, Record<string, unknown>>();
+    for (const r of settingsRows ?? []) settingsByUser.set(r.user_id as string, (r.settings ?? {}) as Record<string, unknown>);
 
-    if (s.notifyBlockStart) {
-      const { data: slots } = await sb
-        .from('schedule_slots')
-        .select('id, subject_id, start_time, is_recurring, recurrence_days, recurrence_end')
-        .eq('user_id', userId);
-      for (const slot of slots ?? []) {
-        const st = String(slot.start_time);
-        const slotTime = st.substring(11, 16); // HH:MM
-        if (slotTime !== hhmm) continue;
-        let isDue: boolean;
-        if (slot.is_recurring && Array.isArray(slot.recurrence_days)) {
-          const within = !slot.recurrence_end || date <= String(slot.recurrence_end).substring(0, 10);
-          isDue = (slot.recurrence_days as number[]).includes(weekday) && within;
-        } else {
-          isDue = st.substring(0, 10) === date;
-        }
-        if (isDue) {
-          const name = await subjectName(sb, (slot.subject_id as string | null) ?? null);
-          due.push({ userId, kind: `block:${slot.id}:${date}`, payload: blockPayload(lang, name, slotTime) });
+    for (const userId of userIds) {
+      const s = settingsByUser.get(userId) ?? {};
+      if (!s.notifyEnabled) continue;
+      const lang: Lang = s.lang === 'th' ? 'th' : 'en';
+
+      if (s.notifyBlockStart) {
+        const { data: slots } = await sb
+          .from('schedule_slots')
+          .select('id, subject_id, start_time, is_recurring, recurrence_days, recurrence_end')
+          .eq('user_id', userId);
+        for (const slot of slots ?? []) {
+          const st = String(slot.start_time);
+          const slotTime = st.substring(11, 16); // HH:MM
+          if (slotTime !== hhmm) continue;
+          let isDue: boolean;
+          if (slot.is_recurring && Array.isArray(slot.recurrence_days)) {
+            const within = !slot.recurrence_end || date <= String(slot.recurrence_end).substring(0, 10);
+            isDue = (slot.recurrence_days as number[]).includes(weekday) && within;
+          } else {
+            isDue = st.substring(0, 10) === date;
+          }
+          if (isDue) {
+            const name = await subjectName(sb, (slot.subject_id as string | null) ?? null);
+            due.push({ userId, kind: `block:${slot.id}:${date}`, payload: blockPayload(lang, name, slotTime) });
+          }
         }
       }
-    }
 
-    if (s.notifyDaily && hhmm === ((s.notifyDailyTime as string) ?? '19:00')) {
-      due.push({ userId, kind: `daily:${date}`, payload: dailyPayload(lang, await studiedOn(sb, userId, date)) });
-    }
+      if (s.notifyDaily && hhmm === ((s.notifyDailyTime as string) ?? '19:00')) {
+        due.push({ userId, kind: `daily:${date}`, payload: dailyPayload(lang, await studiedOn(sb, userId, date)) });
+      }
 
-    if (s.notifyStreak && hhmm === '20:00') {
-      if (!(await studiedOn(sb, userId, date)) && (await studiedOn(sb, userId, addDays(date, -1)))) {
-        due.push({ userId, kind: `streak:${date}`, payload: streakPayload(lang) });
+      if (s.notifyStreak && hhmm === '20:00') {
+        if (!(await studiedOn(sb, userId, date)) && (await studiedOn(sb, userId, addDays(date, -1)))) {
+          due.push({ userId, kind: `streak:${date}`, payload: streakPayload(lang) });
+        }
       }
     }
   }
