@@ -9,6 +9,12 @@ export type Theme =
   | 'apple-dark'
   | 'resend';
 
+export interface ExamItem {
+  id: string;
+  name: string;       // e.g. "TCAS 68" (may be empty)
+  date: string;       // YYYY-MM-DD
+}
+
 export interface Settings {
   theme: Theme;
   lang: 'en'|'th';
@@ -21,7 +27,8 @@ export interface Settings {
   schoolEnd: string;           // "15:30"
   energyProfile: 'morning' | 'evening' | 'neutral';
   bufferMinutes: number;
-  examName: string | null;     // e.g. "TCAS 68" — shown in the countdown
+  exams: ExamItem[];           // all exams to count down to (shown on the dashboard)
+  examName: string | null;     // legacy single exam — migrated into `exams`, kept for back-compat
   examDate: string | null;
   studyStart: string;          // "06:00" — earliest auto-scheduled block
   studyEnd: string;            // "22:00" — latest auto-scheduled block end
@@ -53,6 +60,7 @@ export function defaults(): Settings {
     schoolEnd: '15:30',
     energyProfile: 'neutral',
     bufferMinutes: 10,
+    exams: [],
     examName: null,
     examDate: null,
     studyStart: '06:00',
@@ -75,6 +83,18 @@ export function defaults(): Settings {
 /** Pure: overlay a (possibly partial / absent) remote settings blob onto a fresh defaults(). */
 export function mergeRemote(remote: Partial<Settings> | null | undefined): Settings {
   return { ...defaults(), ...(remote ?? {}) };
+}
+
+/**
+ * The exams to count down to. Uses the `exams` list when present; otherwise
+ * falls back to the legacy single examDate/examName so existing users (and the
+ * onboarding date step) still get a countdown. Sorted by date ascending.
+ */
+export function effectiveExams(s: Settings): ExamItem[] {
+  const list = s.exams?.length
+    ? s.exams
+    : (s.examDate ? [{ id: 'legacy', name: s.examName ?? '', date: s.examDate }] : []);
+  return [...list].filter(e => e.date).sort((a, b) => a.date.localeCompare(b.date));
 }
 
 function load(): Settings {
