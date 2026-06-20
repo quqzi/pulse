@@ -91,19 +91,18 @@ Then confirm the merged plan is in **Completed** (not still Open).
 
 One clarifying question is cheaper than a wrong implementation. Ask when the call isn't obvious: component vs. inline · i18n string vs. hardcoded · logic in a repo, a store, or the page · new writable vs. derived · which nav group (Main / Track).
 
-### Working with Codex — Claude is boss, Codex is worker
+### Working with Codex — Claude orchestrates, Codex implements
 
-Codex (GPT-5.5, via the `codex-plugin-cc` plugin) is a **second model on tap** — a different brain to catch blind spots, not a crutch. **Claude owns the plan, the conversation, and every production action; Codex takes delegated, well-scoped work.**
+Codex (GPT-5.5, via the `codex-plugin-cc` plugin) is the **default code-writer** — to conserve Claude usage, hand the heavy implementation to Codex and keep Claude on orchestration: planning, delegating, verifying, reviewing, and synthesizing. **Claude owns the plan, the conversation, and every production action; Codex writes the code.**
 
-**Delegate to Codex when:**
-- **Stuck** — after 2 real fix attempts on a bug, hand it to the `codex:codex-rescue` subagent for an independent diagnosis *before* `superpowers:systematic-debugging`.
-- **Parallel** — a self-contained chunk can run in the background (`/codex:rescue --background`) while Claude keeps moving on the rest.
-- **Second opinion on risk** — before committing diffs that touch auth, RLS, the repo engine, migrations, or data-loss/money paths, run `/codex:adversarial-review`.
-- **Tedious & mechanical** — large but well-defined refactors.
+**Delegate to Codex (the default for real coding):**
+- **Implementation** — well-scoped features/fixes go to the `codex:codex-rescue` subagent or `/codex:rescue` (use `--background` for parallel chunks).
+- **Stuck** — after 2 real fix attempts, get an independent Codex diagnosis *before* `superpowers:systematic-debugging`.
+- **Review on risk** — for diffs touching auth, RLS, the repo engine, migrations, or data-loss/money paths, run `/codex:review` or `/codex:adversarial-review`.
 
-**Don't delegate:** small/quick edits, anything needing tight back-and-forth with the user, or any **production action** — those need the user's explicit OK, never Codex's.
+**Claude keeps:** the plan + conversation, tiny/quick edits, final verification (`npm run check`, tests, browser-verify), and synthesizing Codex's output. **Never let Codex (or any tool) trigger a production action** — merges/pushes/migrations/deploys need the user's explicit OK.
 
-The **review gate is ON** (Codex auto-reviews changes before Claude stops). Treat its findings with `superpowers:receiving-code-review` — verify, don't blindly apply. Codex reads this same file via `AGENTS.md`, so it follows every rule here.
+The Codex **review gate is OFF** — call reviews deliberately to manage Codex quota. Treat Codex's review findings with `superpowers:receiving-code-review` — verify, don't blindly apply. Both tools have usage caps, so balance the load. Codex reads this same file via `AGENTS.md`, so it follows every rule here.
 
 ---
 
