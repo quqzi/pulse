@@ -28,3 +28,6 @@ vite.config.ts.timestamp-*
 
 # Playwright MCP debug artifacts
 .playwright-mcp/
+
+# graphify knowledge-graph output
+graphify-out/

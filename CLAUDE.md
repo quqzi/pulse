@@ -1,5 +1,7 @@
 # Pulse — CLAUDE.md
 
+> **This file is the single source of truth for every agent — Claude *and* Codex.** `AGENTS.md` is only a pointer to here. When project instructions change, edit **this file**; never fork the content into `AGENTS.md`.
+
 Study tracker for TCAS exam prep. SvelteKit 2 + TypeScript + Supabase, deployed to Vercel.
 
 **Repo:** https://github.com/quqzi/pulse · **Live:** https://pulse-hazel-ten.vercel.app · **Branch:** `master` (auto-deploys on push)
@@ -88,6 +90,20 @@ Then confirm the merged plan is in **Completed** (not still Open).
 ### When in doubt — ask first
 
 One clarifying question is cheaper than a wrong implementation. Ask when the call isn't obvious: component vs. inline · i18n string vs. hardcoded · logic in a repo, a store, or the page · new writable vs. derived · which nav group (Main / Track).
+
+### Working with Codex — Claude is boss, Codex is worker
+
+Codex (GPT-5.5, via the `codex-plugin-cc` plugin) is a **second model on tap** — a different brain to catch blind spots, not a crutch. **Claude owns the plan, the conversation, and every production action; Codex takes delegated, well-scoped work.**
+
+**Delegate to Codex when:**
+- **Stuck** — after 2 real fix attempts on a bug, hand it to the `codex:codex-rescue` subagent for an independent diagnosis *before* `superpowers:systematic-debugging`.
+- **Parallel** — a self-contained chunk can run in the background (`/codex:rescue --background`) while Claude keeps moving on the rest.
+- **Second opinion on risk** — before committing diffs that touch auth, RLS, the repo engine, migrations, or data-loss/money paths, run `/codex:adversarial-review`.
+- **Tedious & mechanical** — large but well-defined refactors.
+
+**Don't delegate:** small/quick edits, anything needing tight back-and-forth with the user, or any **production action** — those need the user's explicit OK, never Codex's.
+
+The **review gate is ON** (Codex auto-reviews changes before Claude stops). Treat its findings with `superpowers:receiving-code-review` — verify, don't blindly apply. Codex reads this same file via `AGENTS.md`, so it follows every rule here.
 
 ---
 
