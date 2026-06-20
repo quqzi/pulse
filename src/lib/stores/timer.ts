@@ -84,19 +84,26 @@ let _baseElapsed = 0;
 function startInterval(): void {
   if (!browser || _interval) return;
   _interval = setInterval(() => {
+    let completed = false;
     timerStore.update(t => {
       if (t.status !== 'running') return t;
       const newElapsed = _baseElapsed + Math.floor((Date.now() - _anchorMs) / 1000);
       if (t.mode === 'pomodoro' && newElapsed >= t.total) {
         clearInterval(_interval!);
         _interval = null;
-        clearPersisted();
-        _onComplete?.();
+        completed = true;
         return { ...t, elapsed: t.total, status: 'idle' };
       }
       return { ...t, elapsed: newElapsed };
     });
-    persist();
+    // Fire completion only AFTER the store holds the final elapsed=total/idle
+    // state, so logCurrentSession() reads the correct duration, not the prior tick.
+    if (completed) {
+      clearPersisted();
+      _onComplete?.();
+    } else {
+      persist();
+    }
   }, 500);
 }
 
