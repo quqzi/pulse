@@ -19,6 +19,7 @@
   let dailyGoalHours = 4;
   let targetScores: Record<string, number> = {};
   let saveError = '';
+  let nameError = '';
   const TOTAL = 5;
 
   // Seed the name once auth resolves (blank if it's still the "Student" default).
@@ -38,7 +39,16 @@
     checked = next;
   }
 
-  function next() { step < TOTAL ? step++ : finish(); }
+  function next() {
+    if (step === 0) {
+      if (!name.trim()) {
+        nameError = $t.onboarding.nameError;
+        return;
+      }
+      nameError = '';
+    }
+    step < TOTAL ? step++ : finish();
+  }
 
   async function finish() {
     saveError = '';
@@ -104,7 +114,8 @@
     {#if step === 0}
       <h2 class="text-heading">{$t.onboarding.nameTitle}</h2>
       <p class="text-body text-muted sub">{$t.onboarding.nameSub}</p>
-      <input type="text" bind:value={name} class="field-input" placeholder={$t.auth.namePlaceholder} autocomplete="name" />
+      <input type="text" bind:value={name} class="field-input" placeholder={$t.auth.namePlaceholder} autocomplete="name" on:input={() => { if (nameError && name.trim()) nameError = ''; }} />
+      {#if nameError}<p class="name-error">{nameError}</p>{/if}
 
     {:else if step === 1}
       <h2 class="text-heading">{$t.onboarding.examDateTitle}</h2>
@@ -248,4 +259,5 @@
   .actions { display:flex; gap:10px; margin-top:8px; }
   .skip-btn { background:none; border:none; color:var(--muted); font-size:13px; cursor:pointer; font-family:inherit; text-align:center; }
   .save-error { color: var(--danger); font-size: 13px; text-align: center; }
+  .name-error { color: var(--danger); font-size: 13px; margin-top: -8px; }
 </style>

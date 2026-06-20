@@ -322,6 +322,7 @@ export const en = {
     optional: 'optional',
     step3AnalyticsSub: 'Used in Analytics to show progress toward your goal.',
     saveError: 'Failed to save your subjects. Please try again.',
+    nameError: 'Please enter your name.',
   },
   analytics: {
     title: 'Analytics',

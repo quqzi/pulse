@@ -324,6 +324,7 @@ export const th: I18n = {
     optional: 'ไม่จำเป็น',
     step3AnalyticsSub: 'ใช้ในการวิเคราะห์เพื่อแสดงความคืบหน้าสู่เป้าหมาย',
     saveError: 'บันทึกวิชาไม่สำเร็จ กรุณาลองใหม่',
+    nameError: 'กรุณาใส่ชื่อของคุณ',
   },
   analytics: {
     title: 'สถิติ',
