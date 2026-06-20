@@ -117,6 +117,9 @@ function load(): Settings {
 
 export const settings = writable<Settings>(load());
 
+// Guest persistence: `pulse_settings` is the device's GUEST cache only — never
+// write authed settings here or logout's loadGuestSettings() would restore the
+// wrong values. Authenticated users are cached per-user in data/settingsSync.ts.
 settings.subscribe(val => {
   if (browser && get(authCtx).mode !== 'authenticated') {
     localStorage.setItem('pulse_settings', JSON.stringify(val));

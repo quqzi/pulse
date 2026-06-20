@@ -19,6 +19,22 @@ function loadGuestSettings(): Settings {
   } catch { return defaults(); }
 }
 
+// Per-user local cache (separate from the guest `pulse_settings` key) so an
+// authenticated refresh can paint the last-known settings instantly, before the
+// cloud round-trip returns, without ever clobbering this device's guest cache.
+function authCacheKey(userId: string): string {
+  return `pulse_settings:${userId}`;
+}
+function loadAuthCache(userId: string): Settings | null {
+  try {
+    const raw = localStorage.getItem(authCacheKey(userId));
+    return raw ? mergeRemote(JSON.parse(raw)) : null;
+  } catch { return null; }
+}
+function writeAuthCache(userId: string, val: Settings): void {
+  try { localStorage.setItem(authCacheKey(userId), JSON.stringify(val)); } catch { /* quota */ }
+}
+
 function doUpsert(userId: string, val: Settings): void {
   // supabase-js query builders are LAZY: without .then()/await the HTTP request
   // is never sent. The old `void supabase…upsert(…)` therefore never saved a
@@ -49,6 +65,15 @@ export function flushSettings(): void {
 
 async function hydrate(userId: string): Promise<void> {
   dirtyDuringLoad = false;
+  // Instant paint: show this user's last-known settings from the local cache
+  // before the network returns. suppress=true so it doesn't echo-upsert or mark
+  // dirty; settings.ts skips the guest-key write while mode is authenticated.
+  const cached = loadAuthCache(userId);
+  if (cached) {
+    suppress = true;
+    settings.set(cached);
+    suppress = false;
+  }
   const { data, error } = await supabase
     .from('user_settings').select('settings').eq('user_id', userId).maybeSingle();
   hydratedUserId = userId; // from here on, changes sync normally
@@ -63,6 +88,7 @@ async function hydrate(userId: string): Promise<void> {
     suppress = true;
     settings.set(mergeRemote(data.settings as Partial<Settings> | undefined));
     suppress = false;
+    writeAuthCache(userId, get(settings)); // refresh the instant-paint cache
   }
 }
 
@@ -89,6 +115,7 @@ export function initSettingsSync(): void {
     if (mode !== 'authenticated' || !userId) return; // guest persistence lives in settings.ts
     if (hydratedUserId === userId) {
       upsertDebounced(userId, val);
+      writeAuthCache(userId, val); // keep the instant-paint cache fresh
     } else {
       dirtyDuringLoad = true; // changed before hydration finished — hydrate() pushes it
     }
