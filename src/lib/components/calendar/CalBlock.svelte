@@ -318,11 +318,12 @@
     text-overflow: ellipsis;
   }
   .suggest-star { opacity: 0.85; }
-  .block-topic { font-weight: 400; opacity: 0.85; }
+  /* No opacity on block text — it composites toward the colored background and
+     drops contrast below WCAG AA. Hierarchy comes from size/weight instead. */
+  .block-topic { font-weight: 400; }
   .free-label { opacity: 0.6; font-weight: 400; }
   .block-time {
     font-size: 10px;
-    opacity: 0.8;
     margin-top: 1px;
     white-space: nowrap;
   }
