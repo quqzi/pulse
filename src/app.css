@@ -504,6 +504,35 @@ body.design-apple .btn {
   border-radius: 9999px;
 }
 
+/* ============================================================
+   Apple — Phase 3 deeper refinement (scoped to design-apple only,
+   so the other four themes are untouched). Builds on the existing
+   Apple tokens/overrides above with three authentic SF signatures:
+   tighter display tracking, calm single-shadow elevation, and the
+   blue-text ghost secondary button.
+   ============================================================ */
+
+/* Signature "Apple tight" headline cadence at display sizes. */
+body.design-apple .text-large-title { letter-spacing: -0.028em; }
+
+/* Calm elevation: Apple floats surfaces on one soft ambient shadow over a
+   hairline border rather than a tight contact shadow. */
+body.design-apple .card {
+  box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 12px 28px rgba(0,0,0,.05);
+  border: 1px solid var(--border);
+}
+body.design-apple.theme-dark .card {
+  box-shadow: 0 1px 2px rgba(0,0,0,.30), 0 12px 28px rgba(0,0,0,.40);
+}
+
+/* Apple secondary CTA = quiet ghost pill: canvas fill, single blue accent
+   text, hairline border (the iOS alert-action grammar). */
+body.design-apple .btn-secondary {
+  background: var(--bg2);
+  color: var(--primary);
+  border: 1px solid var(--border);
+}
+
 /* Resend: HeroCard becomes dark editorial card with atmospheric blue glow */
 body.design-resend .hero-card {
   background: var(--bg2);

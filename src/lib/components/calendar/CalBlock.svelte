@@ -9,6 +9,9 @@
   export let subject: Subject | undefined = undefined;
   export let topic: Topic | undefined = undefined;
   export let subjects: Subject[] = [];
+  /** True when this block is in a narrow column (2+ overlapping blocks).
+   *  Hides the topic label to reduce clutter. */
+  export let isNarrow = false;
 
   const dispatch = createEventDispatcher<{
     accept: { slotId: string };
@@ -66,6 +69,33 @@
       : `${min}${$t.schedule.unitM}`;
   })();
 
+  /**
+   * Returns a readable foreground color for a solid subject-color background.
+   * The block background is the subject's fixed color (theme-independent), so
+   * the text must be an ABSOLUTE near-black / near-white chosen from that
+   * color's luminance — never a theme token like var(--bg)/var(--text), which
+   * would invert in dark mode and make blocks unreadable. This luminance helper
+   * is the one sanctioned place for absolute colors (it contrasts against a
+   * non-token background).
+   */
+  function contrastColor(hex: string): string {
+    // Strip leading # and handle 3/6 digit forms.
+    const h = hex.replace(/^#/, '');
+    const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
+    if (full.length !== 6) return '#ffffff'; // fallback for non-hex: white reads on typical subject colors
+    const r = parseInt(full.slice(0, 2), 16) / 255;
+    const g = parseInt(full.slice(2, 4), 16) / 255;
+    const b = parseInt(full.slice(4, 6), 16) / 255;
+    // WCAG relative luminance
+    const toLinear = (c: number) => c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    const L = 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
+    // Pure black/white at the WCAG crossover threshold (0.179) — this maximises
+    // the minimum contrast ratio, guaranteeing >=4.58:1 (AA for normal text)
+    // against ANY background color. A higher threshold or a near-black like
+    // #1d1d1f drops mid-tone subject colors (teal/blue/amber) below 4.5:1.
+    return L > 0.179 ? '#000000' : '#ffffff';
+  }
+
   $: blockBg = subject
     ? (slot.isAiSuggested ? `rgba(${subject.colorRgb}, 0.15)` : subject.color)
     : 'var(--bg3)';
@@ -73,7 +103,7 @@
     ? (slot.isAiSuggested ? `1.5px dashed ${subject.color}` : 'none')
     : '1px solid var(--border)';
   $: blockColor = subject
-    ? (slot.isAiSuggested ? subject.color : 'white')
+    ? (slot.isAiSuggested ? subject.color : contrastColor(subject.color))
     : 'var(--muted)';
 
   function onBlockClick() {
@@ -152,7 +182,7 @@
       {#if slot.isAiSuggested && subject}<span class="suggest-star">✦ </span>{/if}
       {#if subject}
         <strong>{subject.symbol}</strong>
-        {#if !isShort && topic}<span class="block-topic"> · {topic.name}</span>{/if}
+        {#if !isShort && !isNarrow && topic}<span class="block-topic"> · {topic.name}</span>{/if}
       {:else}
         <span class="free-label">{$t.schedule.free}</span>
       {/if}
@@ -246,6 +276,8 @@
     box-sizing: border-box;
     min-height: 15px;
     touch-action: none;
+    /* Soft resting shadow — single layer, Apple-style. */
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
     /* Spring on transform/translate = the iOS "jelly" pick-up, trailing follow, and settle. */
     transition: transform var(--dur-base) var(--ease-spring), translate 180ms var(--ease-spring), box-shadow 240ms ease, border-radius 240ms ease;
   }
@@ -269,7 +301,7 @@
     pointer-events: none;
   }
   .cal-block.focus-block {
-    border-left: 3px solid rgba(255,255,255,0.8) !important;
+    border-left: 3px solid color-mix(in srgb, var(--bg) 80%, transparent) !important;
   }
   .focus-icon {
     position: absolute;
@@ -286,11 +318,12 @@
     text-overflow: ellipsis;
   }
   .suggest-star { opacity: 0.85; }
-  .block-topic { font-weight: 400; opacity: 0.85; }
+  /* No opacity on block text — it composites toward the colored background and
+     drops contrast below WCAG AA. Hierarchy comes from size/weight instead. */
+  .block-topic { font-weight: 400; }
   .free-label { opacity: 0.6; font-weight: 400; }
   .block-time {
     font-size: 10px;
-    opacity: 0.8;
     margin-top: 1px;
     white-space: nowrap;
   }
@@ -314,8 +347,9 @@
     padding: 10px 12px;
     min-width: 200px;
     /* Cap the width so many subjects wrap into a tidy grid instead of one
-       very long horizontal strip. */
-    max-width: 280px;
+       very long horizontal strip. Clamped to 92vw so it never forces
+       horizontal overflow on a 390px phone. */
+    max-width: min(280px, 92vw);
     box-shadow: 0 4px 16px rgba(0,0,0,0.15);
     color: var(--text);
   }

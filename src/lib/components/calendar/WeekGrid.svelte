@@ -3,7 +3,8 @@
   import { createEventDispatcher } from 'svelte';
   import { browser } from '$app/environment';
   import { anchored } from '$lib/actions/anchored';
-  import { snap, toLocalISO, dayIndexFrom } from './grid-math';
+  import { snap, toLocalISO, dayIndexFrom, packSlots } from './grid-math';
+  import type { SlotInterval } from './grid-math';
   import CalBlock from './CalBlock.svelte';
   import BlockPopover from './BlockPopover.svelte';
   import { t, fmt } from '$lib/i18n';
@@ -76,6 +77,25 @@
     for (const slot of slots) {
       const idx = slotDayIdx(slot);
       if (idx >= 0 && idx < 7) map.get(idx)!.push(slot);
+    }
+    return map;
+  })();
+
+  // Column-packing layout per day (so overlapping slots display side-by-side).
+  $: columnLayoutByDay = (() => {
+    const map = new Map<number, ReturnType<typeof packSlots>>();
+    for (let i = 0; i < 7; i++) {
+      const daySlots = slotsByDay.get(i) ?? [];
+      const intervals: SlotInterval[] = daySlots.map(s => {
+        const start = new Date(s.startTime);
+        const end = new Date(s.endTime);
+        return {
+          id: s.id,
+          startMin: start.getHours() * 60 + start.getMinutes(),
+          endMin: end.getHours() * 60 + end.getMinutes(),
+        };
+      });
+      map.set(i, packSlots(intervals));
     }
     return map;
   })();
@@ -490,7 +510,7 @@
     {#each weekDays as _day, i}
       <div class="allday-cell">
         {#each tasksByDay.get(i) ?? [] as task}
-          <div class="task-pill" style="background: {taskSubjectColor(task)}20; border-color: {taskSubjectColor(task)}; color: {taskSubjectColor(task)};">
+          <div class="task-pill" style="background: color-mix(in srgb, {taskSubjectColor(task)} 12%, transparent); border-color: {taskSubjectColor(task)}; color: {taskSubjectColor(task)};">
             {task.title}
           </div>
         {/each}
@@ -552,12 +572,16 @@
           <!-- Actual blocks -->
           {#each slotsByDay.get(i) ?? [] as slot (slot.id)}
             {@const subject = slot.subjectId ? getSubject(slot.subjectId) : undefined}
-            <div class="slot-wrap" style={slotStyle(slot)}>
+            {@const _layout = columnLayoutByDay.get(i)?.get(slot.id) ?? { col: 0, total: 1 }}
+            {@const _colPct = 100 / _layout.total}
+            {@const _gutterPx = 2}
+            <div class="slot-wrap" style="{slotStyle(slot)} left: calc({_layout.col * _colPct}% + {_gutterPx}px); width: calc({_colPct}% - {_gutterPx * 2}px);">
               <CalBlock
                 {slot}
                 {subject}
                 topic={getTopic(slot.topicId)}
                 {subjects}
+                isNarrow={_layout.total > 1}
                 on:dragStart={onBlockDragStart}
                 on:dragMove={onBlockDragMove}
                 on:dragEnd={onBlockDragEnd}
@@ -758,12 +782,12 @@
     background: var(--danger);
   }
 
-  /* Slot wrapper — absolutely positioned per slotStyle() */
+  /* Slot wrapper — absolutely positioned per slotStyle() and column-packing layout.
+     left and width are set inline by the column-packing calculation above. */
   .slot-wrap {
     position: absolute;
-    left: 3px;
-    right: 3px;
     overflow: visible;
+    box-sizing: border-box;
   }
 
   /* Ghost */
