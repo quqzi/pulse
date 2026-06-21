@@ -106,6 +106,10 @@
     ? (slot.isAiSuggested ? subject.color : contrastColor(subject.color))
     : 'var(--muted)';
 
+  function onBlockKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onBlockClick(); }
+  }
+
   function onBlockClick() {
     if (didDrag) { didDrag = false; return; }
     showPopover = !showPopover;
@@ -163,7 +167,6 @@
   }
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
 <div
   class="cal-block"
   class:suggested={slot.isAiSuggested}
@@ -172,6 +175,10 @@
   style="background: {blockBg}; border: {blockBorder}; color: {blockColor}; translate: {dragDx}px {dragDy}px;{liftTransform ? ` transform: ${liftTransform};` : ''}"
   bind:this={blockEl}
   on:click={onBlockClick}
+  on:keydown={onBlockKeydown}
+  role="button"
+  tabindex="0"
+  aria-expanded={showPopover}
   use:draggable={moveDrag}
 >
   <div class="block-content">
@@ -197,7 +204,7 @@
   {/if}
 
   {#if showPopover}
-    <!-- svelte-ignore a11y-click-events-have-key-events -->
+    <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
     <div class="block-popover" use:anchored={{ anchor: blockEl, placement: 'bottom-start', gutter: 6 }} on:click|stopPropagation on:pointerdown|stopPropagation>
       {#if slot.isAiSuggested}
         <div class="pop-title">{$t.schedule.suggestedBy(subject?.name ?? $t.schedule.freeBlock)}</div>

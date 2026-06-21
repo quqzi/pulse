@@ -34,6 +34,10 @@
     saving = false;
   }
 
+  function onKeydown(e: KeyboardEvent) {
+    if (e.key === 'Escape' && open) close();
+  }
+
   function close() {
     open = false;
   }
@@ -78,6 +82,8 @@
     }
   }
 </script>
+
+<svelte:window on:keydown={onKeydown} />
 
 {#if open}
   <div use:portal>

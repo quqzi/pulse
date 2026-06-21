@@ -180,8 +180,11 @@ export async function loadData(authState: AuthState): Promise<void> {
 }
 
 export async function loadScheduleSlots(weekStart: Date, weekEnd: Date): Promise<void> {
+  // Slots are stored as local wall-clock strings (toLocalISO, no timezone), so the
+  // window bounds must be local-naive too. toISOString() would shift them by the
+  // machine's UTC offset and misfile slots near the Sun/Mon week boundary.
   await scheduleRepo.loadWeek(
-    weekStart.toISOString().substring(0, 19),
-    weekEnd.toISOString().substring(0, 19),
+    `${localDateStr(weekStart)}T00:00:00`,
+    `${localDateStr(weekEnd)}T00:00:00`,
   );
 }

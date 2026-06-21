@@ -110,6 +110,7 @@
     justify-content: center;
     align-items: center;
     padding: 10px 0 6px;
+    min-height: 44px;
     cursor: grab;
     touch-action: none;
     user-select: none;

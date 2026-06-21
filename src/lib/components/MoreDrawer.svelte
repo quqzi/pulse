@@ -14,6 +14,11 @@
   }
 
   type NavKey = keyof I18n['nav'];
+
+  function onKeydown(e: KeyboardEvent) {
+    if (e.key === 'Escape' && open) onClose();
+  }
+
   const items: { key: NavKey; href: string; d: string }[] = [
     { key: 'tasks',      href: '/tasks',      d: 'M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11' },
     { key: 'schedule',   href: '/schedule',   d: 'M3 4h18a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM16 2v4M8 2v4M2 10h20' },
@@ -26,6 +31,8 @@
   ];
 </script>
 
+<svelte:window on:keydown={onKeydown} />
+
 {#if open}
   <div use:portal>
     <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -33,6 +40,7 @@
     <div
       class="sheet glass-panel"
       role="dialog"
+      aria-modal="true"
       aria-label={$t.nav.more}
       in:fly={{ y: 320, duration: 380, easing: backOut }}
       out:fly={{ y: 300, duration: 220, easing: cubicOut }}

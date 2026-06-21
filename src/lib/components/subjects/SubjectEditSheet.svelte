@@ -70,7 +70,7 @@
     saving = true;
     dispatch('save', {
       name: name.trim(),
-      symbol: (symbol || name.slice(0, 2)).slice(0, 2),
+      symbol: (symbol.replace(/\s+/g, '') || name.replace(/\s+/g, '').slice(0, 2)).slice(0, 2),
       color: color.hex,
       colorRgb: color.rgb,
     });

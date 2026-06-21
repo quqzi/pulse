@@ -125,7 +125,7 @@
       <div class="stat-value">{fmtH($todayHours)}</div>
       <div class="stat-sub">{$t.analytics.goal(`${$settings.dailyGoalHours}${$t.analytics.unitH}`)}</div>
       <div class="stat-bar">
-        <div class="stat-bar-fill" style="transform: scaleX({Math.min(1, $todayHours / $settings.dailyGoalHours)});"></div>
+        <div class="stat-bar-fill" style="transform: scaleX({$settings.dailyGoalHours > 0 ? Math.min(1, $todayHours / $settings.dailyGoalHours) : 0});"></div>
       </div>
     </div>
     <div class="stat-card">
