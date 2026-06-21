@@ -71,23 +71,27 @@
 
   /**
    * Returns a readable foreground color for a solid subject-color background.
-   * Parses the hex color's luminance and picks near-black or near-white.
-   * Only used for the solid (non-AI-suggested) block text — no hardcoded hex
-   * anywhere else.
+   * The block background is the subject's fixed color (theme-independent), so
+   * the text must be an ABSOLUTE near-black / near-white chosen from that
+   * color's luminance — never a theme token like var(--bg)/var(--text), which
+   * would invert in dark mode and make blocks unreadable. This luminance helper
+   * is the one sanctioned place for absolute colors (it contrasts against a
+   * non-token background).
    */
   function contrastColor(hex: string): string {
     // Strip leading # and handle 3/6 digit forms.
     const h = hex.replace(/^#/, '');
     const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
-    if (full.length !== 6) return 'var(--bg)'; // fallback for non-hex (CSS var etc.)
+    if (full.length !== 6) return '#ffffff'; // fallback for non-hex: white reads on typical subject colors
     const r = parseInt(full.slice(0, 2), 16) / 255;
     const g = parseInt(full.slice(2, 4), 16) / 255;
     const b = parseInt(full.slice(4, 6), 16) / 255;
     // WCAG relative luminance
     const toLinear = (c: number) => c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
     const L = 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
-    // Use dark text on light colors (L > 0.35), light text on dark colors.
-    return L > 0.35 ? 'color-mix(in srgb, var(--text) 90%, transparent)' : 'var(--bg)';
+    // Dark text on light colors, light text on dark colors — absolute, so it
+    // is correct in every theme regardless of --bg/--text.
+    return L > 0.35 ? '#1d1d1f' : '#ffffff';
   }
 
   $: blockBg = subject
