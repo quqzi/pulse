@@ -164,7 +164,7 @@
       <span class="text-body">{$t.settings.dailyGoal}</span>
       <div class="row-right">
         <input type="number" min="1" max="12" step="0.5" value={$settings.dailyGoalHours}
-          on:change={e => settings.update(s => ({ ...s, dailyGoalHours: +e.currentTarget.value }))}
+          on:change={e => { const v = +e.currentTarget.value; settings.update(s => ({ ...s, dailyGoalHours: v > 0 ? v : s.dailyGoalHours })); }}
           class="num-input" aria-label={$t.settings.dailyGoal} />
         <span class="text-muted text-body">{$t.settings.hPerDay}</span>
       </div>

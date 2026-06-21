@@ -4,7 +4,7 @@
   export let goalHours: number = 4;
   export let streak: number = 0;
 
-  $: pct = Math.min(1, todayHours / goalHours);
+  $: pct = goalHours > 0 ? Math.min(1, todayHours / goalHours) : 0;
   $: hoursDisplay = todayHours.toFixed(1);
 </script>
 
