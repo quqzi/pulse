@@ -69,7 +69,7 @@
         class="edit-input"
         bind:value={editTitle}
         placeholder={$t.tasks.editPlaceholder}
-        on:keydown={e => e.key === 'Escape' && (editing = false)}
+        on:keydown={e => { if (e.key === 'Enter' && editTitle.trim()) saveEdit(); else if (e.key === 'Escape') editing = false; }}
       />
       <div class="edit-row">
         <input type="date" class="edit-input" bind:value={editDueDate} />
