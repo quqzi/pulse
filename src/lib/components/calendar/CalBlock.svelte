@@ -391,8 +391,9 @@
     gap: 4px;
     margin-bottom: 10px;
     /* Long subject lists (full TCAS set) scroll instead of growing tall. */
-    max-height: 132px;
+    max-height: 140px;
     overflow-y: auto;
+    padding-right: 4px;
   }
   .pop-chip {
     display: flex;
