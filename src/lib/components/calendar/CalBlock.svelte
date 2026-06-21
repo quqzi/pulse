@@ -89,9 +89,11 @@
     // WCAG relative luminance
     const toLinear = (c: number) => c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
     const L = 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
-    // Dark text on light colors, light text on dark colors — absolute, so it
-    // is correct in every theme regardless of --bg/--text.
-    return L > 0.35 ? '#1d1d1f' : '#ffffff';
+    // Pure black/white at the WCAG crossover threshold (0.179) — this maximises
+    // the minimum contrast ratio, guaranteeing >=4.58:1 (AA for normal text)
+    // against ANY background color. A higher threshold or a near-black like
+    // #1d1d1f drops mid-tone subject colors (teal/blue/amber) below 4.5:1.
+    return L > 0.179 ? '#000000' : '#ffffff';
   }
 
   $: blockBg = subject
