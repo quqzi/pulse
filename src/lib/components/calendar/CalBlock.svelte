@@ -438,22 +438,14 @@
   .pop-btn.dismiss { color: var(--muted); }
   .pop-btn:hover { opacity: 0.85; }
 
-  :global(body.design-apple) .cal-block { box-shadow: none; }
-  @media (hover: hover) {
-    :global(body.design-apple) .cal-block:hover {
-      box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 12px 28px rgba(0,0,0,.05);
-    }
-    :global(body.design-apple.theme-dark) .cal-block:hover {
-      box-shadow: 0 1px 2px rgba(0,0,0,.30), 0 12px 28px rgba(0,0,0,.40);
-    }
-  }
+  /* Apple: elevation comes from surface + hairline border, never drop-shadows
+     (docs/design/apple.md — "no shadows on chrome"). Keep the blocks and the
+     popover flat in the Apple themes; the lift feedback is the transform spring. */
+  :global(body.design-apple) .cal-block,
+  :global(body.design-apple) .cal-block:hover,
   :global(body.design-apple) .cal-block.lifting,
   :global(body.design-apple) .block-popover {
-    box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 12px 28px rgba(0,0,0,.05);
-  }
-  :global(body.design-apple.theme-dark) .cal-block.lifting,
-  :global(body.design-apple.theme-dark) .block-popover {
-    box-shadow: 0 1px 2px rgba(0,0,0,.30), 0 12px 28px rgba(0,0,0,.40);
+    box-shadow: none;
   }
   :global(body.design-apple) .pop-chip { border-radius: var(--radius-sm); }
   :global(body.design-apple) .pop-chip.active {

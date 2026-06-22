@@ -189,12 +189,9 @@
   }
   .pop-btn:hover { opacity: 0.85; }
 
-  :global(body.design-apple) .block-popover-create {
-    box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 12px 28px rgba(0,0,0,.05);
-  }
-  :global(body.design-apple.theme-dark) .block-popover-create {
-    box-shadow: 0 1px 2px rgba(0,0,0,.30), 0 12px 28px rgba(0,0,0,.40);
-  }
+  /* Apple: no drop-shadows on chrome (docs/design/apple.md); the glass-panel
+     surface + hairline border carry the elevation. */
+  :global(body.design-apple) .block-popover-create { box-shadow: none; }
   :global(body.design-apple) .subject-chip { border-radius: var(--radius-sm); }
   :global(body.design-apple) .subject-chip.active {
     border-color: var(--primary);
