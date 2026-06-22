@@ -9,11 +9,21 @@ import { timerStore } from '$lib/stores/timer';
 
 export type PresenceStatus = 'idle' | 'studying' | 'exam';
 
+interface PresencePayload {
+  [key: string]: unknown;
+  userId: string;
+  name: string;
+  status: PresenceStatus;
+}
+
 interface PresenceChannel {
   channel: RealtimeChannel;
   subscribed: boolean;
+  tracked: boolean;
   userId: string;
 }
+
+export const groupPresence = writable<Record<string, Record<string, PresenceStatus>>>({});
 
 const examActive = writable(false);
 const channels = new Map<string, PresenceChannel>();
@@ -36,7 +46,39 @@ function currentIdentity(): { userId: string; name: string } | null {
 function track(record: PresenceChannel): void {
   const identity = currentIdentity();
   if (!record.subscribed || !identity || !get(settings).shareActivity || record.userId !== identity.userId) return;
+  record.tracked = true;
   void record.channel.track({ ...identity, status: currentStatus });
+}
+
+function untrack(record: PresenceChannel): void {
+  if (!record.subscribed || !record.tracked) return;
+  record.tracked = false;
+  void record.channel.untrack();
+}
+
+function syncGroupPresence(groupId: string, channel: RealtimeChannel): void {
+  const statuses: Record<string, PresenceStatus> = {};
+  const state = channel.presenceState<PresencePayload>();
+  for (const presences of Object.values(state)) {
+    for (const presence of presences) {
+      if (
+        typeof presence.userId === 'string'
+        && (presence.status === 'idle' || presence.status === 'studying' || presence.status === 'exam')
+      ) {
+        statuses[presence.userId] = presence.status;
+      }
+    }
+  }
+  groupPresence.update(current => ({ ...current, [groupId]: statuses }));
+}
+
+function removeGroupPresence(groupId: string): void {
+  groupPresence.update(current => {
+    if (!(groupId in current)) return current;
+    const next = { ...current };
+    delete next[groupId];
+    return next;
+  });
 }
 
 function broadcastStatus(): void {
@@ -47,6 +89,7 @@ function removePresenceChannel(groupId: string): void {
   const record = channels.get(groupId);
   if (!record) return;
   channels.delete(groupId);
+  removeGroupPresence(groupId);
   void record.channel.untrack();
   void supabase.removeChannel(record.channel);
 }
@@ -57,7 +100,7 @@ function teardownChannels(): void {
 
 function reconcileChannels(): void {
   const identity = currentIdentity();
-  if (!identity || !get(settings).shareActivity) {
+  if (!identity) {
     teardownChannels();
     return;
   }
@@ -75,13 +118,23 @@ function reconcileChannels(): void {
     const channel = supabase.channel(`group-presence:${groupId}`, {
       config: { presence: { key: identity.userId } },
     });
-    const record: PresenceChannel = { channel, subscribed: false, userId: identity.userId };
+    const record: PresenceChannel = { channel, subscribed: false, tracked: false, userId: identity.userId };
     channels.set(groupId, record);
+    channel.on('presence', { event: 'sync' }, () => {
+      if (channels.get(groupId) === record) syncGroupPresence(groupId, channel);
+    });
     channel.subscribe(status => {
       if (status !== 'SUBSCRIBED' || channels.get(groupId) !== record) return;
       record.subscribed = true;
       track(record);
     });
+  }
+
+  for (const record of channels.values()) {
+    if (get(settings).shareActivity) {
+      if (!record.tracked) track(record);
+    }
+    else untrack(record);
   }
 }
 
@@ -122,4 +175,5 @@ export function stopPresence(): void {
   for (const unsubscribe of unsubscribers) unsubscribe();
   unsubscribers = [];
   teardownChannels();
+  groupPresence.set({});
 }

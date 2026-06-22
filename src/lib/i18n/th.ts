@@ -599,6 +599,7 @@ export const th: I18n = {
     cards: (n: number) => `${n} การ์ด`,
     questions: (n: number) => `${n} ข้อ`,
     achievements: 'ความสำเร็จที่ปลดล็อก', leaderboardEmpty: 'ยังไม่มีข้อมูลบนกระดานผู้นำ',
+    statusStudying: 'กำลังอ่านหนังสือ', statusExam: 'กำลังทำข้อสอบ',
     sharedComingSoon: 'การแชร์ในกลุ่มกำลังจะมาเร็ว ๆ นี้', pendingRequests: 'คำขอที่รออนุมัติ',
     pendingEmpty: 'ไม่มีคำขอที่รออนุมัติ', groupNotFound: 'ไม่พบกลุ่ม',
     deleteConfirm: 'ลบกลุ่มนี้หรือไม่', leaveConfirm: 'ออกจากกลุ่มนี้หรือไม่',

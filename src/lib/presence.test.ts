@@ -4,10 +4,14 @@ import type { AuthState } from '$lib/stores/auth';
 import type { GroupSummary } from '$lib/groups';
 
 interface TestChannel {
+  on: ReturnType<typeof vi.fn>;
   subscribe: ReturnType<typeof vi.fn>;
   track: ReturnType<typeof vi.fn>;
   untrack: ReturnType<typeof vi.fn>;
+  presenceState: ReturnType<typeof vi.fn>;
   emitSubscribed(): void;
+  emitPresenceSync(): void;
+  setPresenceState(state: Record<string, Record<string, unknown>[]>): void;
 }
 
 interface Harness {
@@ -43,14 +47,25 @@ async function setup(options?: { authenticated?: boolean; shareActivity?: boolea
   const channels: TestChannel[] = [];
   const channel = vi.fn(() => {
     let subscriptionCallback: ((status: string) => void) | undefined;
+    let presenceSyncCallback: (() => void) | undefined;
+    let presenceState: Record<string, Record<string, unknown>[]> = {};
     const instance: TestChannel = {
+      on: vi.fn((type: string, filter: { event: string }, callback: () => void) => {
+        if (type === 'presence' && filter.event === 'sync') presenceSyncCallback = callback;
+        return instance;
+      }),
       subscribe: vi.fn((callback: (status: string) => void) => {
         subscriptionCallback = callback;
         return instance;
       }),
       track: vi.fn().mockResolvedValue('ok'),
       untrack: vi.fn().mockResolvedValue('ok'),
+      presenceState: vi.fn(() => presenceState),
       emitSubscribed: () => subscriptionCallback?.('SUBSCRIBED'),
+      emitPresenceSync: () => presenceSyncCallback?.(),
+      setPresenceState: state => {
+        presenceState = state;
+      },
     };
     channels.push(instance);
     return instance;
@@ -106,13 +121,20 @@ describe('presence lifecycle', () => {
     expect(harness.channel).not.toHaveBeenCalled();
   });
 
-  it('starts after sharing is enabled', async () => {
+  it('joins approved groups while sharing is disabled without tracking self', async () => {
     const { presence, harness } = await setup({ shareActivity: false });
     presence.startPresence();
-    expect(harness.channel).not.toHaveBeenCalled();
+    expect(harness.channel).toHaveBeenCalledTimes(1);
+    harness.channels[0].emitSubscribed();
+    expect(harness.channels[0].track).not.toHaveBeenCalled();
 
     harness.settings.set({ shareActivity: true });
     expect(harness.channel).toHaveBeenCalledTimes(1);
+    expect(harness.channels[0].track).toHaveBeenCalledWith({
+      userId: 'user-1',
+      name: 'Mali',
+      status: 'idle',
+    });
   });
 
   it('rebroadcasts only when the derived status changes, with exam taking precedence', async () => {
@@ -155,16 +177,46 @@ describe('presence lifecycle', () => {
     expect(harness.channel).toHaveBeenCalledTimes(2);
   });
 
-  it('tears down channels while sharing is off and recreates them when enabled again', async () => {
+  it('untracks self while sharing is off but keeps the channel subscribed', async () => {
     const { presence, harness } = await setup();
     presence.startPresence();
     const first = harness.channels[0];
+    first.emitSubscribed();
+    first.untrack.mockClear();
 
     harness.settings.set({ shareActivity: false });
     expect(first.untrack).toHaveBeenCalledTimes(1);
-    expect(harness.removeChannel).toHaveBeenCalledWith(first);
+    expect(harness.removeChannel).not.toHaveBeenCalled();
 
     harness.settings.set({ shareActivity: true });
-    expect(harness.channel).toHaveBeenCalledTimes(2);
+    expect(harness.channel).toHaveBeenCalledTimes(1);
+    expect(first.track).toHaveBeenCalledTimes(2);
+  });
+
+  it('publishes synced member statuses and clears them with channel teardown', async () => {
+    const { presence, harness } = await setup();
+    presence.startPresence();
+    const first = harness.channels[0];
+    first.setPresenceState({
+      'user-2': [{ userId: 'user-2', name: 'Nok', status: 'studying', presence_ref: 'a' }],
+      'user-3': [{ userId: 'user-3', name: 'Beam', status: 'exam', presence_ref: 'b' }],
+    });
+    first.emitPresenceSync();
+
+    expect(get(presence.groupPresence)).toEqual({
+      'group-1': { 'user-2': 'studying', 'user-3': 'exam' },
+    });
+
+    harness.groups.set([approvedGroup('group-2')]);
+    expect(get(presence.groupPresence)).toEqual({});
+
+    harness.channels[1].setPresenceState({
+      'user-4': [{ userId: 'user-4', name: 'Pim', status: 'idle', presence_ref: 'c' }],
+    });
+    harness.channels[1].emitPresenceSync();
+    expect(get(presence.groupPresence)).toEqual({ 'group-2': { 'user-4': 'idle' } });
+
+    presence.stopPresence();
+    expect(get(presence.groupPresence)).toEqual({});
   });
 });

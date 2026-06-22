@@ -22,7 +22,9 @@
     type PendingRequest,
   } from '$lib/groups';
   import { t } from '$lib/i18n';
+  import { groupPresence } from '$lib/presence';
   import { auth } from '$lib/stores/auth';
+  import { getAuthContext } from '$lib/stores/data';
 
   type Tab = 'leaderboard' | 'shared' | 'manage';
 
@@ -40,6 +42,8 @@
 
   $: gid = $page.params.id ?? '';
   $: group = $myGroups.find(candidate => candidate.id === gid);
+  $: presenceMap = $groupPresence[gid] ?? {};
+  $: currentUserId = $auth.mode === 'authenticated' ? getAuthContext().userId : '';
 
   async function refresh() {
     if ($auth.mode !== 'authenticated') return;
@@ -189,7 +193,11 @@
           <div class="empty-state"><p class="empty-title">{$t.groups.leaderboardEmpty}</p></div>
         {:else}
           {#each board as entry, index (entry.userId)}
-            <LeaderboardRow {entry} rank={index + 1} />
+            <LeaderboardRow
+              {entry}
+              rank={index + 1}
+              status={entry.userId === currentUserId ? undefined : presenceMap[entry.userId]}
+            />
           {/each}
         {/if}
       </div>

@@ -597,6 +597,7 @@ export const en = {
     cards: (n: number) => `${n} card${n === 1 ? '' : 's'}`,
     questions: (n: number) => `${n} question${n === 1 ? '' : 's'}`,
     achievements: 'Unlocked achievements', leaderboardEmpty: 'No leaderboard entries yet.',
+    statusStudying: 'Studying', statusExam: 'Taking an exam',
     sharedComingSoon: 'Group sharing is coming soon.', pendingRequests: 'Pending requests',
     pendingEmpty: 'No pending requests.', groupNotFound: 'Group not found.',
     deleteConfirm: 'Delete this group?', leaveConfirm: 'Leave this group?',
