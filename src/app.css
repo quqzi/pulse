@@ -541,6 +541,17 @@ body.design-apple .review-cta {
   letter-spacing: -0.01em;
 }
 
+/* Apple: timer action buttons are pills (iOS button grammar) rather than the
+   default rounded-rects. The segmented mode-tabs stay rounded-rect — that's the
+   authentic iOS segmented-control shape. */
+body.design-apple .btn-start,
+body.design-apple .btn-ctrl,
+body.design-apple .btn-stop,
+body.design-apple .done-btn {
+  border-radius: 9999px;
+  letter-spacing: -0.01em;
+}
+
 /* Resend: HeroCard becomes dark editorial card with atmospheric blue glow */
 body.design-resend .hero-card {
   background: var(--bg2);
