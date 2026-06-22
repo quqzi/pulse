@@ -135,7 +135,11 @@ export function parseTemplate(text: string): ImportResult<SubjectPresetDraft> {
   return items.length ? { ok: true, items } : { ok: false, error: 'no-valid-items' };
 }
 
-export function templatePrompt(goal = 'TCAS', count = 6): string {
+export function templatePrompt(goal = 'TCAS', count = 6, language?: string, focus?: string): string {
+  const languageRule = language?.trim()
+    ? `- Write the output in ${language.trim()}.`
+    : `- Write the subjects and topics in the same language as "${goal}".`;
+  const focusRule = focus?.trim() ? `\n- Focus especially on: ${focus.trim()}.` : '';
   return `List the ${count} main subjects a student preparing for ${goal} (Thai university entrance) should study, and the key topics/chapters for each.
 
 Reply with ONLY a JSON array in this exact format, no other text:
@@ -144,11 +148,15 @@ Reply with ONLY a JSON array in this exact format, no other text:
 Rules:
 - "symbol" is a 1-2 letter abbreviation of the subject.
 - "topics" lists the chapters/units to study for that subject (8-15 each).
-- Write the subjects and topics in the same language as "${goal}".`;
+${languageRule}${focusRule}`;
 }
 
-export function flashcardPrompt(topicName: string, subjectName?: string, count = 20): string {
+export function flashcardPrompt(topicName: string, subjectName?: string, count = 20, language?: string, focus?: string): string {
   const scope = subjectName ? `the topic "${topicName}" (subject: ${subjectName})` : `the topic "${topicName}"`;
+  const languageRule = language?.trim()
+    ? `- Write the output in ${language.trim()}.`
+    : '- Write the cards in the same language as the topic name.';
+  const focusRule = focus?.trim() ? `\n- Focus especially on: ${focus.trim()}.` : '';
   return `Create ${count} study flashcards for ${scope}, for Thai TCAS university-entrance exam prep.
 
 Reply with ONLY a JSON array in this exact format, no other text:
@@ -158,15 +166,19 @@ Rules:
 - Keep each side under 200 characters.
 - Cover the most exam-relevant facts, formulas, and definitions.
 - Write any math as LaTeX wrapped in $...$ (e.g. "$\\frac{a}{b}$", "$x^2$") — it will be typeset.
-- Write the cards in the same language as the topic name.`;
+${languageRule}${focusRule}`;
 }
 
 export type ExamPromptDifficulty = 'mixed' | 'easy' | 'medium' | 'hard';
 
-export function examPrompt(subjectName: string, count = 10, difficulty: ExamPromptDifficulty = 'mixed'): string {
+export function examPrompt(subjectName: string, count = 10, difficulty: ExamPromptDifficulty = 'mixed', language?: string, focus?: string): string {
   const diffRule = difficulty === 'mixed'
     ? '- "difficulty" is "easy", "medium", or "hard" — mix them.'
     : `- Make every question "${difficulty}" difficulty and set "difficulty" to "${difficulty}".`;
+  const languageRule = language?.trim()
+    ? `- Write the output in ${language.trim()}.`
+    : '- Write the questions in the same language as the subject name.';
+  const focusRule = focus?.trim() ? `\n- Focus especially on: ${focus.trim()}.` : '';
   return `Create ${count} multiple-choice questions for the subject "${subjectName}" at Thai TCAS university-entrance exam level.
 
 Reply with ONLY a JSON array in this exact format, no other text:
@@ -176,5 +188,5 @@ Rules:
 - Exactly 4 choices per question; "correctIndex" is the 0-based index of the correct one.
 ${diffRule}
 - Write any math as LaTeX wrapped in $...$ (e.g. "$\\frac{a}{b}$", "$x^2$") — it will be typeset.
-- Write the questions in the same language as the subject name.`;
+${languageRule}${focusRule}`;
 }
