@@ -755,6 +755,8 @@ create policy group_shares_delete on public.group_shares for delete
 
 - [ ] **Step 2: Verify** via `execute_sql`: table has `rowsecurity=true` and 3 policies; run `get_advisors` (security) → no new RLS errors.
 
+> **APPLIED 2026-06-22 (prod):** `group_shares` table + 3 RLS policies (select=member, insert=own+member, delete=sharer/owner, all via `private.is_group_*`). Advisor: no new lints. **Tasks 9-10 implemented by Codex and reviewed** — note `subjectsRepo.create` does not exist (used `subjectsRepo.save` with a full `Subject`); `topicsRepo.create(topic: Topic)`. Exam sets are grouped by question subject (no exam-set entity exists). `npm run check` clean, 137 vitest tests pass.
+
 ### Task 9: Share build/list/import helpers in groups.ts
 
 **Files:**
