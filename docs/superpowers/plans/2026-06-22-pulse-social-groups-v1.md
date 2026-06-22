@@ -86,7 +86,7 @@ create index group_members_group_idx on public.group_members(group_id);
 create index group_members_user_idx on public.group_members(user_id);
 create index group_members_pending_idx on public.group_members(group_id) where status = 'pending';
 
-create or replace function public.is_group_member(p_group_id uuid, p_user_id uuid)
+create or replace function private.is_group_member(p_group_id uuid, p_user_id uuid)
 returns boolean language sql security definer stable set search_path = public as $$
   select exists (
     select 1 from public.group_members
@@ -94,7 +94,7 @@ returns boolean language sql security definer stable set search_path = public as
   );
 $$;
 
-create or replace function public.is_group_owner(p_group_id uuid, p_user_id uuid)
+create or replace function private.is_group_owner(p_group_id uuid, p_user_id uuid)
 returns boolean language sql security definer stable set search_path = public as $$
   select exists (select 1 from public.study_groups where id = p_group_id and owner_id = p_user_id);
 $$;
@@ -120,15 +120,23 @@ alter table public.study_groups enable row level security;
 alter table public.group_members enable row level security;
 
 create policy study_groups_select on public.study_groups for select
-  using (owner_id = auth.uid() or public.is_group_member(id, auth.uid()));
+  using (owner_id = auth.uid() or private.is_group_member(id, auth.uid()));
 
 create policy group_members_select_self on public.group_members for select
   using (user_id = auth.uid());
 create policy group_members_select_comember on public.group_members for select
-  using (public.is_group_member(group_id, auth.uid()));
+  using (private.is_group_member(group_id, auth.uid()));
 ```
 
 (No INSERT/UPDATE/DELETE policies — all writes go through `SECURITY DEFINER` RPCs in Task 2. RLS-enabled tables reject direct client writes, which is intended.)
+
+> **APPLIED 2026-06-22 (prod) + corrected.** A follow-up migration `groups_helpers_private_schema`
+> moved `is_group_member`/`is_group_owner` into a **`private` schema** (not exposed by PostgREST)
+> to clear the `*_security_definer_function_executable` advisor lints — they must NOT be callable as
+> REST RPCs. That migration ran: `create schema private; grant usage on schema private to anon,
+> authenticated;` then recreated both helpers as `private.<fn>` (same bodies) with
+> `grant execute ... to anon, authenticated;`, repointed the two SELECT policies to `private.*`, and
+> dropped the `public.*` versions. **All `private.is_group_*` references below assume this.**
 
 - [ ] **Step 3: Verify via execute_sql**
 
@@ -194,7 +202,7 @@ end; $$;
 create or replace function public.approve_member(p_group_id uuid, p_user_id uuid)
 returns void language plpgsql security definer set search_path = public as $$
 begin
-  if not public.is_group_owner(p_group_id, auth.uid()) then raise exception 'not owner'; end if;
+  if not private.is_group_owner(p_group_id, auth.uid()) then raise exception 'not owner'; end if;
   update public.group_members set status='approved', approved_at=now()
     where group_id=p_group_id and user_id=p_user_id and status='pending';
 end; $$;
@@ -203,8 +211,8 @@ end; $$;
 create or replace function public.remove_member(p_group_id uuid, p_user_id uuid)
 returns void language plpgsql security definer set search_path = public as $$
 begin
-  if not public.is_group_owner(p_group_id, auth.uid()) then raise exception 'not owner'; end if;
-  if public.is_group_owner(p_group_id, p_user_id) then raise exception 'cannot remove owner'; end if;
+  if not private.is_group_owner(p_group_id, auth.uid()) then raise exception 'not owner'; end if;
+  if private.is_group_owner(p_group_id, p_user_id) then raise exception 'cannot remove owner'; end if;
   delete from public.group_members where group_id=p_group_id and user_id=p_user_id;
 end; $$;
 
@@ -212,7 +220,7 @@ end; $$;
 create or replace function public.rename_group(p_group_id uuid, p_name text)
 returns void language plpgsql security definer set search_path = public as $$
 begin
-  if not public.is_group_owner(p_group_id, auth.uid()) then raise exception 'not owner'; end if;
+  if not private.is_group_owner(p_group_id, auth.uid()) then raise exception 'not owner'; end if;
   if char_length(trim(coalesce(p_name,''))) not between 1 and 60 then raise exception 'invalid name'; end if;
   update public.study_groups set name=trim(p_name) where id=p_group_id;
 end; $$;
@@ -221,7 +229,7 @@ end; $$;
 create or replace function public.delete_group(p_group_id uuid)
 returns void language plpgsql security definer set search_path = public as $$
 begin
-  if not public.is_group_owner(p_group_id, auth.uid()) then raise exception 'not owner'; end if;
+  if not private.is_group_owner(p_group_id, auth.uid()) then raise exception 'not owner'; end if;
   delete from public.study_groups where id=p_group_id;
 end; $$;
 
@@ -229,7 +237,7 @@ end; $$;
 create or replace function public.leave_group(p_group_id uuid)
 returns void language plpgsql security definer set search_path = public as $$
 begin
-  if public.is_group_owner(p_group_id, auth.uid()) then raise exception 'owner cannot leave; delete instead'; end if;
+  if private.is_group_owner(p_group_id, auth.uid()) then raise exception 'owner cannot leave; delete instead'; end if;
   delete from public.group_members where group_id=p_group_id and user_id=auth.uid();
 end; $$;
 
@@ -262,7 +270,7 @@ create or replace function public.list_pending_requests(p_group_id uuid)
 returns table(user_id uuid, display_name text, created_at timestamptz)
 language plpgsql security definer set search_path = public as $$
 begin
-  if not public.is_group_owner(p_group_id, auth.uid()) then raise exception 'not owner'; end if;
+  if not private.is_group_owner(p_group_id, auth.uid()) then raise exception 'not owner'; end if;
   return query
     select m.user_id,
            coalesce(u.raw_user_meta_data->>'name', 'Student') as display_name,
@@ -520,7 +528,7 @@ returns table(
 )
 language plpgsql security definer set search_path = public as $$
 begin
-  if not public.is_group_member(p_group_id, auth.uid()) then raise exception 'not a member'; end if;
+  if not private.is_group_member(p_group_id, auth.uid()) then raise exception 'not a member'; end if;
   return query
   select m.user_id,
          coalesce(u.raw_user_meta_data->>'name','Student') as display_name,
@@ -721,11 +729,11 @@ create index group_shares_group_idx on public.group_shares(group_id, created_at 
 alter table public.group_shares enable row level security;
 
 create policy group_shares_select on public.group_shares for select
-  using (public.is_group_member(group_id, auth.uid()));
+  using (private.is_group_member(group_id, auth.uid()));
 create policy group_shares_insert on public.group_shares for insert
-  with check (shared_by = auth.uid() and public.is_group_member(group_id, auth.uid()));
+  with check (shared_by = auth.uid() and private.is_group_member(group_id, auth.uid()));
 create policy group_shares_delete on public.group_shares for delete
-  using (shared_by = auth.uid() or public.is_group_owner(group_id, auth.uid()));
+  using (shared_by = auth.uid() or private.is_group_owner(group_id, auth.uid()));
 ```
 
 - [ ] **Step 2: Verify** via `execute_sql`: table has `rowsecurity=true` and 3 policies; run `get_advisors` (security) → no new RLS errors.
