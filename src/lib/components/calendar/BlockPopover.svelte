@@ -188,4 +188,14 @@
     border-color: var(--primary);
   }
   .pop-btn:hover { opacity: 0.85; }
+
+  /* Apple: no drop-shadows on chrome (docs/design/apple.md); the glass-panel
+     surface + hairline border carry the elevation. */
+  :global(body.design-apple) .block-popover-create { box-shadow: none; }
+  :global(body.design-apple) .subject-chip { border-radius: var(--radius-sm); }
+  :global(body.design-apple) .subject-chip.active {
+    border-color: var(--primary);
+    background: color-mix(in srgb, var(--primary) 12%, transparent);
+    color: var(--primary);
+  }
 </style>

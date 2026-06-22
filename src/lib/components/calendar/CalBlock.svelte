@@ -391,8 +391,9 @@
     gap: 4px;
     margin-bottom: 10px;
     /* Long subject lists (full TCAS set) scroll instead of growing tall. */
-    max-height: 132px;
+    max-height: 140px;
     overflow-y: auto;
+    padding-right: 4px;
   }
   .pop-chip {
     display: flex;
@@ -436,4 +437,20 @@
   .pop-btn.delete { color: var(--danger); border-color: var(--danger); }
   .pop-btn.dismiss { color: var(--muted); }
   .pop-btn:hover { opacity: 0.85; }
+
+  /* Apple: elevation comes from surface + hairline border, never drop-shadows
+     (docs/design/apple.md — "no shadows on chrome"). Keep the blocks and the
+     popover flat in the Apple themes; the lift feedback is the transform spring. */
+  :global(body.design-apple) .cal-block,
+  :global(body.design-apple) .cal-block:hover,
+  :global(body.design-apple) .cal-block.lifting,
+  :global(body.design-apple) .block-popover {
+    box-shadow: none;
+  }
+  :global(body.design-apple) .pop-chip { border-radius: var(--radius-sm); }
+  :global(body.design-apple) .pop-chip.active {
+    border-color: var(--primary);
+    background: color-mix(in srgb, var(--primary) 12%, transparent);
+    color: var(--primary);
+  }
 </style>
