@@ -282,15 +282,26 @@ begin
 end; $$;
 ```
 
-- [ ] **Step 2: Smoke-test the RPCs via execute_sql**
+- [ ] **Step 2: Harden grants (authenticated-only)**
 
-On the dev branch, impersonate is not trivial via SQL, so verify function existence + a direct call path:
+Supabase grants EXECUTE to `anon`+`authenticated` by default, which trips the `*_security_definer_function_executable` advisor lints. These RPCs are auth-only, so revoke `anon` and keep `authenticated`. Also lock `gen_invite_code` (internal-only). Applied via migration `groups_rpc_grants_authenticated_only` + `groups_rpc_revoke_anon_explicit`:
 ```sql
-select proname, prosecdef from pg_proc where proname in
- ('create_group','join_group','approve_member','remove_member','rename_group',
-  'delete_group','leave_group','set_visibility','list_my_groups','list_pending_requests');
+revoke execute on function public.gen_invite_code() from public, anon, authenticated;
+-- for each RPC: create_group(text), join_group(text), approve_member(uuid,uuid),
+-- remove_member(uuid,uuid), rename_group(uuid,text), delete_group(uuid),
+-- leave_group(uuid), set_visibility(uuid,boolean), list_my_groups(),
+-- list_pending_requests(uuid):
+revoke execute on function public.<fn>(<args>) from public;
+revoke execute on function public.<fn>(<args>) from anon;   -- NOTE: anon has a DIRECT grant, must revoke explicitly
+grant  execute on function public.<fn>(<args>) to authenticated;
 ```
-Expected: all 10 listed with `prosecdef = true` (security definer). Full behavior is verified in browser at Task 5.
+After this, `get_advisors(security)` shows **only** the expected `authenticated_security_definer_function_executable` lints (by-design: these are the signed-in API and must be definer to do gated writes) plus 3 pre-existing unrelated lints. No `anon_*` lints.
+
+- [ ] **Step 3: Functional smoke test (prod, rolled back)**
+
+Run a `do $$ ... $$` block that sets `request.jwt.claims` to a real user, calls `create_group` → `list_my_groups` → `set_visibility` → asserts `leave_group` rejects the owner → `delete_group`, then `raise exception 'ROLLBACK_TEST_OK'` to discard all test data. Confirm `select count(*) from study_groups` is unchanged afterward.
+
+> **APPLIED 2026-06-22 (prod):** Tasks 1+2 migrations applied and verified. Advisor clean of new actionable lints; functional smoke test passed with rollback (0 rows persisted).
 
 ### Task 3: `groups.ts` module + types
 
