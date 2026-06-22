@@ -3,18 +3,22 @@
   import { page } from '$app/stores';
   import { onMount } from 'svelte';
   import LeaderboardRow from '$lib/components/groups/LeaderboardRow.svelte';
+  import ShareItemCard from '$lib/components/groups/ShareItemCard.svelte';
+  import SharePickerSheet from '$lib/components/groups/SharePickerSheet.svelte';
   import {
     approveMember,
     deleteGroup,
     getLeaderboard,
     leaveGroup,
     listPending,
+    listShares,
     loadMyGroups,
     myGroups,
     removeMember,
     renameGroup,
     setVisibility,
     type LeaderboardEntry,
+    type GroupShare,
     type PendingRequest,
   } from '$lib/groups';
   import { t } from '$lib/i18n';
@@ -24,7 +28,9 @@
 
   let board: LeaderboardEntry[] = [];
   let pending: PendingRequest[] = [];
+  let shares: GroupShare[] = [];
   let tab: Tab = 'leaderboard';
+  let sharePickerOpen = false;
   let renameName = '';
   let confirmAction: 'delete' | 'leave' | null = null;
   let busy = false;
@@ -47,16 +53,37 @@
     pending = current.isOwner ? await listPending(gid) : [];
   }
 
+  async function refreshShares() {
+    if ($auth.mode !== 'authenticated' || group?.status !== 'approved') {
+      shares = [];
+      return;
+    }
+    shares = await listShares(gid);
+  }
+
+  async function changeTab(nextTab: Tab) {
+    tab = nextTab;
+    if (nextTab === 'shared') await refreshShares();
+  }
+
+  function sharerName(share: GroupShare): string {
+    if (share.sharedBy === $auth.user?.id) return $t.groups.you;
+    return board.find(entry => entry.userId === share.sharedBy)?.displayName ?? $t.groups.groupMember;
+  }
+
   async function initialize() {
     if ($auth.mode !== 'authenticated') return;
     const loadKey = `${$auth.user?.id ?? ''}:${gid}`;
     if (loadedFor === loadKey) return;
     loadedFor = loadKey;
     ready = false;
+    shares = [];
+    sharePickerOpen = false;
     if ($myGroups.length === 0) await loadMyGroups();
     const current = $myGroups.find(candidate => candidate.id === gid);
     renameName = current?.name ?? '';
     await refresh();
+    if (tab === 'shared') await refreshShares();
     ready = true;
   }
 
@@ -121,6 +148,8 @@
       ready = false;
       board = [];
       pending = [];
+      shares = [];
+      sharePickerOpen = false;
     }
   }
 </script>
@@ -147,9 +176,9 @@
     </header>
 
     <div class="tabs" role="tablist" aria-label={$t.groups.title}>
-      <button id="tab-leaderboard" type="button" role="tab" aria-selected={tab === 'leaderboard'} aria-controls="panel-leaderboard" class:active={tab === 'leaderboard'} on:click={() => (tab = 'leaderboard')}>{$t.groups.leaderboard}</button>
-      <button id="tab-shared" type="button" role="tab" aria-selected={tab === 'shared'} aria-controls="panel-shared" class:active={tab === 'shared'} on:click={() => (tab = 'shared')}>{$t.groups.shared}</button>
-      <button id="tab-manage" type="button" role="tab" aria-selected={tab === 'manage'} aria-controls="panel-manage" class:active={tab === 'manage'} on:click={() => (tab = 'manage')}>{$t.groups.manage}</button>
+      <button id="tab-leaderboard" type="button" role="tab" aria-selected={tab === 'leaderboard'} aria-controls="panel-leaderboard" class:active={tab === 'leaderboard'} on:click={() => changeTab('leaderboard')}>{$t.groups.leaderboard}</button>
+      <button id="tab-shared" type="button" role="tab" aria-selected={tab === 'shared'} aria-controls="panel-shared" class:active={tab === 'shared'} on:click={() => changeTab('shared')}>{$t.groups.shared}</button>
+      <button id="tab-manage" type="button" role="tab" aria-selected={tab === 'manage'} aria-controls="panel-manage" class:active={tab === 'manage'} on:click={() => changeTab('manage')}>{$t.groups.manage}</button>
     </div>
 
     {#if tab === 'leaderboard'}
@@ -165,8 +194,35 @@
         {/if}
       </div>
     {:else if tab === 'shared'}
-      <div id="panel-shared" role="tabpanel" aria-labelledby="tab-shared" class="panel">
-        <div class="empty-state"><p class="empty-title">{$t.groups.sharedComingSoon}</p></div>
+      <div id="panel-shared" role="tabpanel" aria-labelledby="tab-shared" class="shared-panel">
+        {#if group.status === 'pending'}
+          <div class="panel empty-state"><p class="empty-title">{$t.groups.pendingState}</p></div>
+        {:else}
+          <div class="shared-toolbar">
+            <div>
+              <h2>{$t.groups.shared}</h2>
+              <p>{$t.groups.sharedSub}</p>
+            </div>
+            <button type="button" class="action primary share-button" on:click={() => (sharePickerOpen = true)}>{$t.groups.share}</button>
+          </div>
+          {#if shares.length === 0}
+            <div class="panel empty-state">
+              <p class="empty-title">{$t.groups.sharedEmpty}</p>
+              <p class="empty-sub">{$t.groups.sharedEmptySub}</p>
+            </div>
+          {:else}
+            <div class="panel share-list">
+              {#each shares as share (share.id)}
+                <ShareItemCard
+                  {share}
+                  sharer={sharerName(share)}
+                  canDelete={group.isOwner || share.sharedBy === $auth.user?.id}
+                  on:refresh={refreshShares}
+                />
+              {/each}
+            </div>
+          {/if}
+        {/if}
       </div>
     {:else}
       <div id="panel-manage" role="tabpanel" aria-labelledby="tab-manage" class="manage-stack">
@@ -236,6 +292,13 @@
   {/if}
 </div>
 
+<SharePickerSheet
+  bind:open={sharePickerOpen}
+  {gid}
+  on:close={() => (sharePickerOpen = false)}
+  on:refresh={refreshShares}
+/>
+
 <style>
   .page { max-width: 720px; margin: 0 auto; padding: 20px 16px 80px; }
   .header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
@@ -251,6 +314,14 @@
   .board-panel :global(.row + .row) { border-top: 1px solid var(--border); }
   .empty-state { padding: 32px 16px; text-align: center; }
   .empty-title { margin: 0; color: var(--text); font-size: 15px; font-weight: 600; }
+  .empty-sub { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+  .shared-panel { margin-top: 12px; }
+  .shared-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 10px; }
+  .shared-toolbar h2 { margin: 0; color: var(--text); font-size: 15px; }
+  .shared-toolbar p { margin: 2px 0 0; color: var(--muted); font-size: 12px; }
+  .share-button { flex: 0 0 auto; }
+  .share-list { overflow: hidden; }
+  .share-list :global(.share-card + .share-card) { border-top: 1px solid var(--border); }
   .manage-stack { display: flex; flex-direction: column; }
   .setting-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 16px; color: var(--text); font-size: 14px; font-weight: 500; }
   .setting-row input { width: 20px; height: 20px; accent-color: var(--primary); }
