@@ -611,6 +611,12 @@ select public.user_streak('<test-user-uuid>');
 ```
 Expected: matches a hand-computed streak from the seeded dates.
 
+> **APPLIED 2026-06-22 (prod):** `private.user_streak` + `public.get_group_leaderboard` created
+> (auth-only grant, anon revoked, `user_streak` locked). Week-start confirmed **Monday** (matches
+> `/analytics`, `/schedule`, `+layout` and Postgres `date_trunc('week')`), evaluated in Asia/Bangkok.
+> Streak gaps-and-islands math validated against a synthetic dataset (→ 3). Advisor clean of new
+> anon lints.
+
 ### Task 7: `/groups/[id]` leaderboard + manage section
 
 **Files:**
