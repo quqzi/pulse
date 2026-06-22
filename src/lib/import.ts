@@ -140,7 +140,7 @@ export function templatePrompt(goal = 'TCAS', count = 6, language?: string, focu
     ? `- Write the output in ${language.trim()}.`
     : `- Write the subjects and topics in the same language as "${goal}".`;
   const focusRule = focus?.trim() ? `\n- Focus especially on: ${focus.trim()}.` : '';
-  return `List the ${count} main subjects a student preparing for ${goal} (Thai university entrance) should study, and the key topics/chapters for each.
+  return `List the ${count} main subjects a student preparing for ${goal} should study, and the key topics/chapters for each.
 
 Reply with ONLY a JSON array in this exact format, no other text:
 [{"name": "Physics", "symbol": "Ph", "topics": ["Kinematics", "Forces & Newton's laws", "Energy"]}]
@@ -157,14 +157,14 @@ export function flashcardPrompt(topicName: string, subjectName?: string, count =
     ? `- Write the output in ${language.trim()}.`
     : '- Write the cards in the same language as the topic name.';
   const focusRule = focus?.trim() ? `\n- Focus especially on: ${focus.trim()}.` : '';
-  return `Create ${count} study flashcards for ${scope}, for Thai TCAS university-entrance exam prep.
+  return `Create ${count} study flashcards for ${scope}.
 
 Reply with ONLY a JSON array in this exact format, no other text:
 [{"front": "question or term", "back": "answer or definition"}]
 
 Rules:
 - Keep each side under 200 characters.
-- Cover the most exam-relevant facts, formulas, and definitions.
+- Cover the most important facts, formulas, and definitions.
 - Write any math as LaTeX wrapped in $...$ (e.g. "$\\frac{a}{b}$", "$x^2$") — it will be typeset.
 ${languageRule}${focusRule}`;
 }
@@ -179,7 +179,7 @@ export function examPrompt(subjectName: string, count = 10, difficulty: ExamProm
     ? `- Write the output in ${language.trim()}.`
     : '- Write the questions in the same language as the subject name.';
   const focusRule = focus?.trim() ? `\n- Focus especially on: ${focus.trim()}.` : '';
-  return `Create ${count} multiple-choice questions for the subject "${subjectName}" at Thai TCAS university-entrance exam level.
+  return `Create ${count} multiple-choice questions for the subject "${subjectName}".
 
 Reply with ONLY a JSON array in this exact format, no other text:
 [{"text": "the question", "choices": ["choice A", "choice B", "choice C", "choice D"], "correctIndex": 0, "difficulty": "medium"}]
