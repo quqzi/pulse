@@ -443,4 +443,16 @@
     .mode-tab { min-height: 44px; display: flex; align-items: center; justify-content: center; }
     .focus-toggle { min-height: 44px; display: inline-flex; align-items: center; padding: 10px 8px; }
   }
+
+  /* Apple: timer action buttons are pills (iOS button grammar) rather than the
+     default rounded-rects. Scoped to this page so the shared class names don't
+     leak to other screens (e.g. the exam start button). The segmented mode-tabs
+     stay rounded-rect — that's the authentic iOS segmented-control shape. */
+  :global(body.design-apple) .btn-start,
+  :global(body.design-apple) .btn-ctrl,
+  :global(body.design-apple) .btn-stop,
+  :global(body.design-apple) .done-btn {
+    border-radius: 9999px;
+    letter-spacing: -0.01em;
+  }
 </style>
