@@ -15,6 +15,7 @@ export const en = {
     analytics: 'Analytics',
     exam: 'Exam',
     flashcards: 'Flashcards',
+    groups: 'Study groups',
     groupMain: 'Main',
     groupTrack: 'Track',
     groupSettings: 'Settings',

@@ -17,6 +17,7 @@ export const th: I18n = {
     analytics: 'สถิติ',
     exam: 'ข้อสอบ',
     flashcards: 'แฟลชการ์ด',
+    groups: 'กลุ่มอ่านหนังสือ',
     groupMain: 'หลัก',
     groupTrack: 'ติดตาม',
     groupSettings: 'ตั้งค่า',
