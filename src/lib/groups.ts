@@ -1,0 +1,239 @@
+import { get, writable } from 'svelte/store';
+import { supabase } from '$lib/supabase';
+import { toast } from '$lib/stores/toast';
+import { computeAchievements, type Achievement, type AchievementInput } from '$lib/achievements';
+import { examQuestionsRepo, flashcardsRepo, subjectsRepo, topicsRepo } from '$lib/data/entities';
+import { ALL_BUILTIN_PRESETS, SUBJECT_COLOR_PALETTE } from '$lib/constants';
+import { newId } from '$lib/id';
+import { t } from '$lib/i18n';
+import { examQuestions, flashcards, getAuthContext, subjects, topics } from '$lib/stores/data';
+import type { ExamQuestion, Flashcard, Subject, Topic } from '$lib/types';
+
+export interface GroupSummary {
+  id: string; name: string; inviteCode: string | null;
+  role: 'owner' | 'member'; status: 'pending' | 'approved'; visible: boolean;
+  memberCount: number; pendingCount: number; isOwner: boolean;
+}
+export interface PendingRequest { userId: string; displayName: string; createdAt: string; }
+export interface LeaderboardEntry {
+  userId: string; displayName: string; weeklyHours: number; streak: number;
+  totalHours: number; achievements: Achievement[];
+}
+
+interface FlashcardDeckSnapshot {
+  topicName: string;
+  subjectName: string | null;
+  cards: Pick<Flashcard, 'front' | 'back'>[];
+}
+
+interface ExamSetSnapshot {
+  title: string;
+  questions: Pick<ExamQuestion, 'text' | 'choices' | 'correctIndex' | 'subject' | 'difficulty' | 'year'>[];
+}
+
+export interface GroupShare {
+  id: string;
+  groupId: string;
+  sharedBy: string;
+  kind: 'flashcard_deck' | 'exam_set';
+  title: string;
+  payload: FlashcardDeckSnapshot | ExamSetSnapshot;
+  createdAt: string;
+}
+
+export const myGroups = writable<GroupSummary[]>([]);
+
+async function rpc<T>(fn: string, args: Record<string, unknown>): Promise<T | null> {
+  const { data, error } = await supabase.rpc(fn, args);
+  if (error) { toast.error(error.message); return null; }
+  return data as T;
+}
+
+export async function loadMyGroups(): Promise<void> {
+  const { data, error } = await supabase.rpc('list_my_groups');
+  if (error) { toast.error(error.message); return; }
+  myGroups.set((data ?? []).map((r: any): GroupSummary => ({
+    id: r.id, name: r.name, inviteCode: r.invite_code,
+    role: r.role, status: r.status, visible: r.visible,
+    memberCount: Number(r.member_count), pendingCount: Number(r.pending_count), isOwner: r.is_owner,
+  })));
+}
+
+export async function createGroup(name: string) { const r = await rpc('create_group', { p_name: name }); await loadMyGroups(); return r; }
+export async function joinGroup(code: string)   { const r = await rpc('join_group', { p_invite_code: code }); await loadMyGroups(); return r; }
+export async function approveMember(gid: string, uid: string) { await rpc('approve_member', { p_group_id: gid, p_user_id: uid }); await loadMyGroups(); }
+export async function removeMember(gid: string, uid: string)  { await rpc('remove_member', { p_group_id: gid, p_user_id: uid }); }
+export async function renameGroup(gid: string, name: string)  { await rpc('rename_group', { p_group_id: gid, p_name: name }); await loadMyGroups(); }
+export async function deleteGroup(gid: string) { await rpc('delete_group', { p_group_id: gid }); await loadMyGroups(); }
+export async function leaveGroup(gid: string)  { await rpc('leave_group', { p_group_id: gid }); await loadMyGroups(); }
+export async function setVisibility(gid: string, visible: boolean) { await rpc('set_visibility', { p_group_id: gid, p_visible: visible }); await loadMyGroups(); }
+
+export async function listPending(gid: string): Promise<PendingRequest[]> {
+  const { data, error } = await supabase.rpc('list_pending_requests', { p_group_id: gid });
+  if (error) { toast.error(error.message); return []; }
+  return (data ?? []).map((r: any): PendingRequest => ({ userId: r.user_id, displayName: r.display_name, createdAt: r.created_at }));
+}
+
+export async function getLeaderboard(gid: string): Promise<LeaderboardEntry[]> {
+  const { data, error } = await supabase.rpc('get_group_leaderboard', { p_group_id: gid });
+  if (error) { toast.error(error.message); return []; }
+  return (data ?? []).map((r: any): LeaderboardEntry => {
+    const input: AchievementInput = {
+      sessionCount: Number(r.session_count), totalHours: Number(r.total_hours),
+      streak: Number(r.streak), mockCount: Number(r.mock_count),
+      bestMockAccuracy: Number(r.best_mock_accuracy), cardCount: Number(r.cards_count),
+      tasksCompleted: Number(r.tasks_completed),
+    };
+    return {
+      userId: r.user_id, displayName: r.display_name,
+      weeklyHours: Number(r.weekly_hours), streak: Number(r.streak),
+      totalHours: Number(r.total_hours),
+      achievements: computeAchievements(input).filter(a => a.unlocked),
+    };
+  });
+}
+
+export async function listShares(gid: string): Promise<GroupShare[]> {
+  const { data, error } = await supabase.from('group_shares')
+    .select('*')
+    .eq('group_id', gid)
+    .order('created_at', { ascending: false });
+  if (error) { toast.error(error.message); return []; }
+  return (data ?? []).map((row: any): GroupShare => ({
+    id: row.id,
+    groupId: row.group_id,
+    sharedBy: row.shared_by,
+    kind: row.kind,
+    title: row.title,
+    payload: row.payload,
+    createdAt: row.created_at,
+  }));
+}
+
+export async function deleteShare(id: string): Promise<boolean> {
+  const { error } = await supabase.from('group_shares').delete().eq('id', id);
+  if (error) { toast.error(error.message); return false; }
+  return true;
+}
+
+export async function shareDeck(gid: string, topicId: string): Promise<boolean> {
+  const { userId, mode } = getAuthContext();
+  if (mode !== 'authenticated') return false;
+  const topic = get(topics).find(candidate => candidate.id === topicId);
+  if (!topic) return false;
+  const subject = get(subjects).find(candidate => candidate.id === topic.subjectId);
+  const cards = get(flashcards)
+    .filter(card => card.topicId === topicId)
+    .map(card => ({ front: card.front, back: card.back }));
+  if (cards.length === 0) return false;
+  const payload: FlashcardDeckSnapshot = {
+    topicName: topic.name,
+    subjectName: subject?.name ?? null,
+    cards,
+  };
+  const { error } = await supabase.from('group_shares').insert({
+    group_id: gid,
+    shared_by: userId,
+    kind: 'flashcard_deck',
+    title: topic.name,
+    payload,
+  });
+  if (error) { toast.error(error.message); return false; }
+  return true;
+}
+
+export async function shareExamSet(gid: string, questionIds: string[], title: string): Promise<boolean> {
+  const { userId, mode } = getAuthContext();
+  if (mode !== 'authenticated') return false;
+  const selectedIds = new Set(questionIds);
+  const questions = get(examQuestions)
+    .filter(question => selectedIds.has(question.id))
+    .map(question => ({
+      text: question.text,
+      choices: [...question.choices] as ExamQuestion['choices'],
+      correctIndex: question.correctIndex,
+      subject: question.subject,
+      difficulty: question.difficulty,
+      year: question.year,
+    }));
+  if (questions.length === 0) return false;
+  const payload: ExamSetSnapshot = { title, questions };
+  const { error } = await supabase.from('group_shares').insert({
+    group_id: gid,
+    shared_by: userId,
+    kind: 'exam_set',
+    title,
+    payload,
+  });
+  if (error) { toast.error(error.message); return false; }
+  return true;
+}
+
+export async function importShare(share: GroupShare): Promise<void> {
+  const { userId, mode } = getAuthContext();
+  if (mode !== 'authenticated') return;
+  const createdAt = new Date().toISOString();
+
+  if (share.kind === 'flashcard_deck') {
+    const payload = share.payload as FlashcardDeckSnapshot;
+    const subjectName = payload.subjectName?.trim() || get(t).groups.importedSubject;
+    let subject = get(subjects).find(candidate => candidate.name.toLocaleLowerCase() === subjectName.toLocaleLowerCase());
+    if (!subject) {
+      const orderIndex = get(subjects).reduce((max, candidate) => Math.max(max, candidate.orderIndex), -1) + 1;
+      const preset = ALL_BUILTIN_PRESETS.get(subjectName.toLocaleLowerCase());
+      const paletteColor = SUBJECT_COLOR_PALETTE[orderIndex % SUBJECT_COLOR_PALETTE.length];
+      subject = {
+        id: newId(),
+        userId,
+        name: subjectName,
+        symbol: preset?.symbol ?? subjectName.replace(/\s+/g, '').slice(0, 2),
+        color: preset?.color ?? paletteColor.hex,
+        colorRgb: preset?.colorRgb ?? paletteColor.rgb,
+        orderIndex,
+      } satisfies Subject;
+      await subjectsRepo.save(subject);
+    }
+
+    let topic = get(topics).find(candidate =>
+      candidate.subjectId === subject.id && candidate.name.toLocaleLowerCase() === payload.topicName.toLocaleLowerCase()
+    );
+    if (!topic) {
+      topic = {
+        id: newId(),
+        subjectId: subject.id,
+        name: payload.topicName,
+        orderIndex: get(topics).filter(candidate => candidate.subjectId === subject.id)
+          .reduce((max, candidate) => Math.max(max, candidate.orderIndex), -1) + 1,
+      } satisfies Topic;
+      await topicsRepo.create(topic);
+    }
+
+    for (const card of payload.cards) {
+      await flashcardsRepo.save({
+        id: newId(),
+        userId,
+        topicId: topic.id,
+        front: card.front,
+        back: card.back,
+        createdAt,
+      });
+    }
+  } else {
+    const payload = share.payload as ExamSetSnapshot;
+    for (const question of payload.questions) {
+      await examQuestionsRepo.save({
+        id: newId(),
+        userId,
+        text: question.text,
+        choices: [...question.choices] as ExamQuestion['choices'],
+        correctIndex: question.correctIndex,
+        subject: question.subject,
+        difficulty: question.difficulty,
+        year: question.year,
+        createdAt,
+      });
+    }
+  }
+
+  toast.success(get(t).groups.imported);
+}
