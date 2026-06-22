@@ -20,6 +20,7 @@
   import { toast } from '$lib/stores/toast';
   import { t } from '$lib/i18n';
   import { ensurePushSubscribed } from '$lib/push';
+  import { startPresence, stopPresence } from '$lib/presence';
 
   let drawerOpen = false;
   let timerResumed = false;
@@ -59,6 +60,7 @@
     maybeShowWhatsNew();
     initPwaInstall();
     initNotifications();
+    return stopPresence;
   });
 
   // Keep data + this week's slots warm for reminders. Slots must load after
@@ -68,6 +70,8 @@
     const { start, end } = currentWeek();
     loadScheduleSlots(start, end);
     syncPush();
+    if ($auth.mode === 'authenticated') startPresence();
+    else stopPresence();
   }
 
   // Resume a running/paused timer app-wide once (after auth resolves, so an
