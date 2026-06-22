@@ -298,7 +298,7 @@ Expected: all 10 listed with `prosecdef = true` (security definer). Full behavio
 ```ts
 import { writable } from 'svelte/store';
 import { supabase } from '$lib/supabase';
-import { toast } from '$lib/toast';
+import { toast } from '$lib/stores/toast';
 
 export interface GroupSummary {
   id: string; name: string; inviteCode: string | null;
@@ -544,8 +544,11 @@ begin
     from public.study_sessions s where s.user_id = m.user_id
   ) agg on true
   left join lateral (
-    select count(*)::int as mock_count, max(accuracy) as best_accuracy
-    from public.mock_scores ms where ms.user_id = m.user_id
+    -- Parity with AchievementWall.svelte: mockCount + bestMockAccuracy come from
+    -- exam_sessions (in-app practice), NOT mock_scores.
+    select count(*)::int as mock_count,
+           max(100.0 * total_correct / nullif(total_questions,0)) as best_accuracy
+    from public.exam_sessions es where es.user_id = m.user_id
   ) mk on true
   left join lateral (
     select count(*)::int as cards_count from public.flashcards f where f.user_id = m.user_id
@@ -579,7 +582,7 @@ returns int language sql security definer stable set search_path = public as $$
 $$;
 ```
 
-> **Implementation checks:** confirm exact column names against the live schema before applying — `mock_scores.accuracy`, `study_sessions.duration_sec`, `tasks.completed_at`. If a name differs, adjust. Confirm Postgres `date_trunc('week')` (Monday start) matches the app's `/schedule` week convention; if the app uses Sunday, adjust to `date_trunc('week', x + interval '1 day') - interval '1 day'`.
+> **Schema confirmed (2026-06-22) against prod:** `study_sessions(duration_sec int, started_at timestamptz, user_id)`, `tasks.completed_at`, `flashcards(front,back,topic_id,user_id)`, `exam_sessions(total_correct, total_questions, user_id)`. There is **no** `mock_scores.accuracy` — achievements use `exam_sessions` per `AchievementWall.svelte`. Confirm Postgres `date_trunc('week')` (Monday start) matches the app's `/schedule` week convention; if the app uses Sunday, adjust to `date_trunc('week', x + interval '1 day') - interval '1 day'`.
 
 - [ ] **Step 2: Verify with seeded data via execute_sql**
 
@@ -777,8 +780,10 @@ export async function shareDeck(gid: string, topicId: string) {
 }
 
 export async function shareExamSet(gid: string, questionIds: string[], title: string) {
+  // ExamQuestion fields (types.ts / mappers.ts): text, choices, correctIndex, subject, difficulty, year
   const qs = get(examQuestions).filter(q => questionIds.includes(q.id))
-    .map(q => ({ prompt: q.prompt, choices: q.choices, answer: q.answer }));
+    .map(q => ({ text: q.text, choices: q.choices, correctIndex: q.correctIndex,
+                 subject: q.subject, difficulty: q.difficulty, year: q.year }));
   const payload = { title, questions: qs };
   const { error } = await supabase.from('group_shares')
     .insert({ group_id: gid, shared_by: (await supabase.auth.getUser()).data.user?.id, kind: 'exam_set', title, payload });
@@ -806,7 +811,8 @@ export async function importShare(share: GroupShare) {
     }
   } else if (share.kind === 'exam_set') {
     for (const q of share.payload.questions) {
-      await examQuestionsRepo.save({ id: newId(), userId, prompt: q.prompt, choices: q.choices, answer: q.answer } as any);
+      await examQuestionsRepo.save({ id: newId(), userId, text: q.text, choices: q.choices,
+        correctIndex: q.correctIndex, subject: q.subject, difficulty: q.difficulty, year: q.year } as any);
     }
   }
   toast.success?.($t_imported());
