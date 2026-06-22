@@ -582,6 +582,10 @@ export const th: I18n = {
     visibleOn: 'แสดงบนกระดานผู้นำ', visibleOff: 'ซ่อนจากกระดานผู้นำ',
     share: 'แชร์…', addToAccount: 'เพิ่มไปยังบัญชีของฉัน', inviteCode: 'รหัสเชิญ',
     shareDeck: 'เด็คแฟลชการ์ด', shareExam: 'ชุดข้อสอบ', imported: 'เพิ่มไปยังบัญชีแล้ว',
+    achievements: 'ความสำเร็จที่ปลดล็อก', leaderboardEmpty: 'ยังไม่มีข้อมูลบนกระดานผู้นำ',
+    sharedComingSoon: 'การแชร์ในกลุ่มกำลังจะมาเร็ว ๆ นี้', pendingRequests: 'คำขอที่รออนุมัติ',
+    pendingEmpty: 'ไม่มีคำขอที่รออนุมัติ', groupNotFound: 'ไม่พบกลุ่ม',
+    deleteConfirm: 'ลบกลุ่มนี้หรือไม่', leaveConfirm: 'ออกจากกลุ่มนี้หรือไม่',
   },
   insights: {
     title: 'อินไซต์',

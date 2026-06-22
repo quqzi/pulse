@@ -580,6 +580,10 @@ export const en = {
     visibleOn: 'Visible on leaderboard', visibleOff: 'Hidden from leaderboard',
     share: 'Share…', addToAccount: 'Add to my account', inviteCode: 'Invite code',
     shareDeck: 'Flashcard deck', shareExam: 'Exam set', imported: 'Added to your account',
+    achievements: 'Unlocked achievements', leaderboardEmpty: 'No leaderboard entries yet.',
+    sharedComingSoon: 'Group sharing is coming soon.', pendingRequests: 'Pending requests',
+    pendingEmpty: 'No pending requests.', groupNotFound: 'Group not found.',
+    deleteConfirm: 'Delete this group?', leaveConfirm: 'Leave this group?',
   },
   insights: {
     title: 'Insights',

@@ -1,6 +1,7 @@
 import { writable } from 'svelte/store';
 import { supabase } from '$lib/supabase';
 import { toast } from '$lib/stores/toast';
+import { computeAchievements, type Achievement, type AchievementInput } from '$lib/achievements';
 
 export interface GroupSummary {
   id: string; name: string; inviteCode: string | null;
@@ -8,6 +9,10 @@ export interface GroupSummary {
   memberCount: number; pendingCount: number; isOwner: boolean;
 }
 export interface PendingRequest { userId: string; displayName: string; createdAt: string; }
+export interface LeaderboardEntry {
+  userId: string; displayName: string; weeklyHours: number; streak: number;
+  totalHours: number; achievements: Achievement[];
+}
 
 export const myGroups = writable<GroupSummary[]>([]);
 
@@ -40,4 +45,23 @@ export async function listPending(gid: string): Promise<PendingRequest[]> {
   const { data, error } = await supabase.rpc('list_pending_requests', { p_group_id: gid });
   if (error) { toast.error(error.message); return []; }
   return (data ?? []).map((r: any): PendingRequest => ({ userId: r.user_id, displayName: r.display_name, createdAt: r.created_at }));
+}
+
+export async function getLeaderboard(gid: string): Promise<LeaderboardEntry[]> {
+  const { data, error } = await supabase.rpc('get_group_leaderboard', { p_group_id: gid });
+  if (error) { toast.error(error.message); return []; }
+  return (data ?? []).map((r: any): LeaderboardEntry => {
+    const input: AchievementInput = {
+      sessionCount: Number(r.session_count), totalHours: Number(r.total_hours),
+      streak: Number(r.streak), mockCount: Number(r.mock_count),
+      bestMockAccuracy: Number(r.best_mock_accuracy), cardCount: Number(r.cards_count),
+      tasksCompleted: Number(r.tasks_completed),
+    };
+    return {
+      userId: r.user_id, displayName: r.display_name,
+      weeklyHours: Number(r.weekly_hours), streak: Number(r.streak),
+      totalHours: Number(r.total_hours),
+      achievements: computeAchievements(input).filter(a => a.unlocked),
+    };
+  });
 }
