@@ -169,17 +169,27 @@ export async function shareExamSet(gid: string, questionIds: string[], title: st
   return true;
 }
 
-export async function importShare(share: GroupShare): Promise<void> {
+export async function importShare(
+  share: GroupShare,
+  opts?: { targetSubjectId?: string; newSubjectName?: string; title?: string; selectedIndices?: number[] },
+): Promise<void> {
   const { userId, mode } = getAuthContext();
   if (mode !== 'authenticated') return;
   const createdAt = new Date().toISOString();
 
   if (share.kind === 'flashcard_deck') {
     const payload = share.payload as FlashcardDeckSnapshot;
-    const subjectName = payload.subjectName?.trim() || get(t).groups.importedSubject;
-    let subject = get(subjects).find(candidate => candidate.name.toLocaleLowerCase() === subjectName.toLocaleLowerCase());
+    const existingSubjects = get(subjects);
+    let subject = opts?.targetSubjectId
+      ? existingSubjects.find(candidate => candidate.id === opts.targetSubjectId)
+      : undefined;
+    const requestedSubjectName = opts?.newSubjectName?.trim();
+    const subjectName = requestedSubjectName || payload.subjectName?.trim() || get(t).groups.importedSubject;
     if (!subject) {
-      const orderIndex = get(subjects).reduce((max, candidate) => Math.max(max, candidate.orderIndex), -1) + 1;
+      subject = existingSubjects.find(candidate => candidate.name.toLocaleLowerCase() === subjectName.toLocaleLowerCase());
+    }
+    if (!subject) {
+      const orderIndex = existingSubjects.reduce((max, candidate) => Math.max(max, candidate.orderIndex), -1) + 1;
       const preset = ALL_BUILTIN_PRESETS.get(subjectName.toLocaleLowerCase());
       const paletteColor = SUBJECT_COLOR_PALETTE[orderIndex % SUBJECT_COLOR_PALETTE.length];
       subject = {
@@ -194,21 +204,24 @@ export async function importShare(share: GroupShare): Promise<void> {
       await subjectsRepo.save(subject);
     }
 
+    const topicName = opts?.title !== undefined ? opts.title.trim() : payload.topicName;
     let topic = get(topics).find(candidate =>
-      candidate.subjectId === subject.id && candidate.name.toLocaleLowerCase() === payload.topicName.toLocaleLowerCase()
+      candidate.subjectId === subject.id && candidate.name.toLocaleLowerCase() === topicName.toLocaleLowerCase()
     );
     if (!topic) {
       topic = {
         id: newId(),
         subjectId: subject.id,
-        name: payload.topicName,
+        name: topicName,
         orderIndex: get(topics).filter(candidate => candidate.subjectId === subject.id)
           .reduce((max, candidate) => Math.max(max, candidate.orderIndex), -1) + 1,
       } satisfies Topic;
       await topicsRepo.create(topic);
     }
 
-    for (const card of payload.cards) {
+    const selected = opts?.selectedIndices ? new Set(opts.selectedIndices) : null;
+    for (const [index, card] of payload.cards.entries()) {
+      if (selected && !selected.has(index)) continue;
       await flashcardsRepo.save({
         id: newId(),
         userId,
@@ -220,7 +233,9 @@ export async function importShare(share: GroupShare): Promise<void> {
     }
   } else {
     const payload = share.payload as ExamSetSnapshot;
-    for (const question of payload.questions) {
+    const selected = opts?.selectedIndices ? new Set(opts.selectedIndices) : null;
+    for (const [index, question] of payload.questions.entries()) {
+      if (selected && !selected.has(index)) continue;
       await examQuestionsRepo.save({
         id: newId(),
         userId,

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
-  import { deleteShare, importShare, type GroupShare } from '$lib/groups';
+  import ImportShareSheet from '$lib/components/groups/ImportShareSheet.svelte';
+  import { deleteShare, type GroupShare } from '$lib/groups';
   import { t } from '$lib/i18n';
 
   export let share: GroupShare;
@@ -8,18 +9,8 @@
   export let canDelete = false;
 
   const dispatch = createEventDispatcher<{ refresh: void }>();
-  let importing = false;
+  let sheetOpen = false;
   let deleting = false;
-
-  async function addToAccount() {
-    if (importing) return;
-    importing = true;
-    try {
-      await importShare(share);
-    } finally {
-      importing = false;
-    }
-  }
 
   async function remove() {
     if (deleting) return;
@@ -54,11 +45,11 @@
   </div>
 
   <div class="actions">
-    <button type="button" class="import" disabled={importing || deleting} on:click={addToAccount}>
+    <button type="button" class="import" disabled={deleting} on:click={() => sheetOpen = true}>
       {$t.groups.addToAccount}
     </button>
     {#if canDelete}
-      <button type="button" class="delete" disabled={importing || deleting} aria-label={$t.common.delete} on:click={remove}>
+      <button type="button" class="delete" disabled={deleting} aria-label={$t.common.delete} on:click={remove}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5" />
         </svg>
@@ -66,6 +57,8 @@
     {/if}
   </div>
 </article>
+
+<ImportShareSheet bind:open={sheetOpen} {share} />
 
 <style>
   .share-card { display: flex; align-items: center; gap: 12px; padding: 14px 16px; }
