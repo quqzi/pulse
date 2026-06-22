@@ -533,6 +533,14 @@ body.design-apple .btn-secondary {
   border: 1px solid var(--border);
 }
 
+/* Apple: the dashboard "review due" call-to-action follows the same ghost-pill
+   grammar — fully rounded, hairline weight, single blue accent. */
+body.design-apple .review-cta {
+  border-radius: 9999px;
+  border-width: 1px;
+  letter-spacing: -0.01em;
+}
+
 /* Resend: HeroCard becomes dark editorial card with atmospheric blue glow */
 body.design-resend .hero-card {
   background: var(--bg2);
