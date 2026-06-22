@@ -89,8 +89,10 @@
   // ── AI import ─────────────────────────────────────────────
   let importOpen = false;
   let cardCount = 20;
+  let importLanguage = '';
+  let importFocus = '';
   $: subjectName = $subjects.find(s => s.id === topic?.subjectId)?.name;
-  $: importPrompt = flashcardPrompt(topic?.name ?? '', subjectName, cardCount);
+  $: importPrompt = flashcardPrompt(topic?.name ?? '', subjectName, cardCount, importLanguage || undefined, importFocus.trim() || undefined);
 
   async function handleImport(e: CustomEvent<{ items: unknown[] }>) {
     if (!topicId) return;
@@ -213,11 +215,21 @@
   </div>
 
   <ImportSheet bind:open={importOpen} prompt={importPrompt} parse={parseFlashcards} on:import={handleImport} on:close={() => (importOpen = false)}>
-    <div slot="options" class="opt-row">
-      <span class="opt-label">{$t.importer.howMany}</span>
-      {#each [10, 20, 30] as n (n)}
-        <button class="opt-pill" class:active={cardCount === n} on:click={() => (cardCount = n)}>{n}</button>
-      {/each}
+    <div slot="options">
+      <div class="opt-row">
+        <span class="opt-label">{$t.importer.howMany}</span>
+        {#each [10, 20, 30] as n (n)}
+          <button class="opt-pill" class:active={cardCount === n} on:click={() => (cardCount = n)}>{n}</button>
+        {/each}
+      </div>
+      <div class="opt-row">
+        <span class="opt-label">{$t.importer.language}</span>
+        <button class="opt-pill" class:active={importLanguage === ''} on:click={() => (importLanguage = '')}>{$t.importer.languageAuto}</button>
+        <button class="opt-pill" class:active={importLanguage === 'Thai'} on:click={() => (importLanguage = 'Thai')}>{$t.importer.languageThai}</button>
+        <button class="opt-pill" class:active={importLanguage === 'English'} on:click={() => (importLanguage = 'English')}>{$t.importer.languageEnglish}</button>
+      </div>
+      <label class="opt-label" for="flashcard-focus">{$t.importer.focus}</label>
+      <input id="flashcard-focus" class="field import-focus" bind:value={importFocus} placeholder={$t.importer.focusPlaceholder} />
     </div>
   </ImportSheet>
 
@@ -275,6 +287,7 @@
   .opt-label { font-size: 12px; color: var(--muted); margin-right: 2px; }
   .opt-pill { padding: 6px 12px; border-radius: 999px; border: 1.5px solid var(--border); background: var(--bg); color: var(--muted); font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; min-height: 32px; }
   .opt-pill.active { border-color: var(--primary); background: var(--primary-l); color: var(--primary); }
+  .import-focus { display: block; width: 100%; box-sizing: border-box; margin-top: 4px; }
   @media (max-width: 768px) { .import-open-btn, .study-deck-btn { min-height: 44px; } }
   .deck-empty { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
   .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); }

@@ -25,7 +25,9 @@
   let importOpen = false;
   let importGoal = 'TCAS';
   let importCount = 6;
-  $: importPrompt = templatePrompt(importGoal, importCount);
+  let importLanguage = '';
+  let importFocus = '';
+  $: importPrompt = templatePrompt(importGoal, importCount, importLanguage || undefined, importFocus.trim() || undefined);
 
   function handleTemplateImport(e: CustomEvent<{ items: unknown[] }>) {
     const drafts = e.detail.items as SubjectPresetDraft[];
@@ -245,6 +247,14 @@
         <button class="opt-pill" class:active={importCount === n} on:click={() => (importCount = n)}>{n}</button>
       {/each}
     </div>
+    <div class="opt-row">
+      <span class="opt-label">{$t.importer.language}</span>
+      <button class="opt-pill" class:active={importLanguage === ''} on:click={() => (importLanguage = '')}>{$t.importer.languageAuto}</button>
+      <button class="opt-pill" class:active={importLanguage === 'Thai'} on:click={() => (importLanguage = 'Thai')}>{$t.importer.languageThai}</button>
+      <button class="opt-pill" class:active={importLanguage === 'English'} on:click={() => (importLanguage = 'English')}>{$t.importer.languageEnglish}</button>
+    </div>
+    <label class="opt-label" for="tpl-focus">{$t.importer.focus}</label>
+    <input id="tpl-focus" class="goal-input" bind:value={importFocus} placeholder={$t.importer.focusPlaceholder} />
   </div>
 </ImportSheet>
 

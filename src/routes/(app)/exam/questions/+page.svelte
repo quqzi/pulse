@@ -132,8 +132,10 @@
   let importSubject = '';
   let importCount = 10;
   let importDifficulty: ExamPromptDifficulty = 'mixed';
+  let importLanguage = '';
+  let importFocus = '';
   $: if (!importSubject && $subjects.length > 0) importSubject = $subjects[0].name;
-  $: importPromptText = examPrompt(importSubject || 'TCAS', importCount, importDifficulty);
+  $: importPromptText = examPrompt(importSubject || 'TCAS', importCount, importDifficulty, importLanguage || undefined, importFocus.trim() || undefined);
 
   async function handleImport(e: CustomEvent<{ items: unknown[] }>) {
     const { userId } = getAuthContext();
@@ -186,6 +188,16 @@
         <button class="opt-pill" class:active={importDifficulty === 'easy'} on:click={() => (importDifficulty = 'easy')}>{$t.exam.diffEasy}</button>
         <button class="opt-pill" class:active={importDifficulty === 'medium'} on:click={() => (importDifficulty = 'medium')}>{$t.exam.diffMedium}</button>
         <button class="opt-pill" class:active={importDifficulty === 'hard'} on:click={() => (importDifficulty = 'hard')}>{$t.exam.diffHard}</button>
+      </div>
+      <div class="opt-row">
+        <span class="opt-label">{$t.importer.language}</span>
+        <button class="opt-pill" class:active={importLanguage === ''} on:click={() => (importLanguage = '')}>{$t.importer.languageAuto}</button>
+        <button class="opt-pill" class:active={importLanguage === 'Thai'} on:click={() => (importLanguage = 'Thai')}>{$t.importer.languageThai}</button>
+        <button class="opt-pill" class:active={importLanguage === 'English'} on:click={() => (importLanguage = 'English')}>{$t.importer.languageEnglish}</button>
+      </div>
+      <div class="import-focus-row">
+        <label class="field-label" for="exam-import-focus">{$t.importer.focus}</label>
+        <input id="exam-import-focus" class="field-input" bind:value={importFocus} placeholder={$t.importer.focusPlaceholder} />
       </div>
     </div>
   </ImportSheet>
@@ -366,6 +378,7 @@
   }
   .import-subject-row { margin-bottom: 10px; }
   .import-subject-row .field-label { margin-top: 0; }
+  .import-focus-row .field-label { margin-top: 0; }
   .import-options { margin-bottom: 4px; }
   .opt-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
   .opt-label { font-size: 12px; color: var(--muted); margin-right: 2px; min-width: 52px; }
