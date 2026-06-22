@@ -402,6 +402,8 @@
   .auto-btn:disabled { opacity: 0.5; cursor: not-allowed; }
   .auto-btn.loading { opacity: 0.7; }
 
+  :global(body.design-apple) .auto-btn { border-radius: 9999px; }
+
   .summary-tab { display: none; }
 
   /* Collapse the side panels (mini-month + week summary) below 1024px so iPad

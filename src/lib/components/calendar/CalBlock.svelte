@@ -437,4 +437,28 @@
   .pop-btn.delete { color: var(--danger); border-color: var(--danger); }
   .pop-btn.dismiss { color: var(--muted); }
   .pop-btn:hover { opacity: 0.85; }
+
+  :global(body.design-apple) .cal-block { box-shadow: none; }
+  @media (hover: hover) {
+    :global(body.design-apple) .cal-block:hover {
+      box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 12px 28px rgba(0,0,0,.05);
+    }
+    :global(body.design-apple.theme-dark) .cal-block:hover {
+      box-shadow: 0 1px 2px rgba(0,0,0,.30), 0 12px 28px rgba(0,0,0,.40);
+    }
+  }
+  :global(body.design-apple) .cal-block.lifting,
+  :global(body.design-apple) .block-popover {
+    box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 12px 28px rgba(0,0,0,.05);
+  }
+  :global(body.design-apple.theme-dark) .cal-block.lifting,
+  :global(body.design-apple.theme-dark) .block-popover {
+    box-shadow: 0 1px 2px rgba(0,0,0,.30), 0 12px 28px rgba(0,0,0,.40);
+  }
+  :global(body.design-apple) .pop-chip { border-radius: var(--radius-sm); }
+  :global(body.design-apple) .pop-chip.active {
+    border-color: var(--primary);
+    background: color-mix(in srgb, var(--primary) 12%, transparent);
+    color: var(--primary);
+  }
 </style>
