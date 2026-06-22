@@ -38,6 +38,7 @@ export interface Settings {
   subjectWeights: Record<string, number>; // subjectId → 0.5 | 1 | 2 (default 1)
   readinessHoursTarget: number; // hours per subject per 30 days = full hours score
   musicUrl: string;            // study-music link (YouTube/Spotify/SoundCloud/Apple); '' = none
+  shareActivity: boolean;
   // Study reminders (fire while Pulse is open; needs OS notification permission)
   notifyEnabled: boolean;      // master switch
   notifyBlockStart: boolean;   // a scheduled study block is starting
@@ -71,6 +72,7 @@ export function defaults(): Settings {
     subjectWeights: {},
     readinessHoursTarget: 20,
     musicUrl: '',
+    shareActivity: true,
     notifyEnabled: false,
     notifyBlockStart: true,
     notifyDaily: true,

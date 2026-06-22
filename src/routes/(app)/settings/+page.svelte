@@ -406,6 +406,20 @@
     </div>
   {/if}
 
+  <p class="section-label" style="margin-top:20px">{$t.nav.groups}</p>
+  <div class="card section-card">
+    <div class="setting-row">
+      <div class="setting-info">
+        <span class="text-body">{$t.settings.shareActivity}</span>
+        <span class="text-muted" style="font-size:13px">{$t.settings.shareActivityHelper}</span>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" bind:checked={$settings.shareActivity} />
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+  </div>
+
   {#if notificationsSupported()}
     <p class="section-label" style="margin-top:20px">{$t.notifications.title}</p>
     <div class="card section-card">

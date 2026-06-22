@@ -155,6 +155,8 @@ export const en = {
     removeExam: 'Remove exam',
     examEmpty: 'No exams yet. Add one to see a countdown on your dashboard.',
     study: 'Study',
+    shareActivity: 'Show my activity to groups',
+    shareActivityHelper: "Let study groups see when you're studying or taking an exam.",
     hPerDay: 'h / day',
     readinessTarget: 'Readiness hours target',
     readinessTargetHelper: 'Hours per subject in 30 days for a full study-hours score',
