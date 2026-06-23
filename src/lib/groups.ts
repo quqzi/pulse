@@ -144,8 +144,20 @@ export async function postChallenge(gid: string, questionIds: string[], title: s
   return await rpc<string>('post_challenge', { p_group_id: gid, p_title: title, p_payload: payload });
 }
 
-export async function submitChallengeResult(challengeId: string, score: number, total: number): Promise<void> {
-  await rpc('submit_challenge_result', { p_challenge_id: challengeId, p_score: score, p_total: total });
+export async function submitChallengeResult(
+  challengeId: string,
+  answers: number[],
+): Promise<{ score: number; total: number } | null> {
+  // Score is recomputed server-side from these answers vs the stored payload —
+  // the client never sends (and cannot forge) a score. See submit_challenge_result RPC.
+  const { data, error } = await supabase.rpc('submit_challenge_result', {
+    p_challenge_id: challengeId,
+    p_answers: answers,
+  });
+  if (error) { toast.error(error.message); return null; }
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row) return null;
+  return { score: Number(row.score), total: Number(row.total) };
 }
 
 export async function getChallengeResults(challengeId: string): Promise<ChallengeResult[]> {

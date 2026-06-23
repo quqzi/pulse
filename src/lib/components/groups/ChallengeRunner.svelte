@@ -8,7 +8,7 @@
 
   type ChallengeQuestion = GroupChallenge['payload']['questions'][number];
 
-  const dispatch = createEventDispatcher<{ done: { score: number; total: number }; cancel: void }>();
+  const dispatch = createEventDispatcher<{ done: { answers: number[] }; cancel: void }>();
   let seededFor = '';
   let currentIndex = 0;
   let answers: (number | null)[] = [];
@@ -40,8 +40,8 @@
   }
 
   function finish() {
-    const score = questions.reduce((total, question, index) => total + (answers[index] === question.correctIndex ? 1 : 0), 0);
-    dispatch('done', { score, total: questions.length });
+    // Send the chosen answers; the server recomputes the score authoritatively.
+    dispatch('done', { answers: answers.map((answer) => answer ?? -1) });
   }
 </script>
 

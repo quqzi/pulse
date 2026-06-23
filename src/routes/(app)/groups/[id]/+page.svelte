@@ -139,15 +139,17 @@
     }
   }
 
-  async function finishChallenge(event: CustomEvent<{ score: number; total: number }>) {
+  async function finishChallenge(event: CustomEvent<{ answers: number[] }>) {
     if (!activeChallenge || busy) return;
     const challengeId = activeChallenge.id;
     busy = true;
     try {
-      await submitChallengeResult(challengeId, event.detail.score, event.detail.total);
-      resultsForId = challengeId;
-      challengeResults = await getChallengeResults(challengeId);
-      activeChallenge = null;
+      const result = await submitChallengeResult(challengeId, event.detail.answers);
+      if (result) {
+        resultsForId = challengeId;
+        challengeResults = await getChallengeResults(challengeId);
+        activeChallenge = null;
+      }
     } finally {
       busy = false;
     }
