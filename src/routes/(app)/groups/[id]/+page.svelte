@@ -2,21 +2,30 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
   import { onMount } from 'svelte';
+  import ChallengeCard from '$lib/components/groups/ChallengeCard.svelte';
+  import ChallengePickerSheet from '$lib/components/groups/ChallengePickerSheet.svelte';
+  import ChallengeResults from '$lib/components/groups/ChallengeResults.svelte';
+  import ChallengeRunner from '$lib/components/groups/ChallengeRunner.svelte';
   import LeaderboardRow from '$lib/components/groups/LeaderboardRow.svelte';
   import ShareItemCard from '$lib/components/groups/ShareItemCard.svelte';
   import SharePickerSheet from '$lib/components/groups/SharePickerSheet.svelte';
   import {
     approveMember,
     deleteGroup,
+    getChallengeResults,
     getLeaderboard,
     leaveGroup,
+    listChallenges,
     listPending,
     listShares,
     loadMyGroups,
     myGroups,
     removeMember,
     setVisibility,
+    submitChallengeResult,
     updateGroupSettings,
+    type ChallengeResult,
+    type GroupChallenge,
     type LeaderboardEntry,
     type GroupSummary,
     type GroupShare,
@@ -27,7 +36,7 @@
   import { auth } from '$lib/stores/auth';
   import { getAuthContext } from '$lib/stores/data';
 
-  type Tab = 'leaderboard' | 'shared' | 'manage';
+  type Tab = 'leaderboard' | 'shared' | 'challenges' | 'manage';
   type JoinPolicy = 'approval' | 'open';
   type SharePolicy = 'members' | 'owner';
 
@@ -36,8 +45,13 @@
   let board: LeaderboardEntry[] = [];
   let pending: PendingRequest[] = [];
   let shares: GroupShare[] = [];
+  let challenges: GroupChallenge[] = [];
   let tab: Tab = 'leaderboard';
   let sharePickerOpen = false;
+  let challengePickerOpen = false;
+  let activeChallenge: GroupChallenge | null = null;
+  let challengeResults: ChallengeResult[] = [];
+  let resultsForId = '';
   let settingsName = '';
   let settingsDescription = '';
   let settingsIcon: string | null = null;
@@ -84,14 +98,59 @@
     shares = await listShares(gid);
   }
 
+  async function refreshChallenges() {
+    if ($auth.mode !== 'authenticated' || group?.status !== 'approved') {
+      challenges = [];
+      return;
+    }
+    challenges = await listChallenges(gid);
+  }
+
   async function changeTab(nextTab: Tab) {
     tab = nextTab;
     if (nextTab === 'shared') await refreshShares();
+    if (nextTab === 'challenges') await refreshChallenges();
   }
 
   function sharerName(share: GroupShare): string {
     if (share.sharedBy === $auth.user?.id) return $t.groups.you;
     return board.find(entry => entry.userId === share.sharedBy)?.displayName ?? $t.groups.groupMember;
+  }
+
+  function challengeSharerName(challenge: GroupChallenge): string {
+    if (challenge.createdBy === $auth.user?.id) return $t.groups.you;
+    return board.find(entry => entry.userId === challenge.createdBy)?.displayName ?? $t.groups.groupMember;
+  }
+
+  function takeChallenge(challenge: GroupChallenge) {
+    activeChallenge = challenge;
+    resultsForId = '';
+    challengeResults = [];
+  }
+
+  async function showChallengeResults(challenge: GroupChallenge) {
+    if (busy) return;
+    busy = true;
+    try {
+      resultsForId = challenge.id;
+      challengeResults = await getChallengeResults(challenge.id);
+    } finally {
+      busy = false;
+    }
+  }
+
+  async function finishChallenge(event: CustomEvent<{ score: number; total: number }>) {
+    if (!activeChallenge || busy) return;
+    const challengeId = activeChallenge.id;
+    busy = true;
+    try {
+      await submitChallengeResult(challengeId, event.detail.score, event.detail.total);
+      resultsForId = challengeId;
+      challengeResults = await getChallengeResults(challengeId);
+      activeChallenge = null;
+    } finally {
+      busy = false;
+    }
   }
 
   function seedSettings(current: GroupSummary | undefined) {
@@ -117,12 +176,18 @@
     loadedFor = loadKey;
     ready = false;
     shares = [];
+    challenges = [];
+    activeChallenge = null;
+    challengeResults = [];
+    resultsForId = '';
     sharePickerOpen = false;
+    challengePickerOpen = false;
     if ($myGroups.length === 0) await loadMyGroups();
     const current = $myGroups.find(candidate => candidate.id === gid);
     seedSettings(current);
     await refresh();
     if (tab === 'shared') await refreshShares();
+    if (tab === 'challenges') await refreshChallenges();
     ready = true;
   }
 
@@ -194,7 +259,12 @@
       board = [];
       pending = [];
       shares = [];
+      challenges = [];
+      activeChallenge = null;
+      challengeResults = [];
+      resultsForId = '';
       sharePickerOpen = false;
+      challengePickerOpen = false;
     }
   }
 </script>
@@ -229,6 +299,7 @@
     <div class="tabs" role="tablist" aria-label={$t.groups.title}>
       <button id="tab-leaderboard" type="button" role="tab" aria-selected={tab === 'leaderboard'} aria-controls="panel-leaderboard" class:active={tab === 'leaderboard'} on:click={() => changeTab('leaderboard')}>{$t.groups.leaderboard}</button>
       <button id="tab-shared" type="button" role="tab" aria-selected={tab === 'shared'} aria-controls="panel-shared" class:active={tab === 'shared'} on:click={() => changeTab('shared')}>{$t.groups.shared}</button>
+      <button id="tab-challenges" type="button" role="tab" aria-selected={tab === 'challenges'} aria-controls="panel-challenges" class:active={tab === 'challenges'} on:click={() => changeTab('challenges')}>{$t.groups.challenges}</button>
       <button id="tab-manage" type="button" role="tab" aria-selected={tab === 'manage'} aria-controls="panel-manage" class:active={tab === 'manage'} on:click={() => changeTab('manage')}>{$t.groups.manage}</button>
     </div>
 
@@ -273,6 +344,50 @@
                   sharer={sharerName(share)}
                   canDelete={group.isOwner || share.sharedBy === $auth.user?.id}
                   on:refresh={refreshShares}
+                />
+              {/each}
+            </div>
+          {/if}
+        {/if}
+      </div>
+    {:else if tab === 'challenges'}
+      <div id="panel-challenges" role="tabpanel" aria-labelledby="tab-challenges" class="challenges-panel">
+        {#if group.status === 'pending'}
+          <div class="panel empty-state"><p class="empty-title">{$t.groups.pendingState}</p></div>
+        {:else if activeChallenge}
+          <ChallengeRunner
+            challenge={activeChallenge}
+            on:done={finishChallenge}
+            on:cancel={() => (activeChallenge = null)}
+          />
+        {:else if resultsForId}
+          <div class="results-actions">
+            <button type="button" class="action" disabled={busy} on:click={() => { resultsForId = ''; challengeResults = []; }}>
+              {$t.groups.back}
+            </button>
+          </div>
+          <ChallengeResults results={challengeResults} />
+        {:else}
+          <div class="challenge-toolbar">
+            <div>
+              <h2>{$t.groups.challenges}</h2>
+              <p>{$t.groups.challengeEmptySub}</p>
+            </div>
+            <button type="button" class="action primary challenge-button" on:click={() => (challengePickerOpen = true)}>{$t.groups.newChallenge}</button>
+          </div>
+          {#if challenges.length === 0}
+            <div class="panel empty-state">
+              <p class="empty-title">{$t.groups.challengeEmpty}</p>
+              <p class="empty-sub">{$t.groups.challengeEmptySub}</p>
+            </div>
+          {:else}
+            <div class="panel challenge-list">
+              {#each challenges as challenge (challenge.id)}
+                <ChallengeCard
+                  {challenge}
+                  sharer={challengeSharerName(challenge)}
+                  on:take={() => takeChallenge(challenge)}
+                  on:results={() => showChallengeResults(challenge)}
                 />
               {/each}
             </div>
@@ -434,6 +549,16 @@
   on:refresh={refreshShares}
 />
 
+<ChallengePickerSheet
+  bind:open={challengePickerOpen}
+  {gid}
+  on:posted={async () => {
+    challengePickerOpen = false;
+    await refreshChallenges();
+  }}
+  on:close={() => (challengePickerOpen = false)}
+/>
+
 <style>
   .page { max-width: 720px; margin: 0 auto; padding: 20px 16px 80px; }
   .header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
@@ -444,7 +569,7 @@
   .group-description { margin: 4px 0 0; color: var(--muted); font-size: 14px; line-height: 1.4; overflow-wrap: anywhere; }
   .invite { flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; color: var(--muted); font-size: 12px; }
   .invite code { color: var(--text); font-family: var(--font-mono); font-size: 15px; font-weight: 700; letter-spacing: 1px; }
-  .tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 20px; padding: 4px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg2); }
+  .tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 20px; padding: 4px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg2); }
   .tabs button { min-width: 0; padding: 9px 6px; border: 0; border-radius: calc(var(--radius-md) - 4px); background: transparent; color: var(--muted); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
   .tabs button.active { background: var(--primary); color: var(--bg); }
   .panel { margin-top: 12px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg2); }
@@ -460,6 +585,14 @@
   .share-button { flex: 0 0 auto; }
   .share-list { overflow: hidden; }
   .share-list :global(.share-card + .share-card) { border-top: 1px solid var(--border); }
+  .challenges-panel { margin-top: 12px; }
+  .challenge-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 10px; }
+  .challenge-toolbar h2 { margin: 0; color: var(--text); font-size: 15px; }
+  .challenge-toolbar p { margin: 2px 0 0; color: var(--muted); font-size: 12px; }
+  .challenge-button { flex: 0 0 auto; }
+  .challenge-list { overflow: hidden; }
+  .challenge-list :global(.challenge-card + .challenge-card) { border-top: 1px solid var(--border); }
+  .results-actions { display: flex; justify-content: flex-start; margin-top: 12px; }
   .manage-stack { display: flex; flex-direction: column; }
   .setting-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 16px; color: var(--text); font-size: 14px; font-weight: 500; }
   .setting-row input { width: 20px; height: 20px; accent-color: var(--primary); }
@@ -502,6 +635,8 @@
     .request-row, .inline-confirm { align-items: flex-start; flex-direction: column; }
     .request-actions, .confirm-actions { width: 100%; }
     .request-actions .action, .confirm-actions .action { flex: 1; }
+    .challenge-toolbar { align-items: stretch; flex-direction: column; }
+    .challenge-button { width: 100%; }
     .segmented { grid-template-columns: 1fr; }
     .save-settings { width: 100%; }
   }
