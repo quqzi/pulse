@@ -15,9 +15,10 @@
     loadMyGroups,
     myGroups,
     removeMember,
-    renameGroup,
     setVisibility,
+    updateGroupSettings,
     type LeaderboardEntry,
+    type GroupSummary,
     type GroupShare,
     type PendingRequest,
   } from '$lib/groups';
@@ -27,13 +28,22 @@
   import { getAuthContext } from '$lib/stores/data';
 
   type Tab = 'leaderboard' | 'shared' | 'manage';
+  type JoinPolicy = 'approval' | 'open';
+  type SharePolicy = 'members' | 'owner';
+
+  const iconOptions = ['📚', '✏️', '🎯', '🔥', '🧠', '⭐', '🌟', '💡', '🧪', '📊', '🎓', '⚡'];
 
   let board: LeaderboardEntry[] = [];
   let pending: PendingRequest[] = [];
   let shares: GroupShare[] = [];
   let tab: Tab = 'leaderboard';
   let sharePickerOpen = false;
-  let renameName = '';
+  let settingsName = '';
+  let settingsDescription = '';
+  let settingsIcon: string | null = null;
+  let settingsJoinPolicy: JoinPolicy = 'approval';
+  let settingsSharePolicy: SharePolicy = 'members';
+  let settingsMemberCap = '';
   let confirmAction: 'delete' | 'leave' | null = null;
   let busy = false;
   let mounted = false;
@@ -44,6 +54,15 @@
   $: group = $myGroups.find(candidate => candidate.id === gid);
   $: presenceMap = $groupPresence[gid] ?? {};
   $: currentUserId = $auth.mode === 'authenticated' ? getAuthContext().userId : '';
+  $: parsedMemberCap = parseMemberCap(settingsMemberCap);
+  $: settingsChanged = !!group && (
+    settingsName.trim() !== group.name ||
+    settingsDescription.trim() !== (group.description ?? '').trim() ||
+    (settingsIcon || null) !== group.icon ||
+    settingsJoinPolicy !== group.joinPolicy ||
+    settingsSharePolicy !== group.sharePolicy ||
+    parsedMemberCap !== group.memberCap
+  );
 
   async function refresh() {
     if ($auth.mode !== 'authenticated') return;
@@ -75,6 +94,22 @@
     return board.find(entry => entry.userId === share.sharedBy)?.displayName ?? $t.groups.groupMember;
   }
 
+  function seedSettings(current: GroupSummary | undefined) {
+    settingsName = current?.name ?? '';
+    settingsDescription = current?.description ?? '';
+    settingsIcon = current?.icon ?? null;
+    settingsJoinPolicy = current?.joinPolicy ?? 'approval';
+    settingsSharePolicy = current?.sharePolicy ?? 'members';
+    settingsMemberCap = current?.memberCap == null ? '' : String(current.memberCap);
+  }
+
+  function parseMemberCap(value: string): number | null {
+    const nextValue = value.trim();
+    if (!nextValue) return null;
+    const parsed = Number.parseInt(nextValue, 10);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  }
+
   async function initialize() {
     if ($auth.mode !== 'authenticated') return;
     const loadKey = `${$auth.user?.id ?? ''}:${gid}`;
@@ -85,7 +120,7 @@
     sharePickerOpen = false;
     if ($myGroups.length === 0) await loadMyGroups();
     const current = $myGroups.find(candidate => candidate.id === gid);
-    renameName = current?.name ?? '';
+    seedSettings(current);
     await refresh();
     if (tab === 'shared') await refreshShares();
     ready = true;
@@ -103,11 +138,17 @@
     }
   }
 
-  async function saveName() {
-    const nextName = renameName.trim();
-    if (!nextName || nextName === group?.name) return;
-    await mutate(() => renameGroup(gid, nextName));
-    renameName = $myGroups.find(candidate => candidate.id === gid)?.name ?? nextName;
+  async function saveSettings() {
+    const nextName = settingsName.trim();
+    if (!nextName || !settingsChanged) return;
+    await mutate(() => updateGroupSettings(gid, {
+      name: nextName,
+      description: settingsDescription.trim() || null,
+      icon: settingsIcon || null,
+      joinPolicy: settingsJoinPolicy,
+      sharePolicy: settingsSharePolicy,
+      memberCap: parsedMemberCap,
+    }));
   }
 
   function changeVisibility(event: Event) {
@@ -168,8 +209,14 @@
   {:else if group}
     <header class="header">
       <div>
-        <h1 class="text-large-title">{group.name}</h1>
-        <p class="member-count">{$t.groups.members(group.memberCount)}</p>
+        <h1 class="text-large-title group-title">
+          {#if group.icon}<span class="group-icon" aria-hidden="true">{group.icon}</span>{/if}
+          <span>{group.name}</span>
+        </h1>
+        <p class="member-count">
+          {group.memberCap == null ? $t.groups.members(group.memberCount) : $t.groups.membersCapped(group.memberCount, group.memberCap)}
+        </p>
+        {#if group.description}<p class="group-description">{group.description}</p>{/if}
       </div>
       {#if group.isOwner && group.inviteCode}
         <div class="invite">
@@ -259,12 +306,92 @@
             {/if}
           </div>
 
-          <form class="panel rename-form" on:submit|preventDefault={saveName}>
-            <label for="group-name">{$t.groups.rename}</label>
-            <div class="rename-actions">
-              <input id="group-name" bind:value={renameName} maxlength="60" disabled={busy} />
-              <button type="submit" class="action primary" disabled={busy || !renameName.trim() || renameName.trim() === group.name}>{$t.common.save}</button>
+          <form class="panel settings-form" on:submit|preventDefault={saveSettings}>
+            <h2>{$t.groups.settingsTitle}</h2>
+
+            <div class="field">
+              <label for="group-name">{$t.groups.rename}</label>
+              <input id="group-name" type="text" bind:value={settingsName} maxlength="60" disabled={busy} />
             </div>
+
+            <div class="field">
+              <div class="label-row">
+                <label for="group-description">{$t.groups.description}</label>
+                <span>{settingsDescription.length}/280</span>
+              </div>
+              <textarea
+                id="group-description"
+                bind:value={settingsDescription}
+                maxlength="280"
+                rows="3"
+                placeholder={$t.groups.descriptionPlaceholder}
+                disabled={busy}
+              ></textarea>
+            </div>
+
+            <div class="field">
+              <span class="field-label">{$t.groups.icon}</span>
+              <div class="icon-grid" role="radiogroup" aria-label={$t.groups.icon}>
+                <button
+                  type="button"
+                  class:selected={settingsIcon === null}
+                  disabled={busy}
+                  aria-pressed={settingsIcon === null}
+                  on:click={() => (settingsIcon = null)}
+                >
+                  {$t.groups.iconNone}
+                </button>
+                {#each iconOptions as option}
+                  <button
+                    type="button"
+                    class:selected={settingsIcon === option}
+                    disabled={busy}
+                    aria-pressed={settingsIcon === option}
+                    on:click={() => (settingsIcon = option)}
+                  >
+                    {option}
+                  </button>
+                {/each}
+              </div>
+            </div>
+
+            <fieldset class="field">
+              <legend>{$t.groups.joinPolicy}</legend>
+              <div class="segmented">
+                <label>
+                  <input type="radio" bind:group={settingsJoinPolicy} value="open" disabled={busy} />
+                  <span>{$t.groups.joinPolicyOpen}</span>
+                  <small>{$t.groups.joinPolicyOpenHint}</small>
+                </label>
+                <label>
+                  <input type="radio" bind:group={settingsJoinPolicy} value="approval" disabled={busy} />
+                  <span>{$t.groups.joinPolicyApproval}</span>
+                  <small>{$t.groups.joinPolicyApprovalHint}</small>
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset class="field">
+              <legend>{$t.groups.sharePolicy}</legend>
+              <div class="segmented">
+                <label>
+                  <input type="radio" bind:group={settingsSharePolicy} value="members" disabled={busy} />
+                  <span>{$t.groups.sharePolicyAll}</span>
+                </label>
+                <label>
+                  <input type="radio" bind:group={settingsSharePolicy} value="owner" disabled={busy} />
+                  <span>{$t.groups.sharePolicyOwner}</span>
+                </label>
+              </div>
+            </fieldset>
+
+            <div class="field">
+              <label for="group-member-cap">{$t.groups.memberCap}</label>
+              <input id="group-member-cap" type="number" min="1" bind:value={settingsMemberCap} disabled={busy} />
+              <p class="field-hint">{$t.groups.memberCapHint}</p>
+            </div>
+
+            <button type="submit" class="action primary save-settings" disabled={busy || !settingsName.trim() || !settingsChanged}>{$t.common.save}</button>
           </form>
 
           <div class="panel danger-zone">
@@ -311,7 +438,10 @@
   .page { max-width: 720px; margin: 0 auto; padding: 20px 16px 80px; }
   .header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
   .header h1 { margin-bottom: 2px; overflow-wrap: anywhere; }
+  .group-title { display: flex; align-items: center; gap: 8px; }
+  .group-icon { flex: 0 0 auto; line-height: 1; }
   .member-count, .muted { margin: 0; color: var(--muted); font-size: 13px; }
+  .group-description { margin: 4px 0 0; color: var(--muted); font-size: 14px; line-height: 1.4; overflow-wrap: anywhere; }
   .invite { flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; color: var(--muted); font-size: 12px; }
   .invite code { color: var(--text); font-family: var(--font-mono); font-size: 15px; font-weight: 700; letter-spacing: 1px; }
   .tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 20px; padding: 4px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg2); }
@@ -333,14 +463,30 @@
   .manage-stack { display: flex; flex-direction: column; }
   .setting-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 16px; color: var(--text); font-size: 14px; font-weight: 500; }
   .setting-row input { width: 20px; height: 20px; accent-color: var(--primary); }
-  .owner-section, .rename-form, .danger-zone { padding: 16px; }
-  .owner-section h2 { margin: 0 0 12px; color: var(--text); font-size: 15px; }
+  .owner-section, .settings-form, .danger-zone { padding: 16px; }
+  .owner-section h2, .settings-form h2 { margin: 0 0 12px; color: var(--text); font-size: 15px; }
   .request-list { display: flex; flex-direction: column; gap: 10px; }
   .request-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--text); font-size: 14px; }
   .request-row > span { min-width: 0; overflow-wrap: anywhere; }
-  .request-actions, .rename-actions, .confirm-actions { display: flex; align-items: center; gap: 8px; }
-  .rename-form label { display: block; margin-bottom: 8px; color: var(--text); font-size: 14px; font-weight: 600; }
-  .rename-actions input { flex: 1; min-width: 0; padding: 9px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font: inherit; }
+  .request-actions, .confirm-actions { display: flex; align-items: center; gap: 8px; }
+  .settings-form { display: flex; flex-direction: column; gap: 14px; }
+  .field { display: flex; flex-direction: column; gap: 7px; min-width: 0; margin: 0; padding: 0; border: 0; }
+  .field label, .field-label, .field legend { color: var(--text); font-size: 14px; font-weight: 600; }
+  .label-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .label-row span, .field-hint { margin: 0; color: var(--muted); font-size: 12px; }
+  .field input[type="text"], .field input[type="number"], .field textarea, .field > input:not([type]) { padding: 9px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font: inherit; }
+  .field textarea { resize: vertical; min-height: 82px; }
+  .icon-grid { display: flex; flex-wrap: wrap; gap: 7px; }
+  .icon-grid button { min-width: 38px; min-height: 34px; padding: 6px 9px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font: inherit; cursor: pointer; }
+  .icon-grid button.selected { border-color: var(--primary); background: var(--primary); color: var(--bg); }
+  .icon-grid button:disabled { cursor: default; opacity: 0.55; }
+  .segmented { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .segmented label { display: flex; flex-direction: column; gap: 3px; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); cursor: pointer; }
+  .segmented input { position: absolute; opacity: 0; pointer-events: none; }
+  .segmented label:has(input:checked) { border-color: var(--primary); background: var(--bg3); }
+  .segmented span { color: var(--text); font-size: 13px; font-weight: 700; }
+  .segmented small { color: var(--muted); font-size: 12px; line-height: 1.35; }
+  .save-settings { align-self: flex-start; }
   .action { min-height: 36px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg3); color: var(--text); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
   .action.primary { border-color: var(--primary); background: var(--primary); color: var(--bg); }
   .action.danger { border-color: var(--danger); background: var(--danger-soft); color: var(--text); }
@@ -351,9 +497,12 @@
 
   @media (max-width: 520px) {
     .header { flex-direction: column; }
+    .group-title { align-items: flex-start; }
     .invite { align-items: flex-start; }
     .request-row, .inline-confirm { align-items: flex-start; flex-direction: column; }
     .request-actions, .confirm-actions { width: 100%; }
     .request-actions .action, .confirm-actions .action { flex: 1; }
+    .segmented { grid-template-columns: 1fr; }
+    .save-settings { width: 100%; }
   }
 </style>
