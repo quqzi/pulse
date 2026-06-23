@@ -3,6 +3,11 @@
 -- so any member could upsert a perfect score. Now the client sends only its
 -- chosen answers and the score is recomputed server-side from the stored
 -- group_challenges.payload correctIndex values. Total is the question count.
+--
+-- The attempt is also ONE-SHOT: the first submission is recorded and every
+-- later submission is ignored, returning the stored result unchanged. Without
+-- this a member could re-submit endlessly, flip one answer at a time, watch the
+-- returned score move, and reconstruct the hidden answer key by probing.
 drop function if exists public.submit_challenge_result(uuid, int, int);
 
 create or replace function public.submit_challenge_result(p_challenge_id uuid, p_answers int[])
@@ -22,11 +27,15 @@ begin
     where p_answers[i + 1] is not null
       and p_answers[i + 1] = (v_payload->'questions'->i->>'correctIndex')::int;
 
+  -- First attempt wins; re-submissions are no-ops (no probing feedback).
   insert into public.challenge_results(challenge_id, user_id, score, total)
     values (p_challenge_id, auth.uid(), v_score, v_total)
-    on conflict (challenge_id, user_id)
-    do update set score = excluded.score, total = excluded.total, taken_at = now();
+    on conflict (challenge_id, user_id) do nothing;
 
+  -- Always return the stored result, so a re-submit reveals nothing new.
+  select r.score, r.total into v_score, v_total
+    from public.challenge_results r
+    where r.challenge_id = p_challenge_id and r.user_id = auth.uid();
   return query select v_score, v_total;
 end; $$;
 
