@@ -19,7 +19,7 @@
 
   <div class="challenge-copy">
     <h3>{challenge.title}</h3>
-    <p>{$t.groups.sharedBy(sharer)} &middot; {$t.groups.questions(challenge.payload.questions.length)}</p>
+    <p>{$t.groups.sharedBy(sharer)} &middot; {$t.groups.questions(challenge.questionCount)}</p>
   </div>
 
   <div class="actions">

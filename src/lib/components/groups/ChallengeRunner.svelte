@@ -2,27 +2,26 @@
   import { createEventDispatcher } from 'svelte';
   import MathText from '$lib/components/MathText.svelte';
   import { t } from '$lib/i18n';
-  import type { GroupChallenge } from '$lib/groups';
+  import type { ChallengeQuestion } from '$lib/groups';
 
-  export let challenge: GroupChallenge;
-
-  type ChallengeQuestion = GroupChallenge['payload']['questions'][number];
+  export let challengeId: string;
+  export let title: string;
+  export let questions: ChallengeQuestion[];
 
   const dispatch = createEventDispatcher<{ done: { answers: number[] }; cancel: void }>();
   let seededFor = '';
   let currentIndex = 0;
   let answers: (number | null)[] = [];
 
-  $: questions = challenge.payload.questions;
   $: current = questions[currentIndex] as ChallengeQuestion | undefined;
   $: selectedAnswer = answers[currentIndex] ?? null;
   $: progressRatio = questions.length > 0 ? currentIndex / questions.length : 0;
-  $: if (challenge.id !== seededFor) reset();
+  $: if (challengeId !== seededFor) reset();
 
   function reset() {
-    seededFor = challenge.id;
+    seededFor = challengeId;
     currentIndex = 0;
-    answers = new Array(challenge.payload.questions.length).fill(null);
+    answers = new Array(questions.length).fill(null);
   }
 
   function selectAnswer(index: number) {
@@ -45,11 +44,11 @@
   }
 </script>
 
-<section class="runner" aria-label={challenge.title}>
+<section class="runner" aria-label={title}>
   <div class="runner-header">
     <div>
       <p class="progress-label">{$t.groups.challengeQuestionProgress(Math.min(currentIndex + 1, questions.length), questions.length)}</p>
-      <h2>{challenge.title}</h2>
+      <h2>{title}</h2>
     </div>
     <button type="button" class="cancel" on:click={() => dispatch('cancel')}>{$t.groups.cancelChallenge}</button>
   </div>

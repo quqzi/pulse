@@ -22,8 +22,10 @@ export interface LeaderboardEntry {
   totalHours: number; achievements: Achievement[];
 }
 export interface GroupChallenge {
-  id: string; groupId: string; createdBy: string; title: string; payload: ExamSetSnapshot; createdAt: string;
+  id: string; groupId: string; createdBy: string; title: string; questionCount: number; createdAt: string;
 }
+// Answer-key-free question shape served to takers (correctIndex stays server-side).
+export type ChallengeQuestion = Pick<ExamQuestion, 'text' | 'choices' | 'subject' | 'difficulty' | 'year'>;
 export interface ChallengeResult {
   userId: string; name: string; score: number; total: number; takenAt: string;
 }
@@ -121,8 +123,9 @@ export async function getLeaderboard(gid: string): Promise<LeaderboardEntry[]> {
 }
 
 export async function listChallenges(gid: string): Promise<GroupChallenge[]> {
+  // Never select payload — it holds the answer key. Only metadata + question_count.
   const { data, error } = await supabase.from('group_challenges')
-    .select('*')
+    .select('id, group_id, created_by, title, question_count, created_at')
     .eq('group_id', gid)
     .order('created_at', { ascending: false });
   if (error) { toast.error(error.message); return []; }
@@ -131,9 +134,20 @@ export async function listChallenges(gid: string): Promise<GroupChallenge[]> {
     groupId: row.group_id,
     createdBy: row.created_by,
     title: row.title,
-    payload: row.payload,
+    questionCount: Number(row.question_count),
     createdAt: row.created_at,
   }));
+}
+
+export async function getChallengeQuestions(
+  challengeId: string,
+): Promise<{ title: string; questions: ChallengeQuestion[] } | null> {
+  // Questions come from a definer RPC that strips correctIndex — the answer
+  // key is never sent to the client.
+  const { data, error } = await supabase.rpc('get_challenge_questions', { p_challenge_id: challengeId });
+  if (error) { toast.error(error.message); return null; }
+  if (!data) return null;
+  return { title: data.title ?? '', questions: (data.questions ?? []) as ChallengeQuestion[] };
 }
 
 export async function postChallenge(gid: string, questionIds: string[], title: string): Promise<string | null> {

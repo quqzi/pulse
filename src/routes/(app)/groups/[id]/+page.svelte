@@ -12,6 +12,7 @@
   import {
     approveMember,
     deleteGroup,
+    getChallengeQuestions,
     getChallengeResults,
     getLeaderboard,
     leaveGroup,
@@ -24,6 +25,7 @@
     setVisibility,
     submitChallengeResult,
     updateGroupSettings,
+    type ChallengeQuestion,
     type ChallengeResult,
     type GroupChallenge,
     type LeaderboardEntry,
@@ -50,6 +52,7 @@
   let sharePickerOpen = false;
   let challengePickerOpen = false;
   let activeChallenge: GroupChallenge | null = null;
+  let activeQuestions: ChallengeQuestion[] = [];
   let challengeResults: ChallengeResult[] = [];
   let resultsForId = '';
   let settingsName = '';
@@ -122,10 +125,19 @@
     return board.find(entry => entry.userId === challenge.createdBy)?.displayName ?? $t.groups.groupMember;
   }
 
-  function takeChallenge(challenge: GroupChallenge) {
-    activeChallenge = challenge;
-    resultsForId = '';
-    challengeResults = [];
+  async function takeChallenge(challenge: GroupChallenge) {
+    if (busy) return;
+    busy = true;
+    try {
+      const fetched = await getChallengeQuestions(challenge.id);
+      if (!fetched) return;
+      activeQuestions = fetched.questions;
+      activeChallenge = challenge;
+      resultsForId = '';
+      challengeResults = [];
+    } finally {
+      busy = false;
+    }
   }
 
   async function showChallengeResults(challenge: GroupChallenge) {
@@ -358,7 +370,9 @@
           <div class="panel empty-state"><p class="empty-title">{$t.groups.pendingState}</p></div>
         {:else if activeChallenge}
           <ChallengeRunner
-            challenge={activeChallenge}
+            challengeId={activeChallenge.id}
+            title={activeChallenge.title}
+            questions={activeQuestions}
             on:done={finishChallenge}
             on:cancel={() => (activeChallenge = null)}
           />
