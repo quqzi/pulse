@@ -31,8 +31,10 @@ begin
     from public.group_challenges where id = p_challenge_id;
   if v_group is null then raise exception 'challenge not found'; end if;
   if not private.is_group_member(v_group, auth.uid()) then raise exception 'not a member'; end if;
-  select jsonb_agg(q - 'correctIndex') into v_questions
-    from jsonb_array_elements(v_payload->'questions') as q;
+  -- Preserve payload array order (WITH ORDINALITY) — the grader maps answers by
+  -- position, so the order served must match group_challenges.payload exactly.
+  select jsonb_agg(elem - 'correctIndex' order by ord) into v_questions
+    from jsonb_array_elements(v_payload->'questions') with ordinality as t(elem, ord);
   return jsonb_build_object('title', v_payload->>'title', 'questions', coalesce(v_questions, '[]'::jsonb));
 end; $$;
 
