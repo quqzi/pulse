@@ -21,6 +21,12 @@ export interface LeaderboardEntry {
   userId: string; displayName: string; weeklyHours: number; streak: number;
   totalHours: number; achievements: Achievement[];
 }
+export interface GroupChallenge {
+  id: string; groupId: string; createdBy: string; title: string; payload: ExamSetSnapshot; createdAt: string;
+}
+export interface ChallengeResult {
+  userId: string; name: string; score: number; total: number; takenAt: string;
+}
 
 interface FlashcardDeckSnapshot {
   topicName: string;
@@ -114,6 +120,46 @@ export async function getLeaderboard(gid: string): Promise<LeaderboardEntry[]> {
   });
 }
 
+export async function listChallenges(gid: string): Promise<GroupChallenge[]> {
+  const { data, error } = await supabase.from('group_challenges')
+    .select('*')
+    .eq('group_id', gid)
+    .order('created_at', { ascending: false });
+  if (error) { toast.error(error.message); return []; }
+  return (data ?? []).map((row: any): GroupChallenge => ({
+    id: row.id,
+    groupId: row.group_id,
+    createdBy: row.created_by,
+    title: row.title,
+    payload: row.payload,
+    createdAt: row.created_at,
+  }));
+}
+
+export async function postChallenge(gid: string, questionIds: string[], title: string): Promise<string | null> {
+  const { mode } = getAuthContext();
+  if (mode !== 'authenticated') return null;
+  const payload = buildExamSnapshot(questionIds, title);
+  if (!payload) return null;
+  return await rpc<string>('post_challenge', { p_group_id: gid, p_title: title, p_payload: payload });
+}
+
+export async function submitChallengeResult(challengeId: string, score: number, total: number): Promise<void> {
+  await rpc('submit_challenge_result', { p_challenge_id: challengeId, p_score: score, p_total: total });
+}
+
+export async function getChallengeResults(challengeId: string): Promise<ChallengeResult[]> {
+  const { data, error } = await supabase.rpc('get_challenge_results', { p_challenge_id: challengeId });
+  if (error) { toast.error(error.message); return []; }
+  return (data ?? []).map((r: any): ChallengeResult => ({
+    userId: r.user_id,
+    name: r.name,
+    score: Number(r.score),
+    total: Number(r.total),
+    takenAt: r.taken_at,
+  }));
+}
+
 export async function listShares(gid: string): Promise<GroupShare[]> {
   const { data, error } = await supabase.from('group_shares')
     .select('*')
@@ -163,9 +209,7 @@ export async function shareDeck(gid: string, topicId: string): Promise<boolean> 
   return true;
 }
 
-export async function shareExamSet(gid: string, questionIds: string[], title: string): Promise<boolean> {
-  const { userId, mode } = getAuthContext();
-  if (mode !== 'authenticated') return false;
+function buildExamSnapshot(questionIds: string[], title: string): ExamSetSnapshot | null {
   const selectedIds = new Set(questionIds);
   const questions = get(examQuestions)
     .filter(question => selectedIds.has(question.id))
@@ -177,8 +221,15 @@ export async function shareExamSet(gid: string, questionIds: string[], title: st
       difficulty: question.difficulty,
       year: question.year,
     }));
-  if (questions.length === 0) return false;
-  const payload: ExamSetSnapshot = { title, questions };
+  if (questions.length === 0) return null;
+  return { title, questions };
+}
+
+export async function shareExamSet(gid: string, questionIds: string[], title: string): Promise<boolean> {
+  const { userId, mode } = getAuthContext();
+  if (mode !== 'authenticated') return false;
+  const payload = buildExamSnapshot(questionIds, title);
+  if (!payload) return false;
   const { error } = await supabase.from('group_shares').insert({
     group_id: gid,
     shared_by: userId,
