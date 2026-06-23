@@ -11,6 +11,8 @@ import type { ExamQuestion, Flashcard, Subject, Topic } from '$lib/types';
 
 export interface GroupSummary {
   id: string; name: string; inviteCode: string | null;
+  description: string | null; icon: string | null;
+  joinPolicy: 'approval' | 'open'; sharePolicy: 'members' | 'owner'; memberCap: number | null;
   role: 'owner' | 'member'; status: 'pending' | 'approved'; visible: boolean;
   memberCount: number; pendingCount: number; isOwner: boolean;
 }
@@ -54,19 +56,38 @@ export async function loadMyGroups(): Promise<void> {
   if (error) { toast.error(error.message); return; }
   myGroups.set((data ?? []).map((r: any): GroupSummary => ({
     id: r.id, name: r.name, inviteCode: r.invite_code,
+    description: r.description ?? null, icon: r.icon ?? null,
+    joinPolicy: r.join_policy, sharePolicy: r.share_policy,
+    memberCap: r.member_cap == null ? null : Number(r.member_cap),
     role: r.role, status: r.status, visible: r.visible,
     memberCount: Number(r.member_count), pendingCount: Number(r.pending_count), isOwner: r.is_owner,
   })));
 }
 
 export async function createGroup(name: string) { const r = await rpc('create_group', { p_name: name }); await loadMyGroups(); return r; }
-export async function joinGroup(code: string)   { const r = await rpc('join_group', { p_invite_code: code }); await loadMyGroups(); return r; }
+export async function joinGroup(code: string): Promise<'approved' | 'pending' | null> {
+  const r = await rpc<{ status?: string }>('join_group', { p_invite_code: code });
+  await loadMyGroups();
+  return (r?.status === 'approved' || r?.status === 'pending') ? r.status : null;
+}
 export async function approveMember(gid: string, uid: string) { await rpc('approve_member', { p_group_id: gid, p_user_id: uid }); await loadMyGroups(); }
 export async function removeMember(gid: string, uid: string)  { await rpc('remove_member', { p_group_id: gid, p_user_id: uid }); }
 export async function renameGroup(gid: string, name: string)  { await rpc('rename_group', { p_group_id: gid, p_name: name }); await loadMyGroups(); }
 export async function deleteGroup(gid: string) { await rpc('delete_group', { p_group_id: gid }); await loadMyGroups(); }
 export async function leaveGroup(gid: string)  { await rpc('leave_group', { p_group_id: gid }); await loadMyGroups(); }
 export async function setVisibility(gid: string, visible: boolean) { await rpc('set_visibility', { p_group_id: gid, p_visible: visible }); await loadMyGroups(); }
+export async function updateGroupSettings(gid: string, fields: { name?: string; description?: string | null; icon?: string | null; joinPolicy?: 'approval' | 'open'; sharePolicy?: 'members' | 'owner'; memberCap?: number | null }) {
+  await rpc('update_group_settings', {
+    p_group_id: gid,
+    p_name: fields.name ?? null,
+    p_description: fields.description ?? null,
+    p_icon: fields.icon ?? null,
+    p_join_policy: fields.joinPolicy ?? null,
+    p_share_policy: fields.sharePolicy ?? null,
+    p_member_cap: fields.memberCap ?? null,
+  });
+  await loadMyGroups();
+}
 
 export async function listPending(gid: string): Promise<PendingRequest[]> {
   const { data, error } = await supabase.rpc('list_pending_requests', { p_group_id: gid });
