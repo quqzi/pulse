@@ -1,0 +1,10 @@
+revoke execute on function public.create_group(text) from anon;
+revoke execute on function public.join_group(text) from anon;
+revoke execute on function public.approve_member(uuid, uuid) from anon;
+revoke execute on function public.remove_member(uuid, uuid) from anon;
+revoke execute on function public.rename_group(uuid, text) from anon;
+revoke execute on function public.delete_group(uuid) from anon;
+revoke execute on function public.leave_group(uuid) from anon;
+revoke execute on function public.set_visibility(uuid, boolean) from anon;
+revoke execute on function public.list_my_groups() from anon;
+revoke execute on function public.list_pending_requests(uuid) from anon;

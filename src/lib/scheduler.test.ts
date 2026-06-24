@@ -30,6 +30,7 @@ function baseSettings(over: Partial<Settings> = {}): Settings {
     subjectWeights: {},
     readinessHoursTarget: 20,
     musicUrl: '',
+    shareActivity: true,
     notifyEnabled: false,
     notifyBlockStart: true,
     notifyDaily: true,

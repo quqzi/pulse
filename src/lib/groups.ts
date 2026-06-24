@@ -11,6 +11,8 @@ import type { ExamQuestion, Flashcard, Subject, Topic } from '$lib/types';
 
 export interface GroupSummary {
   id: string; name: string; inviteCode: string | null;
+  description: string | null; icon: string | null;
+  joinPolicy: 'approval' | 'open'; sharePolicy: 'members' | 'owner'; memberCap: number | null;
   role: 'owner' | 'member'; status: 'pending' | 'approved'; visible: boolean;
   memberCount: number; pendingCount: number; isOwner: boolean;
 }
@@ -18,6 +20,14 @@ export interface PendingRequest { userId: string; displayName: string; createdAt
 export interface LeaderboardEntry {
   userId: string; displayName: string; weeklyHours: number; streak: number;
   totalHours: number; achievements: Achievement[];
+}
+export interface GroupChallenge {
+  id: string; groupId: string; createdBy: string; title: string; questionCount: number; createdAt: string;
+}
+// Answer-key-free question shape served to takers (correctIndex stays server-side).
+export type ChallengeQuestion = Pick<ExamQuestion, 'text' | 'choices' | 'subject' | 'difficulty' | 'year'>;
+export interface ChallengeResult {
+  userId: string; name: string; score: number; total: number; takenAt: string;
 }
 
 interface FlashcardDeckSnapshot {
@@ -54,19 +64,38 @@ export async function loadMyGroups(): Promise<void> {
   if (error) { toast.error(error.message); return; }
   myGroups.set((data ?? []).map((r: any): GroupSummary => ({
     id: r.id, name: r.name, inviteCode: r.invite_code,
+    description: r.description ?? null, icon: r.icon ?? null,
+    joinPolicy: r.join_policy, sharePolicy: r.share_policy,
+    memberCap: r.member_cap == null ? null : Number(r.member_cap),
     role: r.role, status: r.status, visible: r.visible,
     memberCount: Number(r.member_count), pendingCount: Number(r.pending_count), isOwner: r.is_owner,
   })));
 }
 
 export async function createGroup(name: string) { const r = await rpc('create_group', { p_name: name }); await loadMyGroups(); return r; }
-export async function joinGroup(code: string)   { const r = await rpc('join_group', { p_invite_code: code }); await loadMyGroups(); return r; }
+export async function joinGroup(code: string): Promise<'approved' | 'pending' | null> {
+  const r = await rpc<{ status?: string }>('join_group', { p_invite_code: code });
+  await loadMyGroups();
+  return (r?.status === 'approved' || r?.status === 'pending') ? r.status : null;
+}
 export async function approveMember(gid: string, uid: string) { await rpc('approve_member', { p_group_id: gid, p_user_id: uid }); await loadMyGroups(); }
 export async function removeMember(gid: string, uid: string)  { await rpc('remove_member', { p_group_id: gid, p_user_id: uid }); }
 export async function renameGroup(gid: string, name: string)  { await rpc('rename_group', { p_group_id: gid, p_name: name }); await loadMyGroups(); }
 export async function deleteGroup(gid: string) { await rpc('delete_group', { p_group_id: gid }); await loadMyGroups(); }
 export async function leaveGroup(gid: string)  { await rpc('leave_group', { p_group_id: gid }); await loadMyGroups(); }
 export async function setVisibility(gid: string, visible: boolean) { await rpc('set_visibility', { p_group_id: gid, p_visible: visible }); await loadMyGroups(); }
+export async function updateGroupSettings(gid: string, fields: { name?: string; description?: string | null; icon?: string | null; joinPolicy?: 'approval' | 'open'; sharePolicy?: 'members' | 'owner'; memberCap?: number | null }) {
+  await rpc('update_group_settings', {
+    p_group_id: gid,
+    p_name: fields.name ?? null,
+    p_description: fields.description ?? null,
+    p_icon: fields.icon ?? null,
+    p_join_policy: fields.joinPolicy ?? null,
+    p_share_policy: fields.sharePolicy ?? null,
+    p_member_cap: fields.memberCap ?? null,
+  });
+  await loadMyGroups();
+}
 
 export async function listPending(gid: string): Promise<PendingRequest[]> {
   const { data, error } = await supabase.rpc('list_pending_requests', { p_group_id: gid });
@@ -91,6 +120,70 @@ export async function getLeaderboard(gid: string): Promise<LeaderboardEntry[]> {
       achievements: computeAchievements(input).filter(a => a.unlocked),
     };
   });
+}
+
+export async function listChallenges(gid: string): Promise<GroupChallenge[]> {
+  // Never select payload — it holds the answer key. Only metadata + question_count.
+  const { data, error } = await supabase.from('group_challenges')
+    .select('id, group_id, created_by, title, question_count, created_at')
+    .eq('group_id', gid)
+    .order('created_at', { ascending: false });
+  if (error) { toast.error(error.message); return []; }
+  return (data ?? []).map((row: any): GroupChallenge => ({
+    id: row.id,
+    groupId: row.group_id,
+    createdBy: row.created_by,
+    title: row.title,
+    questionCount: Number(row.question_count),
+    createdAt: row.created_at,
+  }));
+}
+
+export async function getChallengeQuestions(
+  challengeId: string,
+): Promise<{ title: string; questions: ChallengeQuestion[] } | null> {
+  // Questions come from a definer RPC that strips correctIndex — the answer
+  // key is never sent to the client.
+  const { data, error } = await supabase.rpc('get_challenge_questions', { p_challenge_id: challengeId });
+  if (error) { toast.error(error.message); return null; }
+  if (!data) return null;
+  return { title: data.title ?? '', questions: (data.questions ?? []) as ChallengeQuestion[] };
+}
+
+export async function postChallenge(gid: string, questionIds: string[], title: string): Promise<string | null> {
+  const { mode } = getAuthContext();
+  if (mode !== 'authenticated') return null;
+  const payload = buildExamSnapshot(questionIds, title);
+  if (!payload) return null;
+  return await rpc<string>('post_challenge', { p_group_id: gid, p_title: title, p_payload: payload });
+}
+
+export async function submitChallengeResult(
+  challengeId: string,
+  answers: number[],
+): Promise<{ score: number; total: number } | null> {
+  // Score is recomputed server-side from these answers vs the stored payload —
+  // the client never sends (and cannot forge) a score. See submit_challenge_result RPC.
+  const { data, error } = await supabase.rpc('submit_challenge_result', {
+    p_challenge_id: challengeId,
+    p_answers: answers,
+  });
+  if (error) { toast.error(error.message); return null; }
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row) return null;
+  return { score: Number(row.score), total: Number(row.total) };
+}
+
+export async function getChallengeResults(challengeId: string): Promise<ChallengeResult[]> {
+  const { data, error } = await supabase.rpc('get_challenge_results', { p_challenge_id: challengeId });
+  if (error) { toast.error(error.message); return []; }
+  return (data ?? []).map((r: any): ChallengeResult => ({
+    userId: r.user_id,
+    name: r.name,
+    score: Number(r.score),
+    total: Number(r.total),
+    takenAt: r.taken_at,
+  }));
 }
 
 export async function listShares(gid: string): Promise<GroupShare[]> {
@@ -142,9 +235,7 @@ export async function shareDeck(gid: string, topicId: string): Promise<boolean> 
   return true;
 }
 
-export async function shareExamSet(gid: string, questionIds: string[], title: string): Promise<boolean> {
-  const { userId, mode } = getAuthContext();
-  if (mode !== 'authenticated') return false;
+function buildExamSnapshot(questionIds: string[], title: string): ExamSetSnapshot | null {
   const selectedIds = new Set(questionIds);
   const questions = get(examQuestions)
     .filter(question => selectedIds.has(question.id))
@@ -156,8 +247,15 @@ export async function shareExamSet(gid: string, questionIds: string[], title: st
       difficulty: question.difficulty,
       year: question.year,
     }));
-  if (questions.length === 0) return false;
-  const payload: ExamSetSnapshot = { title, questions };
+  if (questions.length === 0) return null;
+  return { title, questions };
+}
+
+export async function shareExamSet(gid: string, questionIds: string[], title: string): Promise<boolean> {
+  const { userId, mode } = getAuthContext();
+  if (mode !== 'authenticated') return false;
+  const payload = buildExamSnapshot(questionIds, title);
+  if (!payload) return false;
   const { error } = await supabase.from('group_shares').insert({
     group_id: gid,
     shared_by: userId,
@@ -169,17 +267,27 @@ export async function shareExamSet(gid: string, questionIds: string[], title: st
   return true;
 }
 
-export async function importShare(share: GroupShare): Promise<void> {
+export async function importShare(
+  share: GroupShare,
+  opts?: { targetSubjectId?: string; newSubjectName?: string; title?: string; selectedIndices?: number[] },
+): Promise<void> {
   const { userId, mode } = getAuthContext();
   if (mode !== 'authenticated') return;
   const createdAt = new Date().toISOString();
 
   if (share.kind === 'flashcard_deck') {
     const payload = share.payload as FlashcardDeckSnapshot;
-    const subjectName = payload.subjectName?.trim() || get(t).groups.importedSubject;
-    let subject = get(subjects).find(candidate => candidate.name.toLocaleLowerCase() === subjectName.toLocaleLowerCase());
+    const existingSubjects = get(subjects);
+    let subject = opts?.targetSubjectId
+      ? existingSubjects.find(candidate => candidate.id === opts.targetSubjectId)
+      : undefined;
+    const requestedSubjectName = opts?.newSubjectName?.trim();
+    const subjectName = requestedSubjectName || payload.subjectName?.trim() || get(t).groups.importedSubject;
     if (!subject) {
-      const orderIndex = get(subjects).reduce((max, candidate) => Math.max(max, candidate.orderIndex), -1) + 1;
+      subject = existingSubjects.find(candidate => candidate.name.toLocaleLowerCase() === subjectName.toLocaleLowerCase());
+    }
+    if (!subject) {
+      const orderIndex = existingSubjects.reduce((max, candidate) => Math.max(max, candidate.orderIndex), -1) + 1;
       const preset = ALL_BUILTIN_PRESETS.get(subjectName.toLocaleLowerCase());
       const paletteColor = SUBJECT_COLOR_PALETTE[orderIndex % SUBJECT_COLOR_PALETTE.length];
       subject = {
@@ -194,21 +302,24 @@ export async function importShare(share: GroupShare): Promise<void> {
       await subjectsRepo.save(subject);
     }
 
+    const topicName = opts?.title !== undefined ? opts.title.trim() : payload.topicName;
     let topic = get(topics).find(candidate =>
-      candidate.subjectId === subject.id && candidate.name.toLocaleLowerCase() === payload.topicName.toLocaleLowerCase()
+      candidate.subjectId === subject.id && candidate.name.toLocaleLowerCase() === topicName.toLocaleLowerCase()
     );
     if (!topic) {
       topic = {
         id: newId(),
         subjectId: subject.id,
-        name: payload.topicName,
+        name: topicName,
         orderIndex: get(topics).filter(candidate => candidate.subjectId === subject.id)
           .reduce((max, candidate) => Math.max(max, candidate.orderIndex), -1) + 1,
       } satisfies Topic;
       await topicsRepo.create(topic);
     }
 
-    for (const card of payload.cards) {
+    const selected = opts?.selectedIndices ? new Set(opts.selectedIndices) : null;
+    for (const [index, card] of payload.cards.entries()) {
+      if (selected && !selected.has(index)) continue;
       await flashcardsRepo.save({
         id: newId(),
         userId,
@@ -220,7 +331,9 @@ export async function importShare(share: GroupShare): Promise<void> {
     }
   } else {
     const payload = share.payload as ExamSetSnapshot;
-    for (const question of payload.questions) {
+    const selected = opts?.selectedIndices ? new Set(opts.selectedIndices) : null;
+    for (const [index, question] of payload.questions.entries()) {
+      if (selected && !selected.has(index)) continue;
       await examQuestionsRepo.save({
         id: newId(),
         userId,

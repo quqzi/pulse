@@ -4,13 +4,20 @@
   import { myGroups, loadMyGroups, createGroup, joinGroup } from '$lib/groups';
   import GroupCard from '$lib/components/groups/GroupCard.svelte';
   import { t } from '$lib/i18n';
+  import { toast } from '$lib/stores/toast';
 
   let name = ''; let code = '';
   onMount(() => { if ($auth.mode === 'authenticated') loadMyGroups(); });
   $: if ($auth.mode === 'authenticated') loadMyGroups();
 
   async function onCreate() { if (name.trim()) { await createGroup(name.trim()); name=''; } }
-  async function onJoin() { if (code.trim()) { await joinGroup(code.trim()); code=''; } }
+  async function onJoin() {
+    if (!code.trim()) return;
+    const status = await joinGroup(code.trim());
+    if (status === 'approved') toast.success($t.groups.joinedToast);
+    if (status === 'pending') toast.success($t.groups.requestSentToast);
+    if (status) code = '';
+  }
 </script>
 
 <div class="page">
