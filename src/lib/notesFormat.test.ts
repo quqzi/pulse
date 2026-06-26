@@ -25,6 +25,32 @@ describe('toggleWrap', () => {
       selEnd: 2,
     });
   });
+
+  it('composes italic onto bold instead of corrupting the bold markers', () => {
+    // **ab** with "ab" selected (2..4), applying italic must yield ***ab***,
+    // not unwrap the inner bold asterisks into *ab*.
+    expect(toggleWrap('**ab**', 2, 4, '*', '*')).toEqual({
+      text: '***ab***',
+      selStart: 3,
+      selEnd: 5,
+    });
+  });
+
+  it('composes bold onto italic', () => {
+    expect(toggleWrap('*ab*', 1, 3, '**', '**')).toEqual({
+      text: '***ab***',
+      selStart: 3,
+      selEnd: 5,
+    });
+  });
+
+  it('still unwraps a standalone italic selection', () => {
+    expect(toggleWrap('*ab*', 1, 3, '*', '*')).toEqual({
+      text: 'ab',
+      selStart: 0,
+      selEnd: 2,
+    });
+  });
 });
 
 describe('toggleLinePrefix', () => {

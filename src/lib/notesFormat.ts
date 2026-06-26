@@ -11,11 +11,23 @@ export function toggleWrap(
   const wrappedStart = selStart - before.length;
   const wrappedEnd = selEnd + after.length;
 
-  if (
+  const alreadyWrapped =
     wrappedStart >= 0 &&
     text.slice(wrappedStart, selStart) === before &&
-    text.slice(selEnd, wrappedEnd) === after
-  ) {
+    text.slice(selEnd, wrappedEnd) === after;
+
+  // Guard composition: a single-char marker (italic `*`) must not match the
+  // inner char of a compound run (bold `**`). If `before`/`after` are a run of
+  // one char and the chars just outside continue it, these markers belong to a
+  // longer run — compose (add) instead of unwrapping, so applying italic to
+  // bold yields ***text*** rather than corrupting it back to *text*.
+  const markerChar = before[before.length - 1];
+  const extendsRun =
+    before === after &&
+    /^(.)\1*$/.test(before) &&
+    (text[wrappedStart - 1] === markerChar || text[wrappedEnd] === markerChar);
+
+  if (alreadyWrapped && !extendsRun) {
     return {
       text: text.slice(0, wrappedStart) + selected + text.slice(wrappedEnd),
       selStart: wrappedStart,
