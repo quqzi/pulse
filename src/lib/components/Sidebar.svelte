@@ -10,6 +10,7 @@
       { key: 'dashboard', href: '/dashboard', d: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' },
       { key: 'timer',     href: '/timer',     d: 'M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zM12 6v6l4 2' },
       { key: 'subjects',  href: '/subjects',  d: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z' },
+      { key: 'notes',     href: '/notes',     d: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM14 2v6h6M8 13h8M8 17h6' },
     ]},
     { labelKey: 'groupTrack', colorVar: 'var(--nav-track)', items: [
       { key: 'analytics', href: '/analytics', d: 'M18 20V10M12 20V4M6 20v-6' },
