@@ -1,9 +1,9 @@
 import { derived } from 'svelte/store';
 import type { AuthState } from '$lib/stores/auth';
 import {
-  subjects, topics, sessions, tasks, templates, scheduleSlots, scores, examQuestions, examSessions, flashcards,
+  subjects, topics, sessions, tasks, templates, scheduleSlots, scores, examQuestions, examSessions, flashcards, notes,
 } from '$lib/data/stores';
-import { tasksRepo, scoresRepo, templatesRepo, subjectsRepo, topicsRepo, sessionsRepo, scheduleRepo, examQuestionsRepo, examSessionsRepo, flashcardsRepo } from '$lib/data/entities';
+import { tasksRepo, scoresRepo, templatesRepo, subjectsRepo, topicsRepo, sessionsRepo, scheduleRepo, examQuestionsRepo, examSessionsRepo, flashcardsRepo, notesRepo } from '$lib/data/entities';
 import { computeInsights } from '$lib/insights';
 import { subjectCoverage } from '$lib/data/readiness-util';
 import { deckState, isDeckDue } from '$lib/flashcards';
@@ -12,7 +12,7 @@ import { settings } from '$lib/stores/settings';
 import { todayDate } from '$lib/stores/clock';
 
 // Re-export so existing `import { tasks } from '$lib/stores/data'` keeps working.
-export { subjects, topics, sessions, tasks, templates, scheduleSlots, scores, examQuestions, examSessions, flashcards };
+export { subjects, topics, sessions, tasks, templates, scheduleSlots, scores, examQuestions, examSessions, flashcards, notes };
 export { authCtx, getAuthContext } from '$lib/data/authctx';
 
 export const todaysSessions = derived([sessions, todayDate], ([$s, $today]) =>
@@ -176,6 +176,7 @@ export async function loadData(authState: AuthState): Promise<void> {
     examQuestionsRepo.load(),
     examSessionsRepo.load(),
     flashcardsRepo.load(),
+    notesRepo.load(),
   ]);
 }
 
