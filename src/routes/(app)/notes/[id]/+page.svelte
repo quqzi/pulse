@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount, onDestroy, tick } from 'svelte';
   import { get } from 'svelte/store';
   import { page } from '$app/stores';
   import { goto, beforeNavigate } from '$app/navigation';
@@ -7,6 +7,7 @@
   import { loadData, notes, subjects, getAuthContext } from '$lib/stores/data';
   import { notesRepo } from '$lib/data/entities';
   import { normalizeTags } from '$lib/notes';
+  import { insertLink, toggleLinePrefix, toggleWrap } from '$lib/notesFormat';
   import { renderMarkdown } from '$lib/markdown';
   import Picker from '$lib/components/Picker.svelte';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
@@ -28,12 +29,15 @@
   let previewHtml = '';
   let tagDraft = '';
   let confirmDelete = false;
+  let titleEl: HTMLInputElement;
+  let bodyEl: HTMLTextAreaElement;
 
   let loaded = false;     // editing enabled (autosave armed)
   let hydrated = false;   // local fields populated from the store
   let hydrating = false;  // hydrate() in flight
   let persisted = false;  // has been written to the repo at least once
   let deleted = false;
+  let focusedNewNote = false;
   let saveTimer: ReturnType<typeof setTimeout> | null = null;
 
   // Populate local editing state once, after auth resolves and data has loaded.
@@ -62,6 +66,10 @@
 
   onMount(hydrate);
   $: if (!hydrated && !hydrating && $auth.mode !== 'loading' && id) hydrate();
+  $: if (hydrated && !persisted && !focusedNewNote && titleEl) {
+    focusedNewNote = true;
+    void tick().then(() => titleEl.focus());
+  }
 
   $: subjectOptions = $subjects.map((s) => ({ value: s.id, label: s.name, color: s.color }));
 
@@ -102,6 +110,32 @@
   async function showPreview() {
     mode = 'preview';
     previewHtml = await renderMarkdown(body);
+  }
+
+  async function applyBodyEdit(
+    edit: (text: string, selStart: number, selEnd: number) => { text: string; selStart: number; selEnd: number }
+  ) {
+    if (!hydrated || !bodyEl) return;
+    const result = edit(body, bodyEl.selectionStart, bodyEl.selectionEnd);
+    body = result.text;
+    await tick();
+    bodyEl.focus();
+    bodyEl.setSelectionRange(result.selStart, result.selEnd);
+  }
+
+  function onBodyKeydown(e: KeyboardEvent) {
+    if (!(e.ctrlKey || e.metaKey)) return;
+    const key = e.key.toLowerCase();
+    if (key === 'b') {
+      e.preventDefault();
+      void applyBodyEdit((text, start, end) => toggleWrap(text, start, end, '**', '**'));
+    } else if (key === 'i') {
+      e.preventDefault();
+      void applyBodyEdit((text, start, end) => toggleWrap(text, start, end, '*', '*'));
+    } else if (key === 'k') {
+      e.preventDefault();
+      void applyBodyEdit(insertLink);
+    }
   }
 
   function addTag() {
@@ -153,6 +187,7 @@
 
   <input
     class="title-input"
+    bind:this={titleEl}
     bind:value={title}
     disabled={!hydrated}
     placeholder={$t.notes.titlePlaceholder}
@@ -191,10 +226,27 @@
   </div>
 
   {#if mode === 'write'}
+    <div class="format-toolbar" aria-label={$t.notes.write}>
+      <button type="button" disabled={!hydrated} aria-label={$t.notes.bold} on:click={() => applyBodyEdit((text, start, end) => toggleWrap(text, start, end, '**', '**'))}>
+        <strong>B</strong>
+      </button>
+      <button type="button" disabled={!hydrated} aria-label={$t.notes.italic} on:click={() => applyBodyEdit((text, start, end) => toggleWrap(text, start, end, '*', '*'))}>
+        <em>I</em>
+      </button>
+      <button type="button" disabled={!hydrated} aria-label={$t.notes.heading} on:click={() => applyBodyEdit((text, start, end) => toggleLinePrefix(text, start, end, '## '))}>H</button>
+      <button type="button" disabled={!hydrated} aria-label={$t.notes.bulletList} on:click={() => applyBodyEdit((text, start, end) => toggleLinePrefix(text, start, end, '- '))}>-</button>
+      <button type="button" disabled={!hydrated} aria-label={$t.notes.numberedList} on:click={() => applyBodyEdit((text, start, end) => toggleLinePrefix(text, start, end, '1. '))}>1.</button>
+      <button type="button" disabled={!hydrated} aria-label={$t.notes.checklist} on:click={() => applyBodyEdit((text, start, end) => toggleLinePrefix(text, start, end, '- [ ] '))}>☐</button>
+      <button type="button" disabled={!hydrated} aria-label={$t.notes.quote} on:click={() => applyBodyEdit((text, start, end) => toggleLinePrefix(text, start, end, '> '))}>“</button>
+      <button type="button" disabled={!hydrated} aria-label={$t.notes.code} on:click={() => applyBodyEdit((text, start, end) => toggleWrap(text, start, end, '`', '`'))}>`</button>
+      <button type="button" disabled={!hydrated} aria-label={$t.notes.link} on:click={() => applyBodyEdit(insertLink)}>↗</button>
+    </div>
     <textarea
       class="body-input"
+      bind:this={bodyEl}
       bind:value={body}
       disabled={!hydrated}
+      on:keydown={onBodyKeydown}
       placeholder={$t.notes.bodyPlaceholder}
       aria-label={$t.notes.bodyPlaceholder}
     ></textarea>
@@ -230,6 +282,10 @@
   .mode-toggle { display: inline-flex; gap: 2px; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 2px; width: max-content; }
   .mode-toggle button { padding: 6px 16px; border: none; border-radius: calc(var(--radius-md) - 2px); background: transparent; color: var(--muted); font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; }
   .mode-toggle button.active { background: var(--bg); color: var(--text); }
+  .format-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; width: max-content; max-width: 100%; padding: 4px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg2); }
+  .format-toolbar button { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: none; border-radius: calc(var(--radius-md) - 2px); background: transparent; color: var(--muted); font-size: 14px; font-family: var(--font-sans); font-weight: 700; line-height: 1; cursor: pointer; transition: background 120ms ease, color 120ms ease, transform 120ms ease; }
+  .format-toolbar button:hover:not(:disabled), .format-toolbar button:focus-visible { background: var(--bg3); color: var(--text); transform: translateY(-1px); }
+  .format-toolbar button:disabled { cursor: not-allowed; opacity: 0.5; }
   .body-input { flex: 1; min-height: 320px; width: 100%; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg2); color: var(--text); font-size: 15px; line-height: 1.6; font-family: var(--font-mono); padding: 14px; resize: vertical; }
   .body-input:focus { outline: none; border-color: var(--primary); }
   .body-preview { flex: 1; min-height: 320px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg2); color: var(--text); padding: 14px; font-size: 15px; line-height: 1.6; }
