@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { scoreFromRow, scoreToRow, topicFromRow, topicToRow, flashcardFromRow, flashcardToRow } from '$lib/data/mappers';
-import type { MockScore, Topic, Flashcard } from '$lib/types';
+import { scoreFromRow, scoreToRow, topicFromRow, topicToRow, flashcardFromRow, flashcardToRow, noteFromRow, noteToRow } from '$lib/data/mappers';
+import type { MockScore, Topic, Flashcard, Note } from '$lib/types';
 
 describe('score mapper', () => {
   it('round-trips camel <-> snake', () => {
@@ -55,5 +55,42 @@ describe('flashcard mapper', () => {
     expect(row.user_id).toBe('u');
     expect(row.topic_id).toBe('t1');
     expect(flashcardFromRow(row)).toEqual(f);
+  });
+});
+
+describe('note mapper', () => {
+  it('round-trips a fully-populated note', () => {
+    const n: Note = {
+      id: 'n1', userId: 'u', subjectId: 'sub1', title: 'Kinematics',
+      body: '# v = u + at', tags: ['physics', 'mechanics'], pinned: true,
+      createdAt: '2026-06-26T10:00:00.000Z', updatedAt: '2026-06-26T11:00:00.000Z',
+    };
+    const row = noteToRow(n);
+    expect(row.user_id).toBe('u');
+    expect(row.subject_id).toBe('sub1');
+    expect(row.tags).toEqual(['physics', 'mechanics']);
+    expect(row.pinned).toBe(true);
+    expect(noteFromRow(row)).toEqual(n);
+  });
+
+  it('maps an unfiled note: subjectId undefined <-> subject_id null', () => {
+    const n: Note = {
+      id: 'n2', userId: 'u', subjectId: undefined, title: '', body: '',
+      tags: [], pinned: false,
+      createdAt: '2026-06-26T10:00:00.000Z', updatedAt: '2026-06-26T10:00:00.000Z',
+    };
+    const row = noteToRow(n);
+    expect(row.subject_id).toBe(null);
+    expect(row.tags).toEqual([]);
+    expect(noteFromRow(row)).toEqual(n);
+  });
+
+  it('defaults a row with null tags to an empty array', () => {
+    const row = {
+      id: 'n3', user_id: 'u', subject_id: null, title: 't', body: 'b',
+      tags: null, pinned: false,
+      created_at: '2026-06-26T10:00:00.000Z', updated_at: '2026-06-26T10:00:00.000Z',
+    };
+    expect(noteFromRow(row).tags).toEqual([]);
   });
 });
