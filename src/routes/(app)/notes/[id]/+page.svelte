@@ -29,12 +29,19 @@
   let tagDraft = '';
   let confirmDelete = false;
 
-  let loaded = false;     // initial value hydrated
+  let loaded = false;     // editing enabled (autosave armed)
+  let hydrated = false;   // local fields populated from the store
+  let hydrating = false;  // hydrate() in flight
   let persisted = false;  // has been written to the repo at least once
   let deleted = false;
   let saveTimer: ReturnType<typeof setTimeout> | null = null;
 
-  onMount(async () => {
+  // Populate local editing state once, after auth resolves and data has loaded.
+  // On a full reload onMount fires while auth is still 'loading' (loadData no-ops),
+  // so we also react to auth resolution — guarded to run exactly once.
+  async function hydrate() {
+    if (hydrated || hydrating || $auth.mode === 'loading' || !id) return;
+    hydrating = true;
     await loadData($auth);
     const existing = get(notes).find((n) => n.id === id);
     if (existing) {
@@ -48,8 +55,13 @@
     } else {
       createdAt = new Date().toISOString();
     }
+    hydrated = true;
     loaded = true;
-  });
+    hydrating = false;
+  }
+
+  onMount(hydrate);
+  $: if (!hydrated && !hydrating && $auth.mode !== 'loading' && id) hydrate();
 
   $: subjectOptions = $subjects.map((s) => ({ value: s.id, label: s.name, color: s.color }));
 
@@ -118,10 +130,12 @@
   onMount(() => {
     window.addEventListener('pagehide', onPageHide);
     window.addEventListener('visibilitychange', onPageHide);
+    return () => {
+      window.removeEventListener('pagehide', onPageHide);
+      window.removeEventListener('visibilitychange', onPageHide);
+    };
   });
   onDestroy(() => {
-    window.removeEventListener('pagehide', onPageHide);
-    window.removeEventListener('visibilitychange', onPageHide);
     if (saveTimer) clearTimeout(saveTimer);
   });
 </script>
