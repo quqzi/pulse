@@ -1,4 +1,4 @@
-import type { Task, MockScore, Template, SubjectPreset, Subject, Topic, SrsCard, StudySession, ScheduleSlot, ExamQuestion, ExamSession, Flashcard } from '$lib/types';
+import type { Task, MockScore, Template, SubjectPreset, Subject, Topic, SrsCard, StudySession, ScheduleSlot, ExamQuestion, ExamSession, Flashcard, Note } from '$lib/types';
 
 export const taskFromRow = (r: Record<string, unknown>): Task => ({
   id: r.id as string,
@@ -22,6 +22,30 @@ export const taskToRow = (t: Task): Record<string, unknown> => ({
   repeat: t.repeat ?? null,
   completed_at: t.completedAt ?? null,
   created_at: t.createdAt,
+});
+
+export const noteFromRow = (r: Record<string, unknown>): Note => ({
+  id: r.id as string,
+  userId: r.user_id as string,
+  subjectId: (r.subject_id as string | null) ?? undefined,
+  title: r.title as string,
+  body: r.body as string,
+  tags: (r.tags as string[] | null) ?? [],
+  pinned: (r.pinned as boolean | null) ?? false,
+  createdAt: r.created_at as string,
+  updatedAt: r.updated_at as string,
+});
+
+export const noteToRow = (n: Note): Record<string, unknown> => ({
+  id: n.id,
+  user_id: n.userId,
+  subject_id: n.subjectId ?? null,
+  title: n.title,
+  body: n.body,
+  tags: n.tags,
+  pinned: n.pinned,
+  created_at: n.createdAt,
+  updated_at: n.updatedAt,
 });
 
 export const scoreFromRow = (r: Record<string, unknown>): MockScore => ({

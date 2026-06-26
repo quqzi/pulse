@@ -65,6 +65,18 @@ export interface Task {
   createdAt: string;     // ISO timestamp
 }
 
+export interface Note {
+  id: string;
+  userId: string;
+  subjectId?: string;   // optional FK -> subject; unset = "Unfiled"
+  title: string;
+  body: string;         // Markdown source text
+  tags: string[];       // free-text tags, lowercased + de-duped on save
+  pinned: boolean;
+  createdAt: string;    // ISO timestamp
+  updatedAt: string;    // ISO timestamp - bumped on every save; drives list sort
+}
+
 export interface SubjectPreset {
   name: string;
   symbol: string;

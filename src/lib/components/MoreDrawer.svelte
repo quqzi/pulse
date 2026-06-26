@@ -25,6 +25,7 @@
     { key: 'scores',     href: '/scores',     d: 'M23 6L13.5 15.5 8.5 10.5 1 18M17 6h6v6' },
     { key: 'exam',       href: '/exam',       d: 'M9 11l3 3 5-5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z' },
     { key: 'flashcards', href: '/flashcards', d: 'M3 5h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM7 9h6M7 13h4' },
+    { key: 'notes',      href: '/notes',      d: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM14 2v6h6M8 13h8M8 17h6' },
     { key: 'groups',     href: '/groups',     d: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0 8 4 4 0 0 0 0-8M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75' },
     { key: 'insights',   href: '/insights',   d: 'M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zM12 8v4M12 16h.01' },
     { key: 'journey',    href: '/journey',    d: 'M22 12h-4l-3 9L9 3l-3 9H2' },
