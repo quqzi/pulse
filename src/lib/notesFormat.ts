@@ -8,26 +8,45 @@ export function toggleWrap(
   after: string
 ): TextEdit {
   const selected = text.slice(selStart, selEnd);
+
+  // Symmetric single-char-run markers (italic `*`, bold `**`, code `` ` ``) toggle
+  // against the ACTUAL run of that char around the selection, so emphasis both
+  // composes and decomposes: **x** +italic -> ***x***, then +italic -> **x**.
+  // A naive equality check confuses the inner char of a longer run (the `*` of
+  // `**`) with the marker itself, which either corrupts or blocks the toggle.
+  const ch = before[0];
+  const isCharRun = before === after && before.length > 0 && new RegExp(`^\\${ch}+$`).test(before);
+  if (isCharRun) {
+    const need = before.length;
+    let left = 0;
+    while (selStart - left - 1 >= 0 && text[selStart - left - 1] === ch) left++;
+    let right = 0;
+    while (selEnd + right < text.length && text[selEnd + right] === ch) right++;
+    const pairs = Math.min(left, right);
+    // italic-style (need 1) is active on odd runs (1, 3); bold-style (need 2) on runs >= 2.
+    const active = need === 1 ? pairs % 2 === 1 : pairs >= need;
+    if (active) {
+      return {
+        text: text.slice(0, selStart - need) + selected + text.slice(selEnd + need),
+        selStart: selStart - need,
+        selEnd: selEnd - need,
+      };
+    }
+    return {
+      text: text.slice(0, selStart) + before + selected + after + text.slice(selEnd),
+      selStart: selStart + need,
+      selEnd: selEnd + need,
+    };
+  }
+
+  // Fallback for non-run markers: wrap, or unwrap if already exactly wrapped.
   const wrappedStart = selStart - before.length;
   const wrappedEnd = selEnd + after.length;
-
-  const alreadyWrapped =
+  if (
     wrappedStart >= 0 &&
     text.slice(wrappedStart, selStart) === before &&
-    text.slice(selEnd, wrappedEnd) === after;
-
-  // Guard composition: a single-char marker (italic `*`) must not match the
-  // inner char of a compound run (bold `**`). If `before`/`after` are a run of
-  // one char and the chars just outside continue it, these markers belong to a
-  // longer run — compose (add) instead of unwrapping, so applying italic to
-  // bold yields ***text*** rather than corrupting it back to *text*.
-  const markerChar = before[before.length - 1];
-  const extendsRun =
-    before === after &&
-    /^(.)\1*$/.test(before) &&
-    (text[wrappedStart - 1] === markerChar || text[wrappedEnd] === markerChar);
-
-  if (alreadyWrapped && !extendsRun) {
+    text.slice(selEnd, wrappedEnd) === after
+  ) {
     return {
       text: text.slice(0, wrappedStart) + selected + text.slice(wrappedEnd),
       selStart: wrappedStart,

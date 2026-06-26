@@ -51,6 +51,24 @@ describe('toggleWrap', () => {
       selEnd: 2,
     });
   });
+
+  it('toggles italic off a composed bold+italic, leaving bold intact', () => {
+    // ***ab*** with "ab" selected (3..5), applying italic must decompose to **ab**,
+    // not pile on a fourth asterisk per side.
+    expect(toggleWrap('***ab***', 3, 5, '*', '*')).toEqual({
+      text: '**ab**',
+      selStart: 2,
+      selEnd: 4,
+    });
+  });
+
+  it('toggles bold off a composed bold+italic, leaving italic intact', () => {
+    expect(toggleWrap('***ab***', 3, 5, '**', '**')).toEqual({
+      text: '*ab*',
+      selStart: 1,
+      selEnd: 3,
+    });
+  });
 });
 
 describe('toggleLinePrefix', () => {
