@@ -144,16 +144,17 @@
   <header class="editor-bar">
     <a class="back" href="/notes" aria-label={$t.notes.back}>‹ {$t.notes.back}</a>
     <div class="bar-actions">
-      <button class="pin-toggle" class:on={pinned} on:click={() => (pinned = !pinned)}>
+      <button class="pin-toggle" class:on={pinned} disabled={!hydrated} on:click={() => (pinned = !pinned)}>
         {pinned ? $t.notes.unpin : $t.notes.pin}
       </button>
-      <button class="delete-btn" on:click={() => (confirmDelete = true)}>{$t.notes.delete}</button>
+      <button class="delete-btn" disabled={!hydrated} on:click={() => (confirmDelete = true)}>{$t.notes.delete}</button>
     </div>
   </header>
 
   <input
     class="title-input"
     bind:value={title}
+    disabled={!hydrated}
     placeholder={$t.notes.titlePlaceholder}
     aria-label={$t.notes.titlePlaceholder}
   />
@@ -162,6 +163,7 @@
     <Picker
       value={subjectId ?? ''}
       options={subjectOptions}
+      disabled={!hydrated}
       placeholder={$t.notes.unfiled}
       ariaLabel={$t.notes.unfiled}
       on:change={(e) => (subjectId = e.detail.value || undefined)}
@@ -175,6 +177,7 @@
     <input
       class="tag-input"
       bind:value={tagDraft}
+      disabled={!hydrated}
       on:keydown={onTagKey}
       on:blur={addTag}
       placeholder={$t.notes.tagsPlaceholder}
@@ -191,6 +194,7 @@
     <textarea
       class="body-input"
       bind:value={body}
+      disabled={!hydrated}
       placeholder={$t.notes.bodyPlaceholder}
       aria-label={$t.notes.bodyPlaceholder}
     ></textarea>
