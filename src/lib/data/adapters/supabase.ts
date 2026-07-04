@@ -24,7 +24,8 @@ export function supabaseAdapter<T extends { id: string }>(cfg: SupabaseAdapterCo
       if (error) throw error; // engine.save() catches -> rollback + toast
     },
     async saveMany(items) {
-      const { error } = await supabase.from(cfg.table).insert(items.map(cfg.toRow));
+      // upsert, not insert — must match the guest adapter's merge-by-id semantics
+      const { error } = await supabase.from(cfg.table).upsert(items.map(cfg.toRow));
       if (error) throw error;
     },
     async remove(id) {
