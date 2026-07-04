@@ -14,6 +14,12 @@ export function localAdapter<T extends { id: string }>(lsKey: string): Adapter<T
       else all.push(item);
       lsWrite(lsKey, all);
     },
+    async saveMany(items) {
+      const all = lsRead<T>(lsKey);
+      const byId = new Map(all.map((item) => [item.id, item]));
+      for (const item of items) byId.set(item.id, item);
+      lsWrite(lsKey, [...byId.values()]);
+    },
     async remove(id) {
       lsWrite(lsKey, lsRead<T>(lsKey).filter((x) => x.id !== id));
     },

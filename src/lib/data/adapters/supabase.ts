@@ -23,6 +23,10 @@ export function supabaseAdapter<T extends { id: string }>(cfg: SupabaseAdapterCo
       const { error } = await supabase.from(cfg.table).upsert(cfg.toRow(item));
       if (error) throw error; // engine.save() catches -> rollback + toast
     },
+    async saveMany(items) {
+      const { error } = await supabase.from(cfg.table).insert(items.map(cfg.toRow));
+      if (error) throw error;
+    },
     async remove(id) {
       const { error } = await supabase.from(cfg.table).delete().eq('id', id);
       if (error) throw error;
