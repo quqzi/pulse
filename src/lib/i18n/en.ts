@@ -590,6 +590,7 @@ export const en = {
     bodyPlaceholder: 'Start writing… Markdown supported.',
     write: 'Write',
     preview: 'Preview',
+    previewEmpty: 'Start typing — the preview updates as you write.',
     bold: 'Bold',
     italic: 'Italic',
     heading: 'Heading',

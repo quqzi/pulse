@@ -592,6 +592,7 @@ export const th: I18n = {
     bodyPlaceholder: 'เริ่มเขียน… รองรับ Markdown',
     write: 'เขียน',
     preview: 'ดูตัวอย่าง',
+    previewEmpty: 'เริ่มพิมพ์ได้เลย — ตัวอย่างจะอัปเดตทันทีที่เขียน',
     bold: 'ตัวหนา',
     italic: 'ตัวเอียง',
     heading: 'หัวข้อ',
