@@ -510,6 +510,8 @@ export const th: I18n = {
     next: 'ถัดไป →',
     finishExam: 'จบการสอบ →',
     resultSummary: (min: number) => `สอบจำลอง · ${min} นาที`,
+    autoScoreNote: 'จากข้อสอบจำลอง',
+    savedToScores: 'บันทึกไปที่คะแนนแล้ว',
     weakestArea: 'จุดอ่อนที่สุด:',
     reviewSrs: 'ทบทวนการ์ด SRS',
     tryAgain: 'ลองอีกครั้ง',

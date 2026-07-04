@@ -2,9 +2,10 @@
   import { onMount, onDestroy } from 'svelte';
   import { auth } from '$lib/stores/auth';
   import { examQuestions, subjects, loadData, getAuthContext } from '$lib/stores/data';
-  import { examSessionsRepo } from '$lib/data/entities';
+  import { examSessionsRepo, scoresRepo } from '$lib/data/entities';
   import { newId } from '$lib/id';
   import { t } from '$lib/i18n';
+  import { localDateStr } from '$lib/utils';
   import type { ExamQuestion, ExamSession } from '$lib/types';
   import MathText from '$lib/components/MathText.svelte';
 
@@ -152,6 +153,7 @@
   // ── Results ───────────────────────────────────────────────
   let resultSession: ExamSession | null = null;
   let weakestSubject = '';
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
   async function finishExam() {
     if (timerInterval) {
@@ -189,6 +191,20 @@
     };
 
     await examSessionsRepo.save(session);
+    const takenAt = localDateStr(new Date());
+    for (const [subjId, val] of Object.entries(subjectScores)) {
+      if (!UUID_RE.test(subjId) || !$subjects.find((s) => s.id === subjId)) continue;
+      await scoresRepo.save({
+        id: newId(),
+        userId,
+        subjectId: subjId,
+        score: val.correct,
+        maxScore: val.total,
+        takenAt,
+        notes: $t.exam.autoScoreNote,
+        createdAt: new Date().toISOString(),
+      });
+    }
     resultSession = session;
 
     let worstRatio = 2;
@@ -342,6 +358,7 @@
         {resultSession.totalCorrect}<span class="result-denom">/{resultSession.totalQuestions}</span>
       </div>
       <div class="result-sub">{$t.exam.resultSummary(Math.round(resultSession.durationSeconds / 60))}</div>
+      <a class="saved-link" href="/scores">{$t.exam.savedToScores}</a>
 
       <div class="breakdown">
         {#each Object.entries(resultSession.subjectScores) as [subjId, val]}
@@ -431,6 +448,7 @@
   .result-score { font-size: 56px; font-weight: 700; color: var(--primary); line-height: 1; }
   .result-denom { font-size: 24px; font-weight: 400; color: var(--muted); }
   .result-sub { font-size: 13px; color: var(--muted); margin-top: 4px; margin-bottom: 24px; }
+  .saved-link { display: inline-flex; margin-bottom: 22px; color: var(--primary); font-size: 13px; font-weight: 600; text-decoration: none; }
   .breakdown { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; text-align: left; }
   .breakdown-row { display: flex; align-items: center; gap: 10px; font-size: 13px; }
   .breakdown-label { width: 80px; color: var(--muted); flex-shrink: 0; }

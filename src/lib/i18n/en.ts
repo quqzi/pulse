@@ -508,6 +508,8 @@ export const en = {
     next: 'Next →',
     finishExam: 'Finish Exam →',
     resultSummary: (min: number) => `Mock Exam · ${min} min`,
+    autoScoreNote: 'From mock exam',
+    savedToScores: 'Saved to Scores',
     weakestArea: 'Weakest area:',
     reviewSrs: 'review SRS cards',
     tryAgain: 'Try again',
