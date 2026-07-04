@@ -353,7 +353,7 @@ Guest mode is fully offline (localStorage); no account required.
 
 ### Open (ready to implement)
 
-- **Import QoL + desktop sheet** — `docs/superpowers/plans/2026-07-04-import-qol-desktop-sheet.md`. Phase 1: `BottomSheet` renders as a centered dialog ≥768px (fixes the "weird on PC" import UI everywhere). Phase 2: import preview list with per-item checkboxes, duplicate flagging, letter-answer parsing (A–D), and a bulk `saveMany` on the repo engine.
+- _None._
 
 ### Planned (spec'd, plan not yet written)
 
