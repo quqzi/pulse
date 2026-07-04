@@ -94,17 +94,29 @@
   $: subjectName = $subjects.find(s => s.id === topic?.subjectId)?.name;
   $: importPrompt = flashcardPrompt(topic?.name ?? '', subjectName, cardCount, importLanguage || undefined, importFocus.trim() || undefined);
 
+  function previewFlashcard(item: unknown) {
+    const draft = item as FlashcardDraft;
+    return { title: draft.front, sub: draft.back };
+  }
+
+  function isDuplicateFlashcard(item: unknown) {
+    const draft = item as FlashcardDraft;
+    const frontText = draft.front.trim().toLowerCase();
+    return deckCards.some((card) => card.front.trim().toLowerCase() === frontText);
+  }
+
   async function handleImport(e: CustomEvent<{ items: unknown[] }>) {
     if (!topicId) return;
     const { userId } = getAuthContext();
     const drafts = e.detail.items as FlashcardDraft[];
-    for (const d of drafts) {
-      await flashcardsRepo.save({
+    const createdAt = new Date().toISOString();
+    await flashcardsRepo.saveMany(
+      drafts.map((d) => ({
         id: newId(), userId, topicId,
         front: d.front, back: d.back,
-        createdAt: new Date().toISOString(),
-      });
-    }
+        createdAt,
+      })),
+    );
     importOpen = false;
     toast.success(get(t).importer.importedToast(drafts.length));
   }
@@ -214,7 +226,15 @@
     {#if deckCards.length > 0}<button class="study-deck-btn" on:click={startStudy}>{$t.flashcards.study}</button>{/if}
   </div>
 
-  <ImportSheet bind:open={importOpen} prompt={importPrompt} parse={parseFlashcards} on:import={handleImport} on:close={() => (importOpen = false)}>
+  <ImportSheet
+    bind:open={importOpen}
+    prompt={importPrompt}
+    parse={parseFlashcards}
+    preview={previewFlashcard}
+    isDuplicate={isDuplicateFlashcard}
+    on:import={handleImport}
+    on:close={() => (importOpen = false)}
+  >
     <div slot="options">
       <div class="opt-row">
         <span class="opt-label">{$t.importer.howMany}</span>

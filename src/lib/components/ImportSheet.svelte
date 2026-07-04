@@ -7,18 +7,24 @@
   export let open = false;
   export let prompt: string;
   export let parse: (text: string) => ImportResult<unknown>;
+  export let preview: (item: unknown) => { title: string; sub?: string } = (item) => ({ title: String(item) });
+  export let isDuplicate: (item: unknown) => boolean = () => false;
 
   const dispatch = createEventDispatcher<{ import: { items: unknown[] }; close: void }>();
 
   let text = '';
   let copied = false;
   let promptVisible = false;
+  let checked: boolean[] = [];
   // The user may hand-edit the prompt; re-sync whenever the built prompt
   // changes (count/difficulty/subject controls) so the controls stay live.
   let editedPrompt = prompt;
   $: editedPrompt = prompt;
 
   $: result = text.trim() ? parse(text) : null;
+  $: checked = result?.ok ? result.items.map((item) => !isDuplicate(item)) : [];
+  $: selectedItems = result?.ok ? result.items.filter((_, i) => checked[i]) : [];
+  $: selectedCount = selectedItems.length;
 
   async function copyPrompt() {
     try {
@@ -37,8 +43,8 @@
   }
 
   function doImport() {
-    if (!result?.ok) return;
-    dispatch('import', { items: result.items });
+    if (!result?.ok || selectedCount === 0) return;
+    dispatch('import', { items: selectedItems });
     text = '';
   }
 
@@ -80,10 +86,30 @@
     </p>
   {:else if result?.ok}
     <p class="parse-msg ok">{$t.importer.itemsReady(result.items.length)}</p>
+    {#if result.skipped > 0}
+      <p class="parse-msg warning">{$t.importer.skippedCount(result.skipped)}</p>
+    {/if}
+    <div class="preview-head">
+      <span>{$t.importer.selectedCount(selectedCount, result.items.length)}</span>
+    </div>
+    <div class="preview-list">
+      {#each result.items as item, i}
+        {@const meta = preview(item)}
+        {@const duplicate = isDuplicate(item)}
+        <label class="preview-row" class:duplicate={duplicate}>
+          <input type="checkbox" bind:checked={checked[i]} />
+          <span class="preview-copy">
+            <span class="preview-title">{meta.title}</span>
+            {#if meta.sub}<span class="preview-sub">{meta.sub}</span>{/if}
+          </span>
+          {#if duplicate}<span class="duplicate-badge">{$t.importer.duplicate}</span>{/if}
+        </label>
+      {/each}
+    </div>
   {/if}
 
-  <button class="import-btn pressable" disabled={!result?.ok} on:click={doImport}>
-    {result?.ok ? $t.importer.importN(result.items.length) : $t.importer.importBtn}
+  <button class="import-btn pressable" disabled={!result?.ok || selectedCount === 0} on:click={doImport}>
+    {result?.ok ? $t.importer.importN(selectedCount) : $t.importer.importBtn}
   </button>
 </BottomSheet>
 
@@ -122,6 +148,33 @@
   .parse-msg { font-size: 12px; margin: 8px 0 0; }
   .parse-msg.error { color: var(--danger); }
   .parse-msg.ok { color: var(--primary); font-weight: 600; }
+  .parse-msg.warning { color: var(--muted); }
+  .preview-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin: 10px 0 6px; font-size: 12px; color: var(--muted); font-weight: 600;
+  }
+  .preview-list {
+    max-height: 240px; overflow-y: auto; border: 1px solid var(--border);
+    border-radius: 10px; background: var(--bg); margin-top: 6px;
+  }
+  .preview-row {
+    display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 8px 10px;
+    border-bottom: 1px solid var(--border); cursor: pointer;
+  }
+  .preview-row:last-child { border-bottom: none; }
+  .preview-row.duplicate { background: var(--bg2); }
+  .preview-row input { flex-shrink: 0; accent-color: var(--primary); }
+  .preview-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .preview-title, .preview-sub {
+    display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .preview-title { font-size: 13px; color: var(--text); font-weight: 600; }
+  .preview-sub { font-size: 12px; color: var(--muted); }
+  .duplicate-badge {
+    flex-shrink: 0; border: 1px solid var(--border); border-radius: 999px;
+    padding: 2px 7px; color: var(--muted); font-size: 10px; font-weight: 700;
+    text-transform: uppercase;
+  }
   .import-btn {
     width: 100%; margin-top: 12px; padding: 12px; border-radius: 10px; border: none;
     background: var(--primary); color: var(--bg); font-family: inherit; font-size: 14px;
