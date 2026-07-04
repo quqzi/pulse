@@ -25,7 +25,6 @@
   let subjectId: string | undefined = undefined;
   let pinned = false;
   let createdAt = '';
-  let mode: 'write' | 'preview' = 'write';
   let previewHtml = '';
   let tagDraft = '';
   let confirmDelete = false;
@@ -107,10 +106,19 @@
   // Any tracked field change schedules a save.
   $: if (loaded) { title; body; tags; subjectId; pinned; scheduleSave(); }
 
-  async function showPreview() {
-    mode = 'preview';
-    previewHtml = await renderMarkdown(body);
+  // Live preview: debounce keystrokes, drop stale async renders.
+  const PREVIEW_DEBOUNCE_MS = 250;
+  let previewTimer: ReturnType<typeof setTimeout> | null = null;
+  let previewToken = 0;
+  function schedulePreview(text: string) {
+    if (previewTimer) clearTimeout(previewTimer);
+    previewTimer = setTimeout(async () => {
+      const token = ++previewToken;
+      const html = await renderMarkdown(text);
+      if (token === previewToken) previewHtml = html;
+    }, PREVIEW_DEBOUNCE_MS);
   }
+  $: if (hydrated) schedulePreview(body);
 
   async function applyBodyEdit(
     edit: (text: string, selStart: number, selEnd: number) => { text: string; selStart: number; selEnd: number }
@@ -171,6 +179,7 @@
   });
   onDestroy(() => {
     if (saveTimer) clearTimeout(saveTimer);
+    if (previewTimer) clearTimeout(previewTimer);
   });
 </script>
 
@@ -220,13 +229,7 @@
     />
   </div>
 
-  <div class="mode-toggle" role="tablist">
-    <button role="tab" aria-selected={mode === 'write'} class:active={mode === 'write'} on:click={() => (mode = 'write')}>{$t.notes.write}</button>
-    <button role="tab" aria-selected={mode === 'preview'} class:active={mode === 'preview'} on:click={showPreview}>{$t.notes.preview}</button>
-  </div>
-
-  {#if mode === 'write'}
-    <div class="format-toolbar" aria-label={$t.notes.write}>
+  <div class="format-toolbar" aria-label={$t.notes.write}>
       <button type="button" disabled={!hydrated} aria-label={$t.notes.bold} on:click={() => applyBodyEdit((text, start, end) => toggleWrap(text, start, end, '**', '**'))}>
         <strong>B</strong>
       </button>
@@ -240,7 +243,9 @@
       <button type="button" disabled={!hydrated} aria-label={$t.notes.quote} on:click={() => applyBodyEdit((text, start, end) => toggleLinePrefix(text, start, end, '> '))}>“</button>
       <button type="button" disabled={!hydrated} aria-label={$t.notes.code} on:click={() => applyBodyEdit((text, start, end) => toggleWrap(text, start, end, '`', '`'))}>`</button>
       <button type="button" disabled={!hydrated} aria-label={$t.notes.link} on:click={() => applyBodyEdit(insertLink)}>↗</button>
-    </div>
+  </div>
+
+  <div class="write-split">
     <textarea
       class="body-input"
       bind:this={bodyEl}
@@ -250,10 +255,16 @@
       placeholder={$t.notes.bodyPlaceholder}
       aria-label={$t.notes.bodyPlaceholder}
     ></textarea>
-  {:else}
-    <!-- previewHtml is sanitized by renderMarkdown (DOMPurify) -->
-    <div class="body-preview markdown">{@html previewHtml}</div>
-  {/if}
+    <div class="preview-pane">
+      <span class="preview-label">{$t.notes.preview}</span>
+      {#if body.trim()}
+        <!-- previewHtml is sanitized by renderMarkdown (DOMPurify) -->
+        <div class="body-preview markdown">{@html previewHtml}</div>
+      {:else}
+        <div class="body-preview preview-empty">{$t.notes.previewEmpty}</div>
+      {/if}
+    </div>
+  </div>
 </div>
 
 <ConfirmDialog
@@ -279,9 +290,15 @@
   .tag-x { border: none; background: transparent; color: inherit; cursor: pointer; font-size: 14px; line-height: 1; padding: 0; }
   .tag-input { border: none; background: transparent; color: var(--text); font-size: 13px; font-family: inherit; min-width: 120px; flex: 1; }
   .tag-input:focus { outline: none; }
-  .mode-toggle { display: inline-flex; gap: 2px; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 2px; width: max-content; }
-  .mode-toggle button { padding: 6px 16px; border: none; border-radius: calc(var(--radius-md) - 2px); background: transparent; color: var(--muted); font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; }
-  .mode-toggle button.active { background: var(--bg); color: var(--text); }
+  .write-split { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+  .preview-pane { display: flex; flex-direction: column; gap: 4px; }
+  .preview-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+  .preview-empty { color: var(--muted); font-size: 13px; }
+  @media (min-width: 1024px) {
+    .editor { max-width: 1100px; }
+    .write-split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: stretch; }
+    .preview-pane { min-height: 0; }
+  }
   .format-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; width: max-content; max-width: 100%; padding: 4px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg2); }
   .format-toolbar button { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: none; border-radius: calc(var(--radius-md) - 2px); background: transparent; color: var(--muted); font-size: 14px; font-family: var(--font-sans); font-weight: 700; line-height: 1; cursor: pointer; transition: background 120ms ease, color 120ms ease, transform 120ms ease; }
   .format-toolbar button:hover:not(:disabled), .format-toolbar button:focus-visible { background: var(--bg3); color: var(--text); transform: translateY(-1px); }

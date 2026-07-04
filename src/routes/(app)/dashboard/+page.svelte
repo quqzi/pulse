@@ -6,12 +6,17 @@
   import {
     subjects, topics,
     dueDecks, todayHours, streak, loadData, getAuthContext,
-    tasksDueToday,
+    tasksDueToday, todaysSessions,
   } from '$lib/stores/data';
+  import { toast } from '$lib/stores/toast';
+  import { formatDuration } from '$lib/utils';
+  import { get } from 'svelte/store';
+  import type { StudySession } from '$lib/types';
   import { setTimerSubject } from '$lib/stores/timer';
   import { cardTilt } from '$lib/effects';
   import { localDateStr } from '$lib/utils';
   import HeroCard from '$lib/components/HeroCard.svelte';
+  import GettingStarted from '$lib/components/GettingStarted.svelte';
   import ExamCountdown from '$lib/components/ExamCountdown.svelte';
   import SubjectTile from '$lib/components/SubjectTile.svelte';
   import TodaysPlan from '$lib/components/TodaysPlan.svelte';
@@ -34,6 +39,17 @@
     setTimerSubject(e.detail.subjectId, e.detail.topicId);
     goto('/timer');
   }
+
+  async function deleteSession(s: StudySession) {
+    const snapshot = s;
+    await sessionsRepo.remove(s.id);
+    toast.success(get(t).common.deletedUndo, {
+      label: get(t).common.undo,
+      fn: () => sessionsRepo.log(snapshot),
+    });
+  }
+
+  $: subjectById = Object.fromEntries($subjects.map((s) => [s.id, s]));
 
   async function handleLog(e: CustomEvent<{ subjectId: string; topicId: string | undefined; durationMin: number }>) {
     const { subjectId, topicId, durationMin } = e.detail;
@@ -66,6 +82,8 @@
       </p>
     </div>
   </div>
+
+  <GettingStarted />
 
   <ExamCountdown />
 
@@ -148,6 +166,27 @@
     on:log={handleLog}
   />
 
+  {#if $todaysSessions.length > 0}
+    <section class="sessions-section">
+      <div class="section-label">{$t.dashboard.todaysSessions}</div>
+      <div class="card sessions-card">
+        {#each $todaysSessions as s, i (s.id)}
+          <div class="session-row" class:divider={i > 0}>
+            <span class="session-dot" style="background: {subjectById[s.subjectId]?.color ?? 'var(--muted)'}"></span>
+            <span class="session-subject">{subjectById[s.subjectId]?.name ?? '—'}</span>
+            {#if s.topicId}
+              <span class="session-topic">{$topics.find((tp) => tp.id === s.topicId)?.name ?? ''}</span>
+            {/if}
+            <span class="session-meta">
+              {formatDuration(s.durationSec)} · {$fmt.date(s.startedAt, { hour: '2-digit', minute: '2-digit' })}
+            </span>
+            <button class="session-delete" on:click={() => deleteSession(s)} aria-label={$t.dashboard.deleteSession}>✕</button>
+          </div>
+        {/each}
+      </div>
+    </section>
+  {/if}
+
   <div class="bottom-spacer"></div>
 </div>
 
@@ -182,6 +221,16 @@
   .task-divider { height: 1px; background: var(--border); margin: 0 14px; }
   .see-more { display: block; text-align: center; padding: 8px; font-size: 13px; color: var(--primary); text-decoration: none; font-weight: 500; }
   .bottom-spacer { height: 32px; }
+  .sessions-section { margin-top: 20px; }
+  .sessions-card { padding: 0; overflow: hidden; }
+  .session-row { display: flex; align-items: center; gap: 8px; padding: 10px 14px; min-height: 44px; }
+  .session-row.divider { border-top: 1px solid var(--border); }
+  .session-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .session-subject { font-size: 13px; font-weight: 600; color: var(--text); }
+  .session-topic { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .session-meta { font-size: 12px; color: var(--muted); margin-left: auto; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+  .session-delete { border: none; background: none; color: var(--muted); cursor: pointer; font-size: 12px; min-width: 32px; min-height: 32px; border-radius: 8px; flex-shrink: 0; }
+  .session-delete:hover { background: var(--bg3); color: var(--danger); }
   .review-section { margin-top: 20px; }
   .review-cta {
     display: flex;

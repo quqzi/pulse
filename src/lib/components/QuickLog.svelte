@@ -16,6 +16,9 @@
   let durationMin = 30;
   let submitting = false;
   let done = false;
+  let loggedMin = 0;
+  let loggedSubjectName = '';
+  const DONE_FLASH_MS = 2500;
 
   $: subjectTopics = topics.filter(tp => tp.subjectId === selectedSubjectId);
   $: selectedSubject = subjects.find(s => s.id === selectedSubjectId);
@@ -28,6 +31,8 @@
       topicId: selectedTopicId || undefined,
       durationMin,
     });
+    loggedMin = durationMin;
+    loggedSubjectName = selectedSubject?.name ?? '';
     done = true;
     submitting = false;
     setTimeout(() => {
@@ -35,7 +40,7 @@
       selectedSubjectId = '';
       selectedTopicId = '';
       durationMin = 30;
-    }, 1500);
+    }, DONE_FLASH_MS);
   }
 </script>
 
@@ -50,7 +55,7 @@
             <path d="M20 6L9 17l-5-5"/>
           </svg>
         </span>
-        <span>{$t.dashboard.logged}</span>
+        <span>{loggedSubjectName ? $t.dashboard.loggedDetail(loggedMin, loggedSubjectName) : $t.dashboard.logged}</span>
       </div>
     {:else}
       <div class="form-row">
