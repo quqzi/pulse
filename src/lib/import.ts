@@ -21,7 +21,7 @@ export interface SubjectPresetDraft {
 }
 
 export type ImportError = 'invalid-json' | 'not-array' | 'no-valid-items';
-export type ImportResult<T> = { ok: true; items: T[] } | { ok: false; error: ImportError };
+export type ImportResult<T> = { ok: true; items: T[]; skipped: number } | { ok: false; error: ImportError };
 
 const MAX_FIELD_LEN = 500;
 const MAX_ITEMS = 200;
@@ -34,6 +34,36 @@ function extractJson(text: string): string {
   // AIs often preface with "Here are your cards:" — cut to the first bracket.
   const start = Math.min(...['[', '{'].map(c => { const i = s.indexOf(c); return i === -1 ? Infinity : i; }));
   if (start !== Infinity && start > 0) s = s.slice(start);
+  if (start === Infinity) return s;
+
+  const stack: string[] = [];
+  let inString = false;
+  let escaped = false;
+  for (let i = 0; i < s.length; i += 1) {
+    const ch = s[i];
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (ch === '\\') {
+        escaped = true;
+      } else if (ch === '"') {
+        inString = false;
+      }
+      continue;
+    }
+    if (ch === '"') {
+      inString = true;
+      continue;
+    }
+    if (ch === '[' || ch === '{') {
+      stack.push(ch === '[' ? ']' : '}');
+      continue;
+    }
+    if (ch === ']' || ch === '}') {
+      if (stack.pop() !== ch) return s;
+      if (stack.length === 0) return s.slice(0, i + 1);
+    }
+  }
   return s;
 }
 
@@ -49,10 +79,15 @@ function toArray(parsed: unknown): unknown[] | null {
 
 function parseRaw(text: string): { arr: unknown[] } | { error: ImportError } {
   let parsed: unknown;
+  const extracted = extractJson(text);
   try {
-    parsed = JSON.parse(extractJson(text));
+    parsed = JSON.parse(extracted);
   } catch {
-    return { error: 'invalid-json' };
+    try {
+      parsed = JSON.parse(extracted.replace(/,\s*([}\]])/g, '$1'));
+    } catch {
+      return { error: 'invalid-json' };
+    }
   }
   const arr = toArray(parsed);
   if (!arr) return { error: 'not-array' };
@@ -66,42 +101,95 @@ export function parseFlashcards(text: string): ImportResult<FlashcardDraft> {
   const raw = parseRaw(text);
   if ('error' in raw) return { ok: false, error: raw.error };
   const items: FlashcardDraft[] = [];
+  let skipped = 0;
   for (const it of raw.arr.slice(0, MAX_ITEMS)) {
-    if (!it || typeof it !== 'object') continue;
+    if (!it || typeof it !== 'object') {
+      skipped += 1;
+      continue;
+    }
     const o = it as Record<string, unknown>;
     const front = str(o.front ?? o.question ?? o.term);
     const back = str(o.back ?? o.answer ?? o.definition);
-    if (front && back) items.push({ front, back });
+    if (front && back) {
+      items.push({ front, back });
+    } else {
+      skipped += 1;
+    }
   }
-  return items.length ? { ok: true, items } : { ok: false, error: 'no-valid-items' };
+  return items.length ? { ok: true, items, skipped } : { ok: false, error: 'no-valid-items' };
+}
+
+function resolveAnswerIndex(o: Record<string, unknown>, choices: string[]): 0 | 1 | 2 | 3 | null {
+  const sources = [
+    ['correctIndex', o.correctIndex],
+    ['answerIndex', o.answerIndex],
+    ['correct', o.correct],
+    ['answer', o.answer],
+    ['correctAnswer', o.correctAnswer],
+  ] as const;
+  const source = sources.find(([, value]) => value !== undefined && value !== null);
+  if (!source) return null;
+  const [key, rawAns] = source;
+  const numeric = typeof rawAns === 'number' || (typeof rawAns === 'string' && rawAns.trim() !== '')
+    ? Number(rawAns)
+    : Number.NaN;
+  if (Number.isInteger(numeric)) {
+    if (numeric >= 0 && numeric <= 3) return numeric as 0 | 1 | 2 | 3;
+    if (key === 'correct' && numeric === 4) return 3;
+  }
+  if (typeof rawAns !== 'string') return null;
+
+  const letter = rawAns.trim().match(/^\(?\s*([a-d])\s*[\).:]?$/i)?.[1];
+  if (letter) return (letter.toLowerCase().charCodeAt(0) - 97) as 0 | 1 | 2 | 3;
+
+  const match = choices.findIndex(choice => choice.toLowerCase() === rawAns.trim().toLowerCase());
+  return match >= 0 && match <= 3 ? match as 0 | 1 | 2 | 3 : null;
 }
 
 export function parseExamQuestions(text: string): ImportResult<ExamQuestionDraft> {
   const raw = parseRaw(text);
   if ('error' in raw) return { ok: false, error: raw.error };
   const items: ExamQuestionDraft[] = [];
+  let skipped = 0;
   for (const it of raw.arr.slice(0, MAX_ITEMS)) {
-    if (!it || typeof it !== 'object') continue;
+    if (!it || typeof it !== 'object') {
+      skipped += 1;
+      continue;
+    }
     const o = it as Record<string, unknown>;
     const qText = str(o.text ?? o.question);
     const rawChoices = Array.isArray(o.choices) ? o.choices : Array.isArray(o.options) ? o.options : null;
-    if (!qText || !rawChoices || rawChoices.length !== 4) continue;
+    if (!qText || !rawChoices || rawChoices.length < 4) {
+      skipped += 1;
+      continue;
+    }
     const choices = rawChoices.map(str);
-    if (choices.some(c => c === null)) continue;
-    const ci = Number(o.correctIndex ?? o.answerIndex ?? o.correct);
-    if (!Number.isInteger(ci) || ci < 0 || ci > 3) continue;
+    if (choices.some(c => c === null)) {
+      skipped += 1;
+      continue;
+    }
+    const ci = resolveAnswerIndex(o, choices as string[]);
+    if (ci === null) {
+      skipped += 1;
+      continue;
+    }
     const diff = o.difficulty === 'easy' || o.difficulty === 'hard' ? o.difficulty : 'medium';
     const yearNum = Number(o.year);
     const year = Number.isInteger(yearNum) && yearNum >= 1990 && yearNum <= 2100 ? yearNum : undefined;
+    const keptChoices = choices.slice(0, 4);
+    if (ci >= keptChoices.length) {
+      skipped += 1;
+      continue;
+    }
     items.push({
       text: qText,
-      choices: choices as [string, string, string, string],
-      correctIndex: ci as 0 | 1 | 2 | 3,
+      choices: keptChoices as [string, string, string, string],
+      correctIndex: ci,
       difficulty: diff,
       year,
     });
   }
-  return items.length ? { ok: true, items } : { ok: false, error: 'no-valid-items' };
+  return items.length ? { ok: true, items, skipped } : { ok: false, error: 'no-valid-items' };
 }
 
 const MAX_TOPICS = 60;
@@ -122,17 +210,24 @@ export function parseTemplate(text: string): ImportResult<SubjectPresetDraft> {
   const raw = parseRaw(text);
   if ('error' in raw) return { ok: false, error: raw.error };
   const items: SubjectPresetDraft[] = [];
+  let skipped = 0;
   for (const it of raw.arr.slice(0, MAX_ITEMS)) {
-    if (!it || typeof it !== 'object') continue;
+    if (!it || typeof it !== 'object') {
+      skipped += 1;
+      continue;
+    }
     const o = it as Record<string, unknown>;
     const name = str(o.name ?? o.subject ?? o.title);
-    if (!name) continue;
+    if (!name) {
+      skipped += 1;
+      continue;
+    }
     const symbolRaw = str(o.symbol ?? o.abbr ?? o.abbreviation);
     const symbol = symbolRaw ? symbolRaw.slice(0, 2) : undefined;
     const topics = toTopicList(o.topics ?? o.chapters ?? o.units);
     items.push({ name, symbol, topics });
   }
-  return items.length ? { ok: true, items } : { ok: false, error: 'no-valid-items' };
+  return items.length ? { ok: true, items, skipped } : { ok: false, error: 'no-valid-items' };
 }
 
 export function templatePrompt(goal = 'TCAS', count = 6, language?: string, focus?: string): string {

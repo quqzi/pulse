@@ -6,6 +6,7 @@ export type Mode = 'guest' | 'authenticated';
 export interface Adapter<T> {
   list(): Promise<T[]>;
   save(item: T): Promise<void>;
+  saveMany(items: T[]): Promise<void>;
   remove(id: string): Promise<void>;
 }
 
@@ -25,6 +26,7 @@ export interface RepoDeps<T extends { id: string }> {
 export interface Repository<T extends { id: string }> {
   load(): Promise<T[]>;
   save(item: T): Promise<void>;
+  saveMany(items: T[]): Promise<void>;
   remove(id: string): Promise<void>;
 }
 
@@ -39,6 +41,12 @@ export function createRepository<T extends { id: string }>(
     const i = arr.findIndex((x) => x.id === item.id);
     const next = i >= 0 ? arr.map((x) => (x.id === item.id ? item : x)) : [...arr, item];
     return sort(next);
+  }
+
+  function upsertMany(arr: T[], items: T[]): T[] {
+    const byId = new Map(arr.map((item) => [item.id, item]));
+    for (const item of items) byId.set(item.id, item);
+    return sort([...byId.values()]);
   }
 
   return {
@@ -59,6 +67,18 @@ export function createRepository<T extends { id: string }>(
       cfg.store.set(upsert(snapshot, item));
       try {
         await adapter().save(item);
+      } catch {
+        cfg.store.set(snapshot);
+        deps.onError("Couldn't save — try again");
+      }
+    },
+
+    async saveMany(items) {
+      if (items.length === 0) return;
+      const snapshot = get(cfg.store);
+      cfg.store.set(upsertMany(snapshot, items));
+      try {
+        await adapter().saveMany(items);
       } catch {
         cfg.store.set(snapshot);
         deps.onError("Couldn't save — try again");

@@ -32,6 +32,19 @@ describe('createRepository', () => {
     expect(adapter.data).toContainEqual({ id: 'b', n: 2 });
   });
 
+  it('saveMany upserts all items into the store and persists once via the adapter', async () => {
+    const store = writable<Row[]>([{ id: 'a', n: 1 }]);
+    const adapter = mockAdapter<Row>([{ id: 'a', n: 1 }]);
+    const repo = createRepository<Row>({ store, order: (x, y) => x.n - y.n }, deps(adapter));
+    const saveMany = vi.spyOn(adapter, 'saveMany');
+
+    await repo.saveMany([{ id: 'c', n: 3 }, { id: 'b', n: 2 }, { id: 'a', n: 4 }]);
+
+    expect(get(store).map((r) => r.id)).toEqual(['b', 'c', 'a']);
+    expect(adapter.data).toEqual([{ id: 'a', n: 4 }, { id: 'c', n: 3 }, { id: 'b', n: 2 }]);
+    expect(saveMany).toHaveBeenCalledOnce();
+  });
+
   it('reverts the store and reports an error when a save fails', async () => {
     const store = writable<Row[]>([{ id: 'a', n: 1 }]);
     const adapter = mockAdapter<Row>([{ id: 'a', n: 1 }]);
@@ -40,6 +53,17 @@ describe('createRepository', () => {
     const repo = createRepository<Row>({ store }, deps(adapter, onError));
     await repo.save({ id: 'b', n: 2 });
     expect(get(store)).toEqual([{ id: 'a', n: 1 }]); // rolled back
+    expect(onError).toHaveBeenCalledOnce();
+  });
+
+  it('reverts the store and reports an error when saveMany fails', async () => {
+    const store = writable<Row[]>([{ id: 'a', n: 1 }]);
+    const adapter = mockAdapter<Row>([{ id: 'a', n: 1 }]);
+    adapter.failSave = true;
+    const onError = vi.fn();
+    const repo = createRepository<Row>({ store }, deps(adapter, onError));
+    await repo.saveMany([{ id: 'b', n: 2 }, { id: 'c', n: 3 }]);
+    expect(get(store)).toEqual([{ id: 'a', n: 1 }]);
     expect(onError).toHaveBeenCalledOnce();
   });
 

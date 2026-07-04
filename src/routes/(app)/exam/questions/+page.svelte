@@ -137,17 +137,30 @@
   $: if (!importSubject && $subjects.length > 0) importSubject = $subjects[0].name;
   $: importPromptText = examPrompt(importSubject || 'TCAS', importCount, importDifficulty, importLanguage || undefined, importFocus.trim() || undefined);
 
+  function previewQuestion(item: unknown) {
+    const draft = item as ExamQuestionDraft;
+    return { title: draft.text, sub: draft.choices[draft.correctIndex] };
+  }
+
+  function isDuplicateQuestion(item: unknown) {
+    const draft = item as ExamQuestionDraft;
+    const targetSubject = importSubject || 'TCAS';
+    const text = draft.text.trim().toLowerCase();
+    return $examQuestions.some((q) => q.subject === targetSubject && q.text.trim().toLowerCase() === text);
+  }
+
   async function handleImport(e: CustomEvent<{ items: unknown[] }>) {
     const { userId } = getAuthContext();
     const drafts = e.detail.items as ExamQuestionDraft[];
-    for (const d of drafts) {
-      await examQuestionsRepo.save({
+    const createdAt = new Date().toISOString();
+    await examQuestionsRepo.saveMany(
+      drafts.map((d) => ({
         id: newId(), userId,
         text: d.text, choices: d.choices, correctIndex: d.correctIndex,
         subject: importSubject || 'TCAS', difficulty: d.difficulty, year: d.year,
-        createdAt: new Date().toISOString(),
-      });
-    }
+        createdAt,
+      })),
+    );
     importOpen = false;
     toast.success(get(t).importer.importedToast(drafts.length));
   }
@@ -166,7 +179,15 @@
     </div>
   </div>
 
-  <ImportSheet bind:open={importOpen} prompt={importPromptText} parse={parseExamQuestions} on:import={handleImport} on:close={() => (importOpen = false)}>
+  <ImportSheet
+    bind:open={importOpen}
+    prompt={importPromptText}
+    parse={parseExamQuestions}
+    preview={previewQuestion}
+    isDuplicate={isDuplicateQuestion}
+    on:import={handleImport}
+    on:close={() => (importOpen = false)}
+  >
     <div slot="options" class="import-options">
       <div class="import-subject-row">
         <label class="field-label" for="import-subject">{$t.exam.subjectLabel}</label>

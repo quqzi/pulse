@@ -24,6 +24,14 @@ export function mockAdapter<T extends { id: string }>(seed: T[] = []): MockAdapt
       if (i >= 0) a.data[i] = item;
       else a.data.push(item);
     },
+    async saveMany(items) {
+      if (a.failSave) throw new Error('mock save error');
+      for (const item of items) {
+        const i = a.data.findIndex((x) => x.id === item.id);
+        if (i >= 0) a.data[i] = item;
+        else a.data.push(item);
+      }
+    },
     async remove(id) {
       if (a.failRemove) throw new Error('mock remove error');
       a.data = a.data.filter((x) => x.id !== id);
