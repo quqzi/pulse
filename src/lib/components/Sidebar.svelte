@@ -108,10 +108,11 @@
   /* Accent bar springs open on the active item. */
   .nav-item::before {
     content: ''; position: absolute; left: 2px; top: 50%; translate: 0 -50%;
-    width: 3px; height: 0; border-radius: 2px; background: var(--primary);
-    transition: height 280ms var(--ease-spring);
+    width: 3px; height: 16px; border-radius: 2px; background: var(--primary);
+    transform: scaleY(0);
+    transition: transform 280ms var(--ease-spring);
   }
-  .nav-item.active::before { height: 16px; }
+  .nav-item.active::before { transform: scaleY(1); }
   .nav-item:active { transform: scale(0.96); transition-duration: var(--dur-fast); }
   .nav-item:hover { background: var(--bg3); color: var(--text); }
   .nav-item:hover svg { transform: scale(1.12); }

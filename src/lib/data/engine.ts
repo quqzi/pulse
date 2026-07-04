@@ -26,7 +26,8 @@ export interface RepoDeps<T extends { id: string }> {
 export interface Repository<T extends { id: string }> {
   load(): Promise<T[]>;
   save(item: T): Promise<void>;
-  saveMany(items: T[]): Promise<void>;
+  /** Resolves true on success, false after a rollback — callers can keep UI state for retry. */
+  saveMany(items: T[]): Promise<boolean>;
   remove(id: string): Promise<void>;
 }
 
@@ -74,14 +75,16 @@ export function createRepository<T extends { id: string }>(
     },
 
     async saveMany(items) {
-      if (items.length === 0) return;
+      if (items.length === 0) return true;
       const snapshot = get(cfg.store);
       cfg.store.set(upsertMany(snapshot, items));
       try {
         await adapter().saveMany(items);
+        return true;
       } catch {
         cfg.store.set(snapshot);
         deps.onError("Couldn't save — try again");
+        return false;
       }
     },
 

@@ -22,7 +22,19 @@
   $: editedPrompt = prompt;
 
   $: result = text.trim() ? parse(text) : null;
-  $: checked = result?.ok ? result.items.map((item) => !isDuplicate(item)) : [];
+  // Duplicate = already in the user's data OR repeated earlier in this same paste.
+  $: dupFlags = result?.ok
+    ? (() => {
+        const seen = new Set<string>();
+        return result.items.map((item) => {
+          const key = preview(item).title.trim().toLowerCase();
+          const dup = isDuplicate(item) || seen.has(key);
+          seen.add(key);
+          return dup;
+        });
+      })()
+    : [];
+  $: checked = dupFlags.map((d) => !d);
   $: selectedItems = result?.ok ? result.items.filter((_, i) => checked[i]) : [];
   $: selectedCount = selectedItems.length;
 
@@ -44,8 +56,9 @@
 
   function doImport() {
     if (!result?.ok || selectedCount === 0) return;
+    // Don't clear the paste here — if the save fails the parent keeps the sheet
+    // open so the user can retry; close() clears it on successful close.
     dispatch('import', { items: selectedItems });
-    text = '';
   }
 
   function close() {
@@ -55,7 +68,7 @@
   }
 </script>
 
-<BottomSheet bind:open on:close={close}>
+<BottomSheet bind:open label={$t.importer.title} on:close={close}>
   <h3 class="import-title">{$t.importer.title}</h3>
 
   <p class="step"><span class="step-num">1</span>{$t.importer.step1}</p>
@@ -64,12 +77,12 @@
     <button class="copy-btn pressable" on:click={copyPrompt}>
       {copied ? $t.importer.copied : $t.importer.copyPrompt}
     </button>
-    <button class="peek-btn" class:active={promptVisible} on:click={() => (promptVisible = !promptVisible)} aria-expanded={promptVisible}>
+    <button class="peek-btn" class:active={promptVisible} on:click={() => (promptVisible = !promptVisible)} aria-expanded={promptVisible} aria-controls="import-prompt-editor">
       {$t.importer.showPrompt}
     </button>
   </div>
   {#if promptVisible}
-    <textarea class="prompt-area" rows="7" bind:value={editedPrompt} aria-label={$t.importer.showPrompt}></textarea>
+    <textarea id="import-prompt-editor" class="prompt-area" rows="7" bind:value={editedPrompt} aria-label={$t.importer.showPrompt}></textarea>
   {/if}
 
   <p class="step"><span class="step-num">2</span>{$t.importer.step2}</p>
@@ -95,7 +108,7 @@
     <div class="preview-list">
       {#each result.items as item, i}
         {@const meta = preview(item)}
-        {@const duplicate = isDuplicate(item)}
+        {@const duplicate = dupFlags[i]}
         <label class="preview-row" class:duplicate={duplicate}>
           <input type="checkbox" bind:checked={checked[i]} />
           <span class="preview-copy">

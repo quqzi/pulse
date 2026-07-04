@@ -110,13 +110,14 @@
     const { userId } = getAuthContext();
     const drafts = e.detail.items as FlashcardDraft[];
     const createdAt = new Date().toISOString();
-    await flashcardsRepo.saveMany(
+    const ok = await flashcardsRepo.saveMany(
       drafts.map((d) => ({
         id: newId(), userId, topicId,
         front: d.front, back: d.back,
         createdAt,
       })),
     );
+    if (!ok) return; // engine rolled back + toasted; keep the sheet + paste for retry
     importOpen = false;
     toast.success(get(t).importer.importedToast(drafts.length));
   }
