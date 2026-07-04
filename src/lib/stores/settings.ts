@@ -46,6 +46,7 @@ export interface Settings {
   notifyDailyTime: string;     // "19:00"
   notifyTasksDue: boolean;     // tasks due today (folded into the daily nudge)
   notifyStreak: boolean;       // evening nudge when the streak is at risk
+  gettingStartedDismissed: boolean; // dashboard getting-started checklist hidden
 }
 
 export function defaults(): Settings {
@@ -79,6 +80,7 @@ export function defaults(): Settings {
     notifyDailyTime: '19:00',
     notifyTasksDue: true,
     notifyStreak: true,
+    gettingStartedDismissed: false,
   };
 }
 

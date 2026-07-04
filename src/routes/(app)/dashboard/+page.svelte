@@ -12,6 +12,7 @@
   import { cardTilt } from '$lib/effects';
   import { localDateStr } from '$lib/utils';
   import HeroCard from '$lib/components/HeroCard.svelte';
+  import GettingStarted from '$lib/components/GettingStarted.svelte';
   import ExamCountdown from '$lib/components/ExamCountdown.svelte';
   import SubjectTile from '$lib/components/SubjectTile.svelte';
   import TodaysPlan from '$lib/components/TodaysPlan.svelte';
@@ -66,6 +67,8 @@
       </p>
     </div>
   </div>
+
+  <GettingStarted />
 
   <ExamCountdown />
 

@@ -21,6 +21,15 @@ export const en = {
     groupTrack: 'Track',
     groupSettings: 'Settings',
   },
+  gettingStarted: {
+    title: 'Get started',
+    progress: (done: number, total: number) => `${done} of ${total} done`,
+    dismiss: 'Hide this guide',
+    addSubjects: 'Add the subjects you study',
+    setExamDate: 'Set your exam date',
+    planWeek: 'Plan your study week',
+    studyOnce: 'Finish your first study session',
+  },
   dashboard: {
     goodMorning: 'Good morning',
     goodAfternoon: 'Good afternoon',

@@ -37,6 +37,7 @@ function baseSettings(over: Partial<Settings> = {}): Settings {
     notifyDailyTime: '19:00',
     notifyTasksDue: true,
     notifyStreak: true,
+    gettingStartedDismissed: false,
     ...over,
   };
 }

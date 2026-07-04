@@ -23,6 +23,15 @@ export const th: I18n = {
     groupTrack: 'ติดตาม',
     groupSettings: 'ตั้งค่า',
   },
+  gettingStarted: {
+    title: 'เริ่มต้นใช้งาน',
+    progress: (done: number, total: number) => `ทำแล้ว ${done} จาก ${total} ขั้น`,
+    dismiss: 'ซ่อนคู่มือนี้',
+    addSubjects: 'เพิ่มวิชาที่อ่านอยู่',
+    setExamDate: 'ตั้งวันสอบของคุณ',
+    planWeek: 'วางแผนสัปดาห์อ่านหนังสือ',
+    studyOnce: 'จบเซสชันแรกของคุณ',
+  },
   dashboard: {
     goodMorning: 'อรุณสวัสดิ์',
     goodAfternoon: 'สวัสดีตอนบ่าย',
