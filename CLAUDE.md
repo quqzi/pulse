@@ -300,7 +300,7 @@ src/
     i18n/{en,th}.ts
   routes/
     (app)/                # sidebar + content shell
-      dashboard/ timer/ subjects/ tasks/ analytics/ schedule/ scores/ journey/ insights/ exam/ flashcards/ settings/
+      dashboard/ timer/ subjects/ notes/ tasks/ analytics/ schedule/ scores/ journey/ insights/ exam/ flashcards/ groups/ guide/ changelog/ settings/
     auth/ onboarding/
 ```
 
@@ -308,7 +308,7 @@ src/
 
 ```ts
 // writables (defined in data/stores.ts, re-exported here)
-subjects topics sessions tasks templates scheduleSlots scores examQuestions examSessions flashcards
+subjects topics sessions tasks templates scheduleSlots scores examQuestions examSessions flashcards notes
 // derived
 todaysSessions dueDecks todayHours streak tasksDueToday readinessScore insights
 // functions
@@ -329,7 +329,9 @@ Guest mode is fully offline (localStorage); no account required.
 
 ### Supabase Tables — all RLS-enabled, policy `auth.uid() = user_id`
 
-`subjects` · `topics` (FK → subject, cascade; `next_study_date` = the deck's manual schedule) · `flashcards` (FK → topic, cascade) · `study_sessions` · `tasks` · `mock_scores` · `templates` · `schedule_slots` · `user_settings` (JSONB per-user) · `exam_questions` · `exam_sessions` · `push_subscriptions` (one row per device) · `scheduled_pushes` (one-off pushes, e.g. pomodoro finished). (`notification_sends` is a service-role-only dedupe log with **no** RLS policy. `srs_cards` still exists in the DB but is retired — no app code reads it.)
+`subjects` · `topics` (FK → subject, cascade; `next_study_date` = the deck's manual schedule) · `flashcards` (FK → topic, cascade) · `study_sessions` · `tasks` · `notes` · `mock_scores` · `templates` · `schedule_slots` · `user_settings` (JSONB per-user) · `exam_questions` · `exam_sessions` · `push_subscriptions` (one row per device) · `scheduled_pushes` (one-off pushes, e.g. pomodoro finished).
+
+**Study Groups (auth-only, not in the repo engine):** `src/lib/groups.ts` talks to Supabase directly — tables `groups` / `group_members` / `group_shares` / `group_challenges` are accessed almost entirely through SECURITY DEFINER RPCs (`create_group`, `list_my_groups`, `get_group_leaderboard`, `approve_member`, `submit_challenge_result`, …) rather than plain RLS selects, because members must read each other's aggregates. New RPCs must `REVOKE` from `public` **and** `anon`, then `GRANT` to `authenticated`. Guest mode never touches groups. (`notification_sends` is a service-role-only dedupe log with **no** RLS policy. `srs_cards` still exists in the DB but is retired — no app code reads it.)
 
 **Web Push (closed-app notifications):** client `src/lib/push.ts` subscribes a device (auth-only) and `src/lib/pomodoroPush.ts` schedules/cancels the pomodoro-finish push; the service-worker `push` handler shows it. The sender is the Deno Edge Function `supabase/functions/send-push/` (VAPID + `web-push`, custom `x-cron-secret` auth so `verify_jwt: false`), fired every minute by a pg_cron job. Times are evaluated in Asia/Bangkok. Function secrets (`VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`/`VAPID_SUBJECT`/`CRON_SECRET`) live on the function, never in the repo; the client reads `PUBLIC_VAPID_PUBLIC_KEY` from Vercel env. Editing the function or applying its migrations is a **production action** — get explicit go-ahead.
 
@@ -351,7 +353,7 @@ Guest mode is fully offline (localStorage); no account required.
 
 ### Open (ready to implement)
 
-- _None — WS1–WS6 foundation roadmap complete._
+- **Import QoL + desktop sheet** — `docs/superpowers/plans/2026-07-04-import-qol-desktop-sheet.md`. Phase 1: `BottomSheet` renders as a centered dialog ≥768px (fixes the "weird on PC" import UI everywhere). Phase 2: import preview list with per-item checkboxes, duplicate flagging, letter-answer parsing (A–D), and a bulk `saveMany` on the repo engine.
 
 ### Planned (spec'd, plan not yet written)
 
