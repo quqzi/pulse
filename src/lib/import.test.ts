@@ -69,6 +69,14 @@ describe('parseFlashcards', () => {
     expect(r.ok && r.items.length).toBe(1);
   });
 
+  it('tolerates trailing prose after the array', () => {
+    expect(parseFlashcards('[{"front":"f","back":"b"}] \nHope this helps!').ok).toBe(true);
+  });
+
+  it('tolerates a trailing comma', () => {
+    expect(parseFlashcards('[{"front":"f","back":"b",}]').ok).toBe(true);
+  });
+
   it('unwraps an object holding the array', () => {
     const r = parseFlashcards('{"cards":[{"front":"a","back":"b"}]}');
     expect(r.ok && r.items.length).toBe(1);
@@ -82,6 +90,11 @@ describe('parseFlashcards', () => {
   it('skips invalid items but keeps valid ones', () => {
     const r = parseFlashcards('[{"front":"a","back":"b"},{"front":""},"junk",{"back":"x"}]');
     expect(r.ok && r.items.length).toBe(1);
+  });
+
+  it('reports skipped count', () => {
+    const r = parseFlashcards('[{"front":"f","back":"b"},{"front":"only front"}]');
+    expect(r.ok && r.skipped).toBe(1);
   });
 
   it('rejects non-JSON', () => {
@@ -128,6 +141,26 @@ describe('parseExamQuestions', () => {
     expect(r.ok && r.items[0]).toEqual({
       text: 'q?', choices: ['a', 'b', 'c', 'd'], correctIndex: 2, difficulty: 'medium', year: 2024,
     });
+  });
+
+  it('accepts letter answers incl. decorated/lowercase', () => {
+    const r = parseExamQuestions('[{"text":"q","choices":["1","2","3","4"],"answer":"(c)"}]');
+    expect(r.ok && r.items[0].correctIndex).toBe(2);
+  });
+
+  it('remaps correct:4 (1-based) to index 3', () => {
+    const r = parseExamQuestions('[{"text":"q","choices":["1","2","3","4"],"correct":4}]');
+    expect(r.ok && r.items[0].correctIndex).toBe(3);
+  });
+
+  it('accepts the answer as the choice text', () => {
+    const r = parseExamQuestions('[{"text":"q","choices":["a","b","c","d"],"answer":"c"}]');
+    expect(r.ok && r.items[0].correctIndex).toBe(2);
+  });
+
+  it('keeps first 4 of 5 choices when the answer is among them', () => {
+    const r = parseExamQuestions('[{"text":"q","choices":["a","b","c","d","e"],"correctIndex":0}]');
+    expect(r.ok && r.items[0].choices.length).toBe(4);
   });
 
   it('discards an implausible year', () => {
