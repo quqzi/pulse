@@ -83,49 +83,73 @@ git commit -m "fix(ui): render BottomSheet as centered dialog on desktop"
 
 ## Phase 2 — Import QoL
 
-### Task 2: Parser accepts letter answers + clearer errors
+### Task 2: Parser hardening — survive real messy AI output
+
+> Verified 2026-07-04 by probing the live parser: 6 realistic failure modes currently break it.
+> Happy paths (fences, leading prose, key aliases, `"2"` string numbers) already pass — don't regress them.
 
 **Files:**
 - Modify: `src/lib/import.ts`
 - Test: `src/lib/import.test.ts`
 
 **Interfaces:**
-- Produces: `parseExamQuestions` additionally accepts `correct`/`answer` given as `"A" | "B" | "C" | "D"` (case-insensitive, also `"a."`/`"(b)"` tolerated via first-letter match).
+- `extractJson` additionally cuts **trailing** prose (balance-scan to the matching close bracket) and strips trailing commas before `}`/`]`.
+- `parseExamQuestions` additionally accepts: letter answers (`"B"`, `"(c)"`, `"a."`), the literal choice text as the answer, `correct: 4` remapped to index 3 (only 4 → 3: unambiguously 1-based), and >4 choices (keep first 4 iff the resolved correct index is < 4, else drop).
+- `ImportResult` success gains a `skipped: number` count so the UI can say "imported 8, skipped 2" instead of silently losing items.
 
-- [ ] **Step 1: Write failing tests**
+- [ ] **Step 1: Write failing tests** — one `it` per verified failure mode:
 
 ```ts
-it('accepts letter answers', () => {
-  const r = parseExamQuestions('[{"text":"q","choices":["1","2","3","4"],"correct":"B"}]');
-  expect(r.ok && r.items[0].correctIndex).toBe(1);
+it('tolerates trailing prose after the array', () => {
+  expect(parseFlashcards('[{"front":"f","back":"b"}] \nHope this helps!').ok).toBe(true);
 });
-it('accepts lowercase and decorated letters', () => {
+it('tolerates a trailing comma', () => {
+  expect(parseFlashcards('[{"front":"f","back":"b",}]').ok).toBe(true);
+});
+it('accepts letter answers incl. decorated/lowercase', () => {
   const r = parseExamQuestions('[{"text":"q","choices":["1","2","3","4"],"answer":"(c)"}]');
   expect(r.ok && r.items[0].correctIndex).toBe(2);
 });
+it('remaps correct:4 (1-based) to index 3', () => {
+  const r = parseExamQuestions('[{"text":"q","choices":["1","2","3","4"],"correct":4}]');
+  expect(r.ok && r.items[0].correctIndex).toBe(3);
+});
+it('accepts the answer as the choice text', () => {
+  const r = parseExamQuestions('[{"text":"q","choices":["a","b","c","d"],"answer":"c"}]');
+  expect(r.ok && r.items[0].correctIndex).toBe(2);
+});
+it('keeps first 4 of 5 choices when the answer is among them', () => {
+  const r = parseExamQuestions('[{"text":"q","choices":["a","b","c","d","e"],"correctIndex":0}]');
+  expect(r.ok && r.items[0].choices.length).toBe(4);
+});
+it('reports skipped count', () => {
+  const r = parseFlashcards('[{"front":"f","back":"b"},{"front":"only front"}]');
+  expect(r.ok && r.skipped).toBe(1);
+});
 ```
 
-- [ ] **Step 2: Run `npx vitest run src/lib/import.test.ts` — expect FAIL**
+- [ ] **Step 2: Run `npx vitest run src/lib/import.test.ts` — expect the new tests to FAIL, all 28 existing to PASS**
 
-- [ ] **Step 3: Implement**
+- [ ] **Step 3: Implement, in this order**
 
-In `parseExamQuestions`, before the `Number(...)` coercion:
+1. **Trailing prose:** in `extractJson`, after slicing to the first bracket, balance-scan (`[`/`]`, `{`/`}`, respecting string literals) and slice to the matching close bracket.
+2. **Trailing commas:** `s = s.replace(/,\s*([}\]])/g, '$1')` after the balance slice (string-literal-safe enough post-slice; keep the plain `JSON.parse` first and only apply the regex on a retry so valid JSON containing `",}"` inside strings is never touched).
+3. **Answer resolution** in `parseExamQuestions` — resolve in priority order:
+   ```ts
+   const rawAns = o.correctIndex ?? o.answerIndex ?? o.correct ?? o.answer ?? o.correctAnswer;
+   // 1. finite 0-3 number (incl. numeric strings) → as-is; exactly 4 → 3
+   // 2. single letter A-D extracted from a string → letter index
+   // 3. case-insensitive full match against the choices → that choice's index
+   // else: skip the item (counted in `skipped`)
+   ```
+4. **5+ choices:** resolve the answer first against the full list; keep `choices.slice(0, 4)` only when the resolved index < 4.
+5. **Skipped count:** each parser counts items it discarded; return `{ ok: true, items, skipped }`.
 
-```ts
-function letterIndex(v: unknown): number | null {
-  if (typeof v !== 'string') return null;
-  const m = v.trim().toUpperCase().match(/[ABCD]/);
-  return m ? m[0].charCodeAt(0) - 65 : null;
-}
-```
-Use: `const ci = letterIndex(o.correctIndex ?? o.answerIndex ?? o.correct ?? o.answer) ?? Number(o.correctIndex ?? o.answerIndex ?? o.correct);`
-(Only fall back to `Number` when `letterIndex` returns null.)
-
-- [ ] **Step 4: Run tests — PASS; commit**
+- [ ] **Step 4: Run tests — all PASS (new + 28 existing); `npm run check`; commit**
 
 ```bash
 git add src/lib/import.ts src/lib/import.test.ts
-git commit -m "feat(import): accept letter answers (A-D) in exam question JSON"
+git commit -m "feat(import): harden parser against messy AI output (trailing prose/commas, letter+text answers, skipped count)"
 ```
 
 ### Task 3: Bulk `saveMany` on the repo engine
@@ -171,11 +195,13 @@ git commit -m "feat(data): saveMany bulk write on repo engine"
   - Exam: `preview: (i) => ({ title: i.text, sub: choices[correctIndex] })`; `isDuplicate`: case-insensitive `text` match against `$examQuestions` for the chosen subject.
   - Both `handleImport`s switch the per-item loop to a single `repo.saveMany(rows)`.
 
-- [ ] **Step 3: i18n.** New keys in `importer`: `duplicate` ("Duplicate" / "ซ้ำ"), `selectedCount(n, total)` — add to both `en.ts` and `th.ts`.
+- [ ] **Step 3: Show the skipped count.** When `result.ok && result.skipped > 0`, render a warning line under the ready-message: `$t.importer.skippedCount(result.skipped)` — so dropped items are never invisible.
 
-- [ ] **Step 4: Browser-verify** both import flows (mobile + desktop widths): paste JSON with a duplicate → it's flagged + unchecked; import → only checked items land, single toast, list updates instantly.
+- [ ] **Step 4: i18n.** New keys in `importer`: `duplicate` ("Duplicate" / "ซ้ำ"), `selectedCount(n, total)`, `skippedCount(n)` ("n item(s) couldn't be read and were skipped" / Thai equivalent) — add to both `en.ts` and `th.ts`.
 
-- [ ] **Step 5: `npm run check` + `npx vitest run` → commit**
+- [ ] **Step 5: Browser-verify** both import flows (mobile + desktop widths): paste JSON with a duplicate → it's flagged + unchecked; paste JSON with one broken item → skipped-count warning shows; import → only checked items land, single toast, list updates instantly.
+
+- [ ] **Step 6: `npm run check` + `npx vitest run` → commit**
 
 ```bash
 git commit -m "feat(import): preview parsed items, flag duplicates, bulk save"
