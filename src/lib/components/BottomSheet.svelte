@@ -19,8 +19,19 @@
   }
 
   let prefersReduced = false;
-  onMount(() => { prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches; });
+  // Desktop renders as a centered dialog — no drag transform, gentler motion.
+  let isDesktop = false;
+  onMount(() => {
+    prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const mq = window.matchMedia('(min-width: 768px)');
+    isDesktop = mq.matches;
+    const onChange = (e: MediaQueryListEvent) => (isDesktop = e.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  });
   $: dur = prefersReduced ? 0 : 240;
+  $: flyInY = isDesktop ? 12 : 420;
+  $: flyOutY = isDesktop ? 8 : 400;
 
   function onKeydown(e: KeyboardEvent) {
     if (e.key === 'Escape' && open) { e.stopPropagation(); close(); }
@@ -56,9 +67,9 @@
       role="dialog"
       aria-modal="true"
       class:settling={!dragging}
-      style="transform: translateY({dragY}px);"
-      in:fly={{ y: 420, duration: prefersReduced ? 0 : 420, easing: backOut }}
-      out:fly={{ y: 400, duration: dur, easing: cubicOut }}
+      style={isDesktop ? '' : `transform: translateY(${dragY}px);`}
+      in:fly={{ y: flyInY, duration: prefersReduced ? 0 : isDesktop ? 240 : 420, easing: backOut }}
+      out:fly={{ y: flyOutY, duration: dur, easing: cubicOut }}
     >
       <!-- svelte-ignore a11y-no-static-element-interactions -->
       <div
@@ -131,5 +142,26 @@
     overflow-y: auto;
     padding: 0 14px 14px;
     min-height: 0;
+  }
+
+  /* Desktop: centered dialog instead of an edge-to-edge bottom drawer.
+     The drag inline transform is disabled in script when isDesktop, so the
+     centering translate below is never overridden. */
+  @media (min-width: 768px) {
+    .sheet-panel {
+      left: 50%;
+      right: auto;
+      bottom: auto;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: min(560px, calc(100vw - 48px));
+      max-height: min(80vh, 720px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
+      padding-bottom: 0;
+    }
+    .sheet-grip { display: none; }
+    .sheet-content { padding: 20px 20px 20px; }
   }
 </style>
