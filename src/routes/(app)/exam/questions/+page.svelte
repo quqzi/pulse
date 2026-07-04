@@ -7,6 +7,7 @@
   import { parseExamQuestions, examPrompt, type ExamQuestionDraft, type ExamPromptDifficulty } from '$lib/import';
   import { toast } from '$lib/stores/toast';
   import ImportSheet from '$lib/components/ImportSheet.svelte';
+  import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
   import EmptyState from '$lib/components/EmptyState.svelte';
   import { fileToDownscaledDataUrl } from '$lib/image';
   import Picker from '$lib/components/Picker.svelte';
@@ -122,9 +123,13 @@
     cancelForm();
   }
 
-  async function deleteQuestion(q: ExamQuestion) {
-    if (!confirm($t.exam.deleteConfirm)) return;
-    await examQuestionsRepo.remove(q.id);
+  // Native confirm() is suppressed in iOS standalone PWAs — use the app dialog.
+  let deleteOpen = false;
+  let pendingDeleteId: string | null = null;
+  function promptDelete(q: ExamQuestion) { pendingDeleteId = q.id; deleteOpen = true; }
+  async function doDelete() {
+    if (pendingDeleteId) await examQuestionsRepo.remove(pendingDeleteId);
+    pendingDeleteId = null;
   }
 
   // ── AI import ─────────────────────────────────────────────
@@ -153,7 +158,7 @@
     const { userId } = getAuthContext();
     const drafts = e.detail.items as ExamQuestionDraft[];
     const createdAt = new Date().toISOString();
-    await examQuestionsRepo.saveMany(
+    const ok = await examQuestionsRepo.saveMany(
       drafts.map((d) => ({
         id: newId(), userId,
         text: d.text, choices: d.choices, correctIndex: d.correctIndex,
@@ -161,10 +166,13 @@
         createdAt,
       })),
     );
+    if (!ok) return; // engine rolled back + toasted; keep the sheet + paste for retry
     importOpen = false;
     toast.success(get(t).importer.importedToast(drafts.length));
   }
 </script>
+
+<ConfirmDialog bind:open={deleteOpen} title={$t.exam.deleteConfirm} message={$t.common.cannotUndo} on:confirm={doDelete} />
 
 <div class="page">
   <div class="page-header">
@@ -334,7 +342,7 @@
           </div>
           <div class="q-actions">
             <button class="action-btn" on:click={() => openEdit(q)}>{$t.common.edit}</button>
-            <button class="action-btn action-delete" on:click={() => deleteQuestion(q)} aria-label={$t.exam.deleteQuestionAria}>✕</button>
+            <button class="action-btn action-delete" on:click={() => promptDelete(q)} aria-label={$t.exam.deleteQuestionAria}>✕</button>
           </div>
         </div>
       {/each}

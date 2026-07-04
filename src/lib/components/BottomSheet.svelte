@@ -5,9 +5,31 @@
   import { t } from '$lib/i18n';
 
   export let open = false;
+  /** Accessible name for the dialog — pass the sheet's visible title. */
+  export let label = '';
 
   const dispatch = createEventDispatcher<{ close: void }>();
   function close() { dispatch('close'); }
+
+  // role="dialog" contract: move focus in on open, keep Tab inside, restore on close.
+  function focusTrap(node: HTMLElement) {
+    const prev = document.activeElement as HTMLElement | null;
+    const focusables = () =>
+      [...node.querySelectorAll<HTMLElement>('button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])')]
+        .filter((el) => !el.hasAttribute('disabled') && el.offsetParent !== null);
+    focusables()[0]?.focus();
+    function onKeydown(e: KeyboardEvent) {
+      if (e.key !== 'Tab') return;
+      const els = focusables();
+      if (els.length === 0) return;
+      const first = els[0];
+      const last = els[els.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+    node.addEventListener('keydown', onKeydown);
+    return { destroy() { node.removeEventListener('keydown', onKeydown); prev?.focus?.(); } };
+  }
 
   // The page lives inside `.main-content`, whose page-enter animation + scroll
   // container traps descendant z-index. Without this the fixed `.tab-bar`
@@ -66,6 +88,8 @@
       class="sheet-panel glass-panel"
       role="dialog"
       aria-modal="true"
+      aria-label={label || undefined}
+      use:focusTrap
       class:settling={!dragging}
       style={isDesktop ? '' : `transform: translateY(${dragY}px);`}
       in:fly={{ y: flyInY, duration: prefersReduced ? 0 : isDesktop ? 240 : 420, easing: backOut }}
