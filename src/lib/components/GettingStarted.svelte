@@ -1,6 +1,7 @@
 <script lang="ts">
   import { settings } from '$lib/stores/settings';
   import { subjects, sessions, scheduleSlots } from '$lib/stores/data';
+  import { auth } from '$lib/stores/auth';
   import { t } from '$lib/i18n';
 
   $: steps = [
@@ -45,6 +46,15 @@
         </li>
       {/each}
     </ol>
+    {#if $auth.mode === 'guest'}
+      <a class="gs-signin" href="/auth/signup">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>
+        </svg>
+        <span>{$t.gettingStarted.signIn}</span>
+        <span class="gs-go" aria-hidden="true">›</span>
+      </a>
+    {/if}
   </section>
 {/if}
 
@@ -68,4 +78,13 @@
   .gs-num.done { background: var(--bg3); color: var(--muted); }
   .gs-label { font-size: 14px; flex: 1; }
   .gs-go { color: var(--muted); font-size: 16px; }
+  .gs-signin {
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 8px; padding: 9px 8px; border-radius: 8px;
+    border-top: 1px dashed var(--border);
+    text-decoration: none; color: var(--muted); font-size: 13px;
+  }
+  .gs-signin:hover { background: var(--bg3); color: var(--text); }
+  .gs-signin span:first-of-type { flex: 1; }
+  .gs-signin svg { flex-shrink: 0; }
 </style>

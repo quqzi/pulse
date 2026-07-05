@@ -1,11 +1,39 @@
 <script lang="ts">
+  import { createEventDispatcher } from 'svelte';
   import { t } from '$lib/i18n';
   export let todayHours: number = 0;
   export let goalHours: number = 4;
   export let streak: number = 0;
+  export let editable: boolean = false;
+
+  const dispatch = createEventDispatcher<{ goalChange: number }>();
+
+  let editing = false;
+  let draft = goalHours;
 
   $: pct = goalHours > 0 ? Math.min(1, todayHours / goalHours) : 0;
   $: hoursDisplay = todayHours.toFixed(1);
+
+  function startEdit() {
+    draft = goalHours;
+    editing = true;
+  }
+
+  function commit() {
+    if (!editing) return;
+    editing = false;
+    if (draft > 0 && draft !== goalHours) dispatch('goalChange', draft);
+  }
+
+  function onKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter') commit();
+    if (e.key === 'Escape') editing = false;
+  }
+
+  function autofocus(node: HTMLInputElement) {
+    node.focus();
+    node.select();
+  }
 </script>
 
 <div class="hero-card">
@@ -14,7 +42,21 @@
       <div class="hero-label">{$t.dashboard.todaysStudy}</div>
       <div class="hero-stat">
         <span class="hero-num">{hoursDisplay}</span>
-        <span class="hero-denom">/{goalHours}h</span>
+        {#if editing}
+          <input
+            class="goal-input"
+            type="number" min="0.5" max="24" step="0.5"
+            bind:value={draft}
+            use:autofocus
+            on:blur={commit}
+            on:keydown={onKeydown}
+            aria-label={$t.dashboard.editGoal}
+          />
+        {:else if editable}
+          <button class="hero-denom denom-btn" on:click={startEdit} aria-label={$t.dashboard.editGoal}>/{goalHours}h ✎</button>
+        {:else}
+          <span class="hero-denom">/{goalHours}h</span>
+        {/if}
       </div>
     </div>
     <div class="hero-streak">
@@ -76,6 +118,18 @@
   .hero-stat { display: flex; align-items: baseline; gap: 2px; }
   .hero-num { font-size: 34px; font-weight: 700; letter-spacing: -0.02em; }
   .hero-denom { font-size: 16px; font-weight: 500; opacity: 0.75; }
+  .denom-btn {
+    background: none; border: none; padding: 2px 4px; margin: 0; cursor: pointer;
+    color: inherit; font-family: inherit; border-radius: 6px;
+    position: relative; z-index: 1;
+  }
+  .denom-btn:hover { opacity: 1; background: rgba(255,255,255,.15); }
+  .goal-input {
+    width: 64px; padding: 2px 6px; border-radius: 6px; border: 1.5px solid rgba(255,255,255,.5);
+    background: rgba(255,255,255,.15); color: inherit; font-family: inherit;
+    font-size: 15px; font-weight: 600; outline: none;
+    position: relative; z-index: 1;
+  }
   .hero-streak {
     display: flex;
     flex-direction: column;

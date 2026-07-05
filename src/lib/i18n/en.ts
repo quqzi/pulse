@@ -29,9 +29,11 @@ export const en = {
     setExamDate: 'Set your exam date',
     planWeek: 'Plan your study week',
     studyOnce: 'Finish your first study session',
+    signIn: 'Optional: create a free account so your data syncs',
   },
   dashboard: {
     goodMorning: 'Good morning',
+    editGoal: 'Edit daily goal',
     goodAfternoon: 'Good afternoon',
     goodEvening: 'Good evening',
     daysToExam: (n: number) => `${n} days to TCAS`,
@@ -306,6 +308,9 @@ export const en = {
     insertMath: 'Insert math',
     errSave: "Couldn't save — try again",
     errDelete: "Couldn't delete — try again",
+    signInSync: 'Sign in — sync your data',
+    quickSettings: 'Quick settings',
+    allSettings: 'All settings',
   },
   auth: {
     signIn: 'Sign in',

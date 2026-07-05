@@ -31,9 +31,11 @@ export const th: I18n = {
     setExamDate: 'ตั้งวันสอบของคุณ',
     planWeek: 'วางแผนสัปดาห์อ่านหนังสือ',
     studyOnce: 'จบเซสชันแรกของคุณ',
+    signIn: 'ทางเลือก: สร้างบัญชีฟรีเพื่อให้ข้อมูลของคุณซิงค์',
   },
   dashboard: {
     goodMorning: 'อรุณสวัสดิ์',
+    editGoal: 'แก้ไขเป้าหมายรายวัน',
     goodAfternoon: 'สวัสดีตอนบ่าย',
     goodEvening: 'สวัสดีตอนเย็น',
     daysToExam: (n: number) => `อีก ${n} วัน`,
@@ -308,6 +310,9 @@ export const th: I18n = {
     insertMath: 'แทรกสูตรคณิต',
     errSave: 'บันทึกไม่สำเร็จ — ลองอีกครั้ง',
     errDelete: 'ลบไม่สำเร็จ — ลองอีกครั้ง',
+    signInSync: 'เข้าสู่ระบบ — ซิงค์ข้อมูลของคุณ',
+    quickSettings: 'ตั้งค่าด่วน',
+    allSettings: 'การตั้งค่าทั้งหมด',
   },
   auth: {
     signIn: 'เข้าสู่ระบบ',
