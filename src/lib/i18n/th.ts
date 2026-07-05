@@ -547,6 +547,8 @@ export const th: I18n = {
     questionLabel: 'คำถาม',
     questionPlaceholder: 'พิมพ์คำถาม…',
     choicesLabel: 'ตัวเลือก — คลิกวงกลมเพื่อทำเครื่องหมายคำตอบที่ถูก',
+    topicsLabel: 'หัวข้อ (ไม่บังคับ — เพิ่มหลายหัวข้อได้ถ้าเป็นโจทย์ผสม)',
+    topicPlaceholder: 'เพิ่มหัวข้อ…',
     choicePlaceholder: (letter: string) => `ตัวเลือก ${letter}`,
     choiceAria: (letter: string) => `ตัวเลือก ${letter}`,
     markCorrect: 'ทำเครื่องหมายว่าถูก',

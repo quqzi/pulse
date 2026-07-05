@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { scoreFromRow, scoreToRow, topicFromRow, topicToRow, flashcardFromRow, flashcardToRow, noteFromRow, noteToRow } from '$lib/data/mappers';
-import type { MockScore, Topic, Flashcard, Note } from '$lib/types';
+import { scoreFromRow, scoreToRow, topicFromRow, topicToRow, flashcardFromRow, flashcardToRow, noteFromRow, noteToRow, examQuestionFromRow, examQuestionToRow } from '$lib/data/mappers';
+import type { MockScore, Topic, Flashcard, Note, ExamQuestion } from '$lib/types';
 
 describe('score mapper', () => {
   it('round-trips camel <-> snake', () => {
@@ -45,6 +45,32 @@ describe('topic mapper', () => {
 
   it('legacy row → nextStudyDate undefined', () => {
     expect(topicFromRow({ id: 't', subject_id: 's', name: 'n', order_index: 0 }).nextStudyDate).toBeUndefined();
+  });
+});
+
+describe('exam question mapper — topics', () => {
+  const base: ExamQuestion = {
+    id: 'q1', userId: 'u', text: 'Q?', choices: ['a', 'b', 'c', 'd'],
+    correctIndex: 0, subject: 'Physics', difficulty: 'medium', createdAt: '2026-07-05T00:00:00Z',
+  };
+
+  it('round-trips multiple topics', () => {
+    const q: ExamQuestion = { ...base, topics: ['Kinematics', 'Vectors'] };
+    const row = examQuestionToRow(q);
+    expect(row.topics).toEqual(['Kinematics', 'Vectors']);
+    expect(examQuestionFromRow(row).topics).toEqual(['Kinematics', 'Vectors']);
+  });
+
+  it('no topics → empty array in the row, undefined back', () => {
+    const row = examQuestionToRow(base);
+    expect(row.topics).toEqual([]);
+    expect(examQuestionFromRow(row).topics).toBeUndefined();
+  });
+
+  it('legacy row without a topics column → undefined', () => {
+    const row = examQuestionToRow(base);
+    delete (row as Record<string, unknown>).topics;
+    expect(examQuestionFromRow(row).topics).toBeUndefined();
   });
 });
 
