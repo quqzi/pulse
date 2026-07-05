@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { auth } from '$lib/stores/auth';
-  import { examQuestions, subjects, loadData, getAuthContext } from '$lib/stores/data';
+  import { examQuestions, subjects, topics, loadData, getAuthContext } from '$lib/stores/data';
   import { examQuestionsRepo } from '$lib/data/entities';
   import { newId } from '$lib/id';
   import { parseExamQuestions, examPrompt, type ExamQuestionDraft, type ExamPromptDifficulty } from '$lib/import';
@@ -31,10 +31,36 @@
   let formChoices: [string, string, string, string] = ['', '', '', ''];
   let formCorrectIndex: 0 | 1 | 2 | 3 = 0;
   let formSubject = '';
+  let formTopics: string[] = [];
+  let topicDraft = '';
   let formDifficulty: ExamQuestion['difficulty'] = 'medium';
   let formYear = '';
   let formImageUrl: string | undefined;
   let imageLoading = false;
+
+  // Topic suggestions come from the picked subject's real topic list; custom
+  // names are still allowed (questions are authored free-form, like subject).
+  $: suggestedTopics = (() => {
+    const subj = $subjects.find((s) => s.name === formSubject);
+    if (!subj) return [];
+    return $topics
+      .filter((tp) => tp.subjectId === subj.id)
+      .map((tp) => tp.name)
+      .filter((name) => !formTopics.includes(name));
+  })();
+
+  function addTopic(name: string) {
+    const clean = name.trim();
+    if (!clean || formTopics.includes(clean)) return;
+    formTopics = [...formTopics, clean];
+    topicDraft = '';
+  }
+  function removeTopic(name: string) {
+    formTopics = formTopics.filter((tp) => tp !== name);
+  }
+  function onTopicKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter') { e.preventDefault(); addTopic(topicDraft); }
+  }
 
   async function onPickImage(e: Event) {
     const file = (e.currentTarget as HTMLInputElement).files?.[0];
@@ -64,6 +90,8 @@
     formChoices = ['', '', '', ''];
     formCorrectIndex = 0;
     formSubject = $subjects[0]?.name ?? '';
+    formTopics = [];
+    topicDraft = '';
     formDifficulty = 'medium';
     formYear = '';
     formImageUrl = undefined;
@@ -76,6 +104,8 @@
     formChoices = [...q.choices] as [string, string, string, string];
     formCorrectIndex = q.correctIndex;
     formSubject = q.subject;
+    formTopics = [...(q.topics ?? [])];
+    topicDraft = '';
     formDifficulty = q.difficulty;
     formYear = q.year ? String(q.year) : '';
     formImageUrl = q.imageUrl;
@@ -114,6 +144,7 @@
       choices: formChoices.map((c) => c.trim()) as [string, string, string, string],
       correctIndex: formCorrectIndex,
       subject: formSubject,
+      topics: formTopics.length > 0 ? formTopics : undefined,
       difficulty: formDifficulty,
       year: formYear ? parseInt(formYear, 10) : undefined,
       imageUrl: formImageUrl,
@@ -253,7 +284,7 @@
         {#if mathOpen}<MathToolbar on:insert={(e) => insertTex(e.detail.tex)} />{/if}
       </div>
       {#if formText.includes('$')}
-        <p class="math-preview"><MathText text={formText} /></p>
+        <p class="math-preview"><MathText text={formText} liveTail /></p>
       {/if}
 
       <span class="field-label">{$t.exam.choicesLabel}</span>
@@ -269,6 +300,9 @@
             aria-label={$t.exam.markChoiceCorrect(String.fromCharCode(65 + i))}
           ></button>
         </div>
+        {#if formChoices[i].includes('$')}
+          <p class="math-preview choice-preview"><MathText text={formChoices[i]} liveTail /></p>
+        {/if}
       {/each}
 
       <div class="form-row">
@@ -298,6 +332,30 @@
           <input id="q-year" class="field-input" bind:value={formYear} placeholder={$t.exam.yearPlaceholder} maxlength={4} />
         </div>
       </div>
+
+      <span class="field-label">{$t.exam.topicsLabel}</span>
+      <div class="topics-row">
+        {#each formTopics as tp (tp)}
+          <span class="topic-chip selected">
+            {tp}<button class="topic-x" on:click={() => removeTopic(tp)} aria-label="remove {tp}">×</button>
+          </span>
+        {/each}
+        <input
+          class="topic-input"
+          bind:value={topicDraft}
+          on:keydown={onTopicKeydown}
+          on:blur={() => addTopic(topicDraft)}
+          placeholder={$t.exam.topicPlaceholder}
+          aria-label={$t.exam.topicsLabel}
+        />
+      </div>
+      {#if suggestedTopics.length > 0}
+        <div class="topic-suggestions">
+          {#each suggestedTopics.slice(0, 8) as tp (tp)}
+            <button class="topic-chip" on:click={() => addTopic(tp)}>+ {tp}</button>
+          {/each}
+        </div>
+      {/if}
 
       <span class="field-label">{$t.exam.imageLabel}</span>
       {#if formImageUrl}
@@ -336,6 +394,9 @@
             <p class="q-text"><MathText text={q.text} /></p>
             <div class="q-tags">
               <span class="tag tag-subject">{q.subject}</span>
+              {#each q.topics ?? [] as tp (tp)}
+                <span class="tag tag-topic">{tp}</span>
+              {/each}
               <span class="tag tag-diff">{diffLabels[q.difficulty]}</span>
               {#if q.year}<span class="tag tag-year">{q.year}</span>{/if}
             </div>
@@ -375,6 +436,24 @@
   }
   .math-toggle.active { border-color: var(--primary); color: var(--primary); background: var(--primary-l); }
   .math-preview { margin: 0 0 10px; padding: 8px 10px; border-radius: 8px; background: var(--bg3); font-size: 14px; color: var(--text); }
+  .choice-preview { margin: -2px 0 8px 24px; font-size: 13px; }
+  .topics-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .topic-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 12px; font-weight: 500; padding: 3px 10px; border-radius: 999px;
+    border: 1.5px solid var(--border); background: var(--bg); color: var(--muted);
+    font-family: inherit; cursor: pointer;
+  }
+  .topic-chip:hover { border-color: var(--primary); color: var(--text); }
+  .topic-chip.selected { border-color: var(--primary); background: var(--primary-l); color: var(--primary); cursor: default; }
+  .topic-x { border: none; background: none; color: inherit; cursor: pointer; font-size: 14px; line-height: 1; padding: 0; }
+  .topic-input {
+    border: none; background: transparent; color: var(--text);
+    font-size: 13px; font-family: inherit; min-width: 120px; flex: 1; padding: 4px 0;
+  }
+  .topic-input:focus { outline: none; }
+  .topic-suggestions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .tag-topic { background: var(--bg3); color: var(--text); }
   .choice-letter { width: 16px; font-size: 12px; font-weight: 600; color: var(--muted); flex-shrink: 0; }
   .choice-input { flex: 1; }
   .correct-btn { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--border); background: transparent; cursor: pointer; flex-shrink: 0; transition: background 0.15s, border-color 0.15s; }

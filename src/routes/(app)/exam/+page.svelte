@@ -330,7 +330,12 @@
     </div>
 
     <div class="question-card">
-      <span class="subject-badge">{current.subject.toUpperCase()}</span>
+      <div class="badge-row">
+        <span class="subject-badge">{current.subject.toUpperCase()}</span>
+        {#each current.topics ?? [] as tp (tp)}
+          <span class="topic-badge">{tp}</span>
+        {/each}
+      </div>
       <p class="question-text"><MathText text={current.text} /></p>
       {#if current.imageUrl}
         <img class="question-image" src={current.imageUrl} alt={$t.exam.imageAlt} />
@@ -429,7 +434,9 @@
   .progress-bar { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 24px; overflow: hidden; }
   .progress-fill { height: 100%; background: var(--primary); border-radius: 2px; transform-origin: left; transition: transform 0.3s; }
   .question-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 24px; }
-  .subject-badge { display: inline-block; background: var(--primary-l); color: var(--primary); font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 10px; letter-spacing: .5px; margin-bottom: 12px; }
+  .badge-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 12px; }
+  .subject-badge { display: inline-block; background: var(--primary-l); color: var(--primary); font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 10px; letter-spacing: .5px; }
+  .topic-badge { display: inline-block; background: var(--bg3); color: var(--text); font-size: 10px; font-weight: 600; padding: 3px 10px; border-radius: 10px; }
   .question-text { font-size: 15px; font-weight: 500; color: var(--text); line-height: 1.5; margin: 0 0 20px; }
   .question-image {
     display: block; max-width: 100%; max-height: 300px; margin: 0 0 16px;

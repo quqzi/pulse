@@ -545,6 +545,8 @@ export const en = {
     questionLabel: 'Question',
     questionPlaceholder: 'Enter question text…',
     choicesLabel: 'Choices — click circle to mark correct',
+    topicsLabel: 'Topics (optional — add more than one for mixed questions)',
+    topicPlaceholder: 'Add a topic…',
     choicePlaceholder: (letter: string) => `Choice ${letter}`,
     choiceAria: (letter: string) => `Choice ${letter}`,
     markCorrect: 'Mark as correct',

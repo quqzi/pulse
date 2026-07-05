@@ -137,6 +137,7 @@ export interface ExamQuestion {
   choices: [string, string, string, string];
   correctIndex: 0 | 1 | 2 | 3;
   subject: string;      // subject name (questions are authored free-form)
+  topics?: string[];    // topic names — multiple for mixed-topic questions
   difficulty: 'easy' | 'medium' | 'hard';
   year?: number;
   imageUrl?: string;    // optional downscaled data-URI (diagram / figure)
