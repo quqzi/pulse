@@ -262,6 +262,10 @@
       </div>
     </header>
 
+    {#if $scheduleSlots.length === 0}
+      <div class="empty-hint">{$t.schedule.emptyHint}</div>
+    {/if}
+
     <WeekGrid
       weekStart={viewedWeekStart}
       slots={$scheduleSlots}
@@ -410,6 +414,17 @@
   .today-pill:hover { background: var(--bg3); }
 
   .header-actions { display: flex; align-items: center; gap: 8px; }
+
+  .empty-hint {
+    margin: 0 0 10px;
+    padding: 9px 14px;
+    border-radius: var(--radius-md);
+    border: 1px dashed var(--border);
+    background: var(--bg2);
+    color: var(--muted);
+    font-size: 13px;
+    text-align: center;
+  }
 
   .qs-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
   .qs-col { display: flex; flex-direction: column; gap: 6px; }

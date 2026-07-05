@@ -144,11 +144,12 @@
   {/if}
 
   {#if filteredScores.length === 0}
-    <div class="empty">
+    <div class="empty-state">
       {#if $scores.length === 0}
-        {$t.scores.emptyNone}
+        <p class="empty-title">{$t.scores.emptyTitle}</p>
+        <p class="empty-sub">{$t.scores.emptyNone}</p>
       {:else}
-        {$t.scores.emptyForSubject}
+        <p class="empty-sub">{$t.scores.emptyForSubject}</p>
       {/if}
     </div>
   {:else}
@@ -326,7 +327,9 @@
   .action-btn:hover { color: var(--text); background: var(--bg3); }
   .action-btn.danger:hover { color: var(--danger); }
 
-  .empty { text-align: center; color: var(--muted); font-size: 14px; padding: 48px 0; }
+  .empty-state { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 32px 16px; text-align: center; }
+  .empty-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .empty-sub   { font-size: 13px; color: var(--muted); }
 
   .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); }
 

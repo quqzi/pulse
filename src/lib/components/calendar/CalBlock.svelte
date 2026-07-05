@@ -69,42 +69,22 @@
       : `${min}${$t.schedule.unitM}`;
   })();
 
-  /**
-   * Returns a readable foreground color for a solid subject-color background.
-   * The block background is the subject's fixed color (theme-independent), so
-   * the text must be an ABSOLUTE near-black / near-white chosen from that
-   * color's luminance — never a theme token like var(--bg)/var(--text), which
-   * would invert in dark mode and make blocks unreadable. This luminance helper
-   * is the one sanctioned place for absolute colors (it contrasts against a
-   * non-token background).
-   */
-  function contrastColor(hex: string): string {
-    // Strip leading # and handle 3/6 digit forms.
-    const h = hex.replace(/^#/, '');
-    const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
-    if (full.length !== 6) return '#ffffff'; // fallback for non-hex: white reads on typical subject colors
-    const r = parseInt(full.slice(0, 2), 16) / 255;
-    const g = parseInt(full.slice(2, 4), 16) / 255;
-    const b = parseInt(full.slice(4, 6), 16) / 255;
-    // WCAG relative luminance
-    const toLinear = (c: number) => c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
-    const L = 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
-    // Pure black/white at the WCAG crossover threshold (0.179) — this maximises
-    // the minimum contrast ratio, guaranteeing >=4.58:1 (AA for normal text)
-    // against ANY background color. A higher threshold or a near-black like
-    // #1d1d1f drops mid-tone subject colors (teal/blue/amber) below 4.5:1.
-    return L > 0.179 ? '#000000' : '#ffffff';
-  }
-
+  // Apple-calendar block language: soft subject tint over the theme surface,
+  // a solid subject-color left edge, and text mixed toward the theme text
+  // token — so contrast holds in light AND dark themes without absolute
+  // black/white (the tint composites with the theme background, unlike the
+  // old solid-color fills).
+  $: blockText = subject ? `color-mix(in srgb, ${subject.color} 45%, var(--text))` : 'var(--muted)';
   $: blockBg = subject
-    ? (slot.isAiSuggested ? `rgba(${subject.colorRgb}, 0.15)` : subject.color)
+    ? (slot.isAiSuggested
+        ? `rgba(${subject.colorRgb}, 0.09)`
+        : `color-mix(in srgb, ${subject.color} 18%, var(--bg2))`)
     : 'var(--bg3)';
-  $: blockBorder = subject
-    ? (slot.isAiSuggested ? `1.5px dashed ${subject.color}` : 'none')
-    : '1px solid var(--border)';
-  $: blockColor = subject
-    ? (slot.isAiSuggested ? subject.color : contrastColor(subject.color))
-    : 'var(--muted)';
+  $: blockBorderCss = subject
+    ? (slot.isAiSuggested
+        ? `border: 1.5px dashed ${subject.color};`
+        : `border: none; border-left: ${slot.isFocusBlock ? 5 : 3}px solid ${subject.color};`)
+    : 'border: 1px solid var(--border);';
 
   function onBlockKeydown(e: KeyboardEvent) {
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onBlockClick(); }
@@ -172,7 +152,7 @@
   class:suggested={slot.isAiSuggested}
   class:lifting
   class:focus-block={slot.isFocusBlock && !!subject}
-  style="background: {blockBg}; border: {blockBorder}; color: {blockColor}; translate: {dragDx}px {dragDy}px;{liftTransform ? ` transform: ${liftTransform};` : ''}"
+  style="background: {blockBg}; {blockBorderCss} color: {blockText}; translate: {dragDx}px {dragDy}px;{liftTransform ? ` transform: ${liftTransform};` : ''}"
   bind:this={blockEl}
   on:click={onBlockClick}
   on:keydown={onBlockKeydown}
@@ -307,9 +287,6 @@
     overflow: hidden;
     pointer-events: none;
   }
-  .cal-block.focus-block {
-    border-left: 3px solid color-mix(in srgb, var(--bg) 80%, transparent) !important;
-  }
   .focus-icon {
     position: absolute;
     top: 3px;
@@ -333,6 +310,9 @@
     font-size: 10px;
     margin-top: 1px;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-variant-numeric: tabular-nums;
   }
   .block-resize {
     position: absolute;
