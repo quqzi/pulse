@@ -55,7 +55,7 @@
         <LangToggle />
       </div>
       {#if $auth.mode === 'guest'}
-        <a class="signin-row" href="/auth" on:click={onClose}>
+        <a class="signin-row" href="/auth/signup" on:click={onClose}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>
           </svg>
