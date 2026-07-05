@@ -43,9 +43,12 @@
 		"vitest": "^4.1.7"
 	},
 	"dependencies": {
+		"@codemirror/lang-markdown": "^6.5.0",
+		"@codemirror/language-data": "^6.5.2",
 		"@floating-ui/dom": "^1.7.6",
 		"@supabase/supabase-js": "^2.106.1",
 		"chart.js": "^4.5.1",
+		"codemirror": "^6.0.2",
 		"dompurify": "^3.4.11",
 		"katex": "^0.17.0",
 		"marked": "^18.0.5"
