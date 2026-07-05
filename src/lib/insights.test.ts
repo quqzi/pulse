@@ -64,6 +64,16 @@ describe('focus generators', () => {
     expect(weak!.bodyArgs).toEqual([30]);
   });
 
+  it('weakest-subject is null when every subject is ≥70 (nothing is genuinely weak)', () => {
+    const out = ci({
+      ...emptySnapshot,
+      subjects: [subj('p', 'Physics'), subj('c', 'Chemistry')],
+      sessions: [sess('p', '2026-06-05T08:00:00'), sess('p', '2026-06-06T08:00:00'), sess('c', '2026-06-06T09:00:00')],
+      readiness: { overall: 80, bySubject: { p: 95, c: 72 } },
+    });
+    expect(out.find((i) => i.id === 'weakest-subject')).toBeUndefined();
+  });
+
   it('weakest-subject is null with fewer than 3 sessions', () => {
     const out = ci({
       ...emptySnapshot,
@@ -106,6 +116,15 @@ describe('pace generators', () => {
       examDate: '2026-07-01', readiness: { overall: 45, bySubject: { p: 45 } },
     });
     expect(out.find((i) => i.id === 'readiness-gap')?.titleArgs).toEqual([45]);
+  });
+  it('readiness-gap links to the dashboard, where readiness actually renders', () => {
+    const out = ci({
+      ...emptySnapshot, subjects: [subj('p', 'Physics')], sessions: threeSessions,
+      examDate: '2026-07-01', readiness: { overall: 45, bySubject: { p: 45 } },
+    });
+    const gap = out.find((i) => i.id === 'readiness-gap');
+    expect(gap?.action?.href).toBe('/dashboard');
+    expect(gap?.action?.labelKey).toBe('actionDashboard');
   });
   it('readiness-gap is null without an exam date', () => {
     const out = ci({

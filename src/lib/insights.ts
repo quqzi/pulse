@@ -44,6 +44,7 @@ export const CAP = 7;
 const SEV_RANK: Record<InsightSeverity, number> = { high: 0, medium: 1, positive: 2 };
 
 const MIN_SESSIONS = 3;
+const WEAK_READINESS_MAX = 70; // "weakest subject" only fires below this readiness
 const NEGLECT_DAYS = 7;
 const RECENT_ACTIVITY_DAYS = 14;
 const DECKS_DUE_MIN = 3;
@@ -90,6 +91,7 @@ const weakestSubject: Generator = (s) => {
   for (const sub of scored) {
     if (s.readiness.bySubject[sub.id] < s.readiness.bySubject[worst.id]) worst = sub;
   }
+  if (s.readiness.bySubject[worst.id] >= WEAK_READINESS_MAX) return null;
   return {
     id: 'weakest-subject', severity: 'high', priority: 10, icon: '⚠️', subjectId: worst.id,
     titleKey: 'weakestTitle', titleArgs: [worst.name],
@@ -136,7 +138,7 @@ const readinessGap: Generator = (s) => {
   return {
     id: 'readiness-gap', severity: 'high', priority: 5, icon: '🎯',
     titleKey: 'readinessGapTitle', titleArgs: [s.readiness.overall], bodyKey: 'readinessGapBody',
-    action: { labelKey: 'actionAnalytics', href: '/analytics' },
+    action: { labelKey: 'actionDashboard', href: '/dashboard' },
   };
 };
 

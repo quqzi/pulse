@@ -5,7 +5,7 @@ import {
 } from '$lib/data/stores';
 import { tasksRepo, scoresRepo, templatesRepo, subjectsRepo, topicsRepo, sessionsRepo, scheduleRepo, examQuestionsRepo, examSessionsRepo, flashcardsRepo, notesRepo } from '$lib/data/entities';
 import { computeInsights } from '$lib/insights';
-import { subjectCoverage } from '$lib/data/readiness-util';
+import { subjectCoverage, examAccuracy, type ExamAttempt } from '$lib/data/readiness-util';
 import { deckState, isDeckDue } from '$lib/flashcards';
 import { localDateStr } from '$lib/utils';
 import { settings } from '$lib/stores/settings';
@@ -55,8 +55,8 @@ export const dueDecks = derived([topics, flashcards, todayDate], ([$topics, $fla
 // Per-subject + overall exam readiness (0–100), blending topic coverage,
 // recent study hours, and mock-exam accuracy.
 export const readinessScore = derived(
-  [subjects, topics, sessions, examSessions, settings],
-  ([$subjects, $topics, $sessions, $examSessions, $settings]) => {
+  [subjects, topics, sessions, scores, examSessions, settings, todayDate],
+  ([$subjects, $topics, $sessions, $scores, $examSessions, $settings, $today]) => {
     const hoursTarget = Math.max(1, $settings.readinessHoursTarget || 20);
     const empty = { coverage: 0, hours: 0, exam: 0 };
     const emptyStats: ReadinessStats = {
@@ -73,10 +73,14 @@ export const readinessScore = derived(
       };
     }
 
-    const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const cutoff = new Date(new Date($today + 'T00:00:00').getTime() - 30 * 24 * 60 * 60 * 1000);
     const bySubject: Record<string, number> = {};
     const partsBySubject: Record<string, ReadinessParts> = {};
     const statsBySubject: Record<string, ReadinessStats> = {};
+    // Subjects with no topics, no recent hours, and no exam attempts are "not
+    // started" — they keep a 0 entry in bySubject but stay out of the overall
+    // average so adding a fresh subject doesn't tank the score.
+    const activeIds: string[] = [];
 
     for (const subj of $subjects) {
       const subjTopics = $topics.filter(t => t.subjectId === subj.id);
@@ -88,13 +92,18 @@ export const readinessScore = derived(
       const recentHours = recentSecs / 3600;
       const hoursScore = Math.min(recentHours / hoursTarget, 1);
 
-      const examRatios = $examSessions
-        .map(es => {
-          const sub = es.subjectScores[subj.id];
-          return sub && sub.total > 0 ? sub.correct / sub.total : null;
-        })
-        .filter((r): r is number => r !== null);
-      const examScore = examRatios.length === 0 ? 0 : examRatios.reduce((a, b) => a + b, 0) / examRatios.length;
+      // Exam attempts = in-app exam sessions ∪ manually logged mock scores.
+      const attempts: ExamAttempt[] = [];
+      for (const es of $examSessions) {
+        const sub = es.subjectScores[subj.id];
+        if (sub && sub.total > 0) attempts.push({ ratio: sub.correct / sub.total, date: es.createdAt });
+      }
+      for (const sc of $scores) {
+        if (sc.subjectId === subj.id && sc.maxScore > 0) attempts.push({ ratio: sc.score / sc.maxScore, date: sc.takenAt });
+      }
+      const examScore = examAccuracy(attempts);
+
+      if (subjTopics.length > 0 || recentSecs > 0 || attempts.length > 0) activeIds.push(subj.id);
 
       // Earned points out of the 40/30/30 split — the breakdown the UI visualizes.
       const parts = {
@@ -109,13 +118,15 @@ export const readinessScore = derived(
         topicsTotal: subjTopics.length,
         recentHours: Math.round(recentHours * 10) / 10,
         hoursTarget,
-        examCount: examRatios.length,
+        examCount: attempts.length,
         examAccuracy: Math.round(examScore * 100),
       };
     }
 
     const avg = (k: keyof ReadinessParts) =>
-      Math.round(Object.values(partsBySubject).reduce((a, p) => a + p[k], 0) / $subjects.length);
+      activeIds.length === 0
+        ? 0
+        : Math.round(activeIds.reduce((a, id) => a + partsBySubject[id][k], 0) / activeIds.length);
     const parts = { coverage: avg('coverage'), hours: avg('hours'), exam: avg('exam') };
 
     const all = Object.values(statsBySubject);
@@ -126,8 +137,11 @@ export const readinessScore = derived(
       topicsTotal: sum('topicsTotal'),
       recentHours: Math.round(sum('recentHours') * 10) / 10,
       hoursTarget: hoursTarget * $subjects.length,
-      examCount: $examSessions.length,
-      examAccuracy: all.length === 0 ? 0 : Math.round(all.reduce((a, s) => a + s.examAccuracy, 0) / all.length),
+      examCount: sum('examCount'),
+      examAccuracy:
+        activeIds.length === 0
+          ? 0
+          : Math.round(activeIds.reduce((a, id) => a + statsBySubject[id].examAccuracy, 0) / activeIds.length),
     };
 
     return { overall: parts.coverage + parts.hours + parts.exam, bySubject, parts, partsBySubject, stats, statsBySubject };
@@ -147,8 +161,8 @@ export interface ReadinessStats {
 // Study-coach feed: runs the pure insight generators over current store state.
 // Purely derived — no persistence, identical in guest and authenticated mode.
 export const insights = derived(
-  [subjects, topics, dueDecks, sessions, scores, examSessions, readinessScore, streak, settings],
-  ([$subjects, $topics, $dueDecks, $sessions, $scores, $examSessions, $readiness, $streak, $settings]) =>
+  [subjects, topics, dueDecks, sessions, scores, examSessions, readinessScore, streak, settings, todayDate],
+  ([$subjects, $topics, $dueDecks, $sessions, $scores, $examSessions, $readiness, $streak, $settings, $today]) =>
     computeInsights({
       subjects: $subjects,
       topics: $topics,
@@ -160,7 +174,7 @@ export const insights = derived(
       streak: $streak,
       dailyGoalHours: $settings.dailyGoalHours,
       examDate: $settings.examDate,
-      today: localDateStr(new Date()),
+      today: $today,
     }),
 );
 

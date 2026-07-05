@@ -3,6 +3,7 @@
   import { auth } from '$lib/stores/auth';
   import { subjects, topics, flashcards, sessions, todayHours, streak, dueDecks, loadData } from '$lib/stores/data';
   import { settings } from '$lib/stores/settings';
+  import { todayDate } from '$lib/stores/clock';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
   import StudyTrendChart from '$lib/components/analytics/StudyTrendChart.svelte';
   import { sessionsRepo } from '$lib/data/entities';
@@ -21,7 +22,8 @@
     return d;
   }
 
-  const weekStartISO = getWeekStart(new Date()).toISOString();
+  // Reactive on todayDate so the week window rolls over at midnight on open tabs.
+  $: weekStartISO = getWeekStart(new Date($todayDate + 'T00:00:00')).toISOString();
 
   $: weekSessions = $sessions.filter(s => s.startedAt >= weekStartISO);
   $: weekHours = weekSessions.reduce((sum, s) => sum + s.durationSec / 3600, 0);

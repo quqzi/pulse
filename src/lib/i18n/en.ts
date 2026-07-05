@@ -718,6 +718,7 @@ export const en = {
     actionReview: 'Study flashcards',
     actionScores: 'View scores',
     actionAnalytics: 'See analytics',
+    actionDashboard: 'View readiness',
   },
   guide: {
     title: 'User guide',

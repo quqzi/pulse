@@ -720,6 +720,7 @@ export const th: I18n = {
     actionReview: 'เรียนแฟลชการ์ด',
     actionScores: 'ดูคะแนน',
     actionAnalytics: 'ดูสถิติ',
+    actionDashboard: 'ดูความพร้อม',
   },
   guide: {
     title: 'คู่มือการใช้งาน',
