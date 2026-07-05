@@ -179,6 +179,13 @@
       && d.getDate() === now.getDate();
   }
 
+  // settings.restDays uses 1=Mon … 7=Sun (same convention as the scheduler).
+  function isRestDay(d: Date): boolean {
+    if (!settings) return false;
+    const dow = ((d.getDay() + 6) % 7) + 1;
+    return settings.restDays.includes(dow);
+  }
+
   // ── Drag state ────────────────────────────────────────────────
   type DragMode = 'none' | 'create' | 'move' | 'resize';
   let dragMode: DragMode = 'none';
@@ -489,6 +496,7 @@
       <div class="day-header-cell" class:today={isToday(day)}>
         <span class="day-name">{$fmt.date(day.toISOString(), { weekday: 'short' })}</span>
         <span class="day-date" class:today-date={isToday(day)}>{dayDateLabel(day)}</span>
+        {#if isRestDay(day)}<span class="rest-tag">{$t.schedule.restTag}</span>{/if}
       </div>
     {/each}
   </div>
@@ -535,6 +543,8 @@
         <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
         <div
           class="day-col"
+          class:today-col={isToday(_day)}
+          class:rest-col={isRestDay(_day)}
           data-day={i}
           on:mousedown={(e) => onDayMousedown(e, i)}
           on:touchstart={(e) => onDayTouchstart(e, i)}
@@ -675,6 +685,18 @@
     color: var(--bg);
     font-weight: 700;
   }
+  .day-header-cell.today { background: rgba(var(--primary-rgb), 0.05); }
+  .rest-tag {
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    background: var(--bg3);
+    padding: 1px 6px;
+    border-radius: 999px;
+    margin-top: 2px;
+  }
 
   /* All-day row */
   .allday-row {
@@ -743,6 +765,16 @@
     border-left: 1px solid var(--border);
     cursor: crosshair;
     grid-row: 1;
+  }
+  /* Today's column gets a faint primary wash so "now" is findable at a glance. */
+  .day-col.today-col { background: rgba(var(--primary-rgb), 0.035); }
+  /* Rest days read as "off" — subtle diagonal hatching, still fully usable. */
+  .day-col.rest-col {
+    background: repeating-linear-gradient(
+      -45deg,
+      transparent 0 9px,
+      color-mix(in srgb, var(--muted) 7%, transparent) 9px 10px
+    );
   }
   .hour-line {
     position: absolute;

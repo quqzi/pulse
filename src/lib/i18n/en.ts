@@ -391,6 +391,8 @@ export const en = {
     tomorrow: 'Tomorrow',
     scheduling: 'Scheduling…',
     autoSchedule: '✦ Auto-schedule',
+    restTag: 'Rest',
+    emptyHint: 'Drag anywhere on the grid to plan a study block — or let Auto-schedule fill your week.',
     customize: 'Scheduling settings',
     weekSummary: '▴ Week summary',
     aiPill: (n: number) => `${n} AI`,

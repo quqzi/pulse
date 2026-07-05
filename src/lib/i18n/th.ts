@@ -393,6 +393,8 @@ export const th: I18n = {
     tomorrow: 'พรุ่งนี้',
     scheduling: 'กำลังจัดตาราง…',
     autoSchedule: '✦ จัดตารางอัตโนมัติ',
+    restTag: 'พัก',
+    emptyHint: 'ลากบนตารางเพื่อวางบล็อกอ่านหนังสือ — หรือให้จัดตารางอัตโนมัติเติมสัปดาห์ให้คุณ',
     customize: 'ตั้งค่าการจัดตาราง',
     weekSummary: '▴ สรุปสัปดาห์',
     aiPill: (n: number) => `${n} AI`,
