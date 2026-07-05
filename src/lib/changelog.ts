@@ -10,6 +10,37 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.4',
+    date: '2026-07-05',
+    title: { en: 'A readiness score you can trust & a brand-new notes editor', th: 'คะแนนความพร้อมที่เชื่อถือได้ และตัวแก้ไขโน้ตโฉมใหม่' },
+    items: [
+      {
+        en: 'Exam readiness now counts your logged mock scores and weighs recent attempts more, so improvement actually shows. New subjects no longer drag your score down.',
+        th: 'ความพร้อมสอบนับคะแนนข้อสอบจำลองที่คุณบันทึกไว้แล้ว และให้น้ำหนักครั้งล่าสุดมากกว่า พัฒนาการจึงเห็นชัด วิชาใหม่ไม่ฉุดคะแนนอีกต่อไป',
+      },
+      {
+        en: 'Notes got an Obsidian-style editor — one pane where headings, bold, lists and checkboxes render live as you type. Tap a checkbox to tick it right in the note.',
+        th: 'โน้ตได้ตัวแก้ไขสไตล์ Obsidian — หน้าเดียวที่หัวข้อ ตัวหนา รายการ และเช็กบ็อกซ์แสดงผลสดขณะพิมพ์ แตะเช็กบ็อกซ์เพื่อติ๊กได้เลยในโน้ต',
+      },
+      {
+        en: 'Switch language from the sidebar or the More menu — no trip to Settings needed.',
+        th: 'สลับภาษาได้จากแถบด้านข้างหรือเมนูเพิ่มเติม ไม่ต้องเข้าไปที่การตั้งค่า',
+      },
+      {
+        en: 'Quick-settings gears on the Timer and Schedule pages — change pomodoro lengths, study hours and rest days right where you use them.',
+        th: 'เฟืองตั้งค่าด่วนบนหน้าจับเวลาและตาราง — ปรับความยาวโพโมโดโร เวลาอ่าน และวันพักได้ตรงจุดที่ใช้งาน',
+      },
+      {
+        en: 'Tap the goal on the dashboard to change your daily study target instantly.',
+        th: 'แตะเป้าหมายบนแดชบอร์ดเพื่อเปลี่ยนเป้าการอ่านรายวันได้ทันที',
+      },
+      {
+        en: 'Using Pulse without an account? A sign-in shortcut now lives in the sidebar so you can sync your data anytime.',
+        th: 'ใช้ Pulse โดยไม่มีบัญชี? มีทางลัดเข้าสู่ระบบในแถบด้านข้างแล้ว ซิงค์ข้อมูลได้ทุกเมื่อ',
+      },
+    ],
+  },
+  {
     version: '1.3',
     date: '2026-07-04',
     title: { en: 'Smarter import, live notes & a friendlier start', th: 'นำเข้าฉลาดขึ้น โน้ตแบบสด และเริ่มต้นง่ายขึ้น' },

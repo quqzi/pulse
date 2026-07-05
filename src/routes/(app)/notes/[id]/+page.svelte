@@ -8,7 +8,7 @@
   import { notesRepo } from '$lib/data/entities';
   import { normalizeTags } from '$lib/notes';
   import { insertLink, toggleLinePrefix, toggleWrap } from '$lib/notesFormat';
-  import { renderMarkdown } from '$lib/markdown';
+  import LiveEditor from '$lib/components/notes/LiveEditor.svelte';
   import Picker from '$lib/components/Picker.svelte';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
   import { t } from '$lib/i18n';
@@ -25,11 +25,10 @@
   let subjectId: string | undefined = undefined;
   let pinned = false;
   let createdAt = '';
-  let previewHtml = '';
   let tagDraft = '';
   let confirmDelete = false;
   let titleEl: HTMLInputElement;
-  let bodyEl: HTMLTextAreaElement;
+  let editorRef: LiveEditor;
 
   let loaded = false;     // editing enabled (autosave armed)
   let hydrated = false;   // local fields populated from the store
@@ -106,44 +105,13 @@
   // Any tracked field change schedules a save.
   $: if (loaded) { title; body; tags; subjectId; pinned; scheduleSave(); }
 
-  // Live preview: debounce keystrokes, drop stale async renders.
-  const PREVIEW_DEBOUNCE_MS = 250;
-  let previewTimer: ReturnType<typeof setTimeout> | null = null;
-  let previewToken = 0;
-  function schedulePreview(text: string) {
-    if (previewTimer) clearTimeout(previewTimer);
-    previewTimer = setTimeout(async () => {
-      const token = ++previewToken;
-      const html = await renderMarkdown(text);
-      if (token === previewToken) previewHtml = html;
-    }, PREVIEW_DEBOUNCE_MS);
-  }
-  $: if (hydrated) schedulePreview(body);
-
-  async function applyBodyEdit(
+  // Formatting goes through the editor component (Ctrl/Cmd-B/I/K live in its
+  // own keymap); the pure notesFormat helpers stay the single edit source.
+  function applyBodyEdit(
     edit: (text: string, selStart: number, selEnd: number) => { text: string; selStart: number; selEnd: number }
   ) {
-    if (!hydrated || !bodyEl) return;
-    const result = edit(body, bodyEl.selectionStart, bodyEl.selectionEnd);
-    body = result.text;
-    await tick();
-    bodyEl.focus();
-    bodyEl.setSelectionRange(result.selStart, result.selEnd);
-  }
-
-  function onBodyKeydown(e: KeyboardEvent) {
-    if (!(e.ctrlKey || e.metaKey)) return;
-    const key = e.key.toLowerCase();
-    if (key === 'b') {
-      e.preventDefault();
-      void applyBodyEdit((text, start, end) => toggleWrap(text, start, end, '**', '**'));
-    } else if (key === 'i') {
-      e.preventDefault();
-      void applyBodyEdit((text, start, end) => toggleWrap(text, start, end, '*', '*'));
-    } else if (key === 'k') {
-      e.preventDefault();
-      void applyBodyEdit(insertLink);
-    }
+    if (!hydrated || !editorRef) return;
+    editorRef.applyEdit(edit);
   }
 
   function addTag() {
@@ -179,7 +147,6 @@
   });
   onDestroy(() => {
     if (saveTimer) clearTimeout(saveTimer);
-    if (previewTimer) clearTimeout(previewTimer);
   });
 </script>
 
@@ -245,26 +212,13 @@
       <button type="button" disabled={!hydrated} aria-label={$t.notes.link} on:click={() => applyBodyEdit(insertLink)}>↗</button>
   </div>
 
-  <div class="write-split">
-    <textarea
-      class="body-input"
-      bind:this={bodyEl}
-      bind:value={body}
-      disabled={!hydrated}
-      on:keydown={onBodyKeydown}
-      placeholder={$t.notes.bodyPlaceholder}
-      aria-label={$t.notes.bodyPlaceholder}
-    ></textarea>
-    <div class="preview-pane">
-      <span class="preview-label">{$t.notes.preview}</span>
-      {#if body.trim()}
-        <!-- previewHtml is sanitized by renderMarkdown (DOMPurify) -->
-        <div class="body-preview markdown">{@html previewHtml}</div>
-      {:else}
-        <div class="body-preview preview-empty">{$t.notes.previewEmpty}</div>
-      {/if}
-    </div>
-  </div>
+  <LiveEditor
+    bind:this={editorRef}
+    value={body}
+    disabled={!hydrated}
+    placeholder={$t.notes.bodyPlaceholder}
+    on:change={(e) => (body = e.detail)}
+  />
 </div>
 
 <ConfirmDialog
@@ -290,25 +244,8 @@
   .tag-x { border: none; background: transparent; color: inherit; cursor: pointer; font-size: 14px; line-height: 1; padding: 0; }
   .tag-input { border: none; background: transparent; color: var(--text); font-size: 13px; font-family: inherit; min-width: 120px; flex: 1; }
   .tag-input:focus { outline: none; }
-  .write-split { display: flex; flex-direction: column; gap: 12px; flex: 1; }
-  .preview-pane { display: flex; flex-direction: column; gap: 4px; }
-  .preview-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
-  .preview-empty { color: var(--muted); font-size: 13px; }
-  @media (min-width: 1024px) {
-    .editor { max-width: 1100px; }
-    .write-split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: stretch; }
-    .preview-pane { min-height: 0; }
-  }
   .format-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; width: max-content; max-width: 100%; padding: 4px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg2); }
   .format-toolbar button { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: none; border-radius: calc(var(--radius-md) - 2px); background: transparent; color: var(--muted); font-size: 14px; font-family: var(--font-sans); font-weight: 700; line-height: 1; cursor: pointer; transition: background 120ms ease, color 120ms ease, transform 120ms ease; }
   .format-toolbar button:hover:not(:disabled), .format-toolbar button:focus-visible { background: var(--bg3); color: var(--text); transform: translateY(-1px); }
   .format-toolbar button:disabled { cursor: not-allowed; opacity: 0.5; }
-  .body-input { flex: 1; min-height: 320px; width: 100%; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg2); color: var(--text); font-size: 15px; line-height: 1.6; font-family: var(--font-mono); padding: 14px; resize: vertical; }
-  .body-input:focus { outline: none; border-color: var(--primary); }
-  .body-preview { flex: 1; min-height: 320px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg2); color: var(--text); padding: 14px; font-size: 15px; line-height: 1.6; }
-  .markdown :global(h1) { font-size: 22px; font-weight: 700; margin: 0.6em 0 0.3em; }
-  .markdown :global(h2) { font-size: 18px; font-weight: 700; margin: 0.6em 0 0.3em; }
-  .markdown :global(ul), .markdown :global(ol) { padding-left: 1.4em; }
-  .markdown :global(code) { font-family: var(--font-mono); background: var(--bg3); padding: 1px 4px; border-radius: 4px; }
-  .markdown :global(a) { color: var(--primary); }
 </style>
