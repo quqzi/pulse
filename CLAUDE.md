@@ -353,7 +353,7 @@ Guest mode is fully offline (localStorage); no account required.
 
 ### Open (ready to implement)
 
-- _None._
+- **Trust, beginner-friendliness & design roadmap** — `docs/superpowers/plans/2026-07-05-trust-beginner-design-roadmap.md` — 5 phases, one PR each: ① readiness/insights fixes (count mock scores, recency weighting, weakest-subject threshold) · ② first-run sign-in discoverability + corner language toggle + contextual settings popovers · ③ Obsidian-style single-pane notes editor (CodeMirror 6) · ④ schedule design pass · ⑤ overall design polish. In-app changelog v1.4 after ①–③, v1.5 after ④–⑤.
 
 ### Planned (spec'd, plan not yet written)
 
