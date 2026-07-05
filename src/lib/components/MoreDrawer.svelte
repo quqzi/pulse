@@ -2,6 +2,8 @@
   import { fade, fly } from 'svelte/transition';
   import { backOut, cubicOut } from 'svelte/easing';
   import { t } from '$lib/i18n';
+  import { auth } from '$lib/stores/auth';
+  import LangToggle from '$lib/components/LangToggle.svelte';
   import type { I18n } from '$lib/i18n/en';
   export let open = false;
   export let onClose: () => void = () => {};
@@ -48,7 +50,18 @@
       out:fly={{ y: 300, duration: 220, easing: cubicOut }}
     >
       <div class="sheet-handle"></div>
-      <span class="sheet-title">{$t.nav.more}</span>
+      <div class="sheet-head">
+        <span class="sheet-title">{$t.nav.more}</span>
+        <LangToggle />
+      </div>
+      {#if $auth.mode === 'guest'}
+        <a class="signin-row" href="/auth" on:click={onClose}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>
+          </svg>
+          <span>{$t.common.signInSync}</span>
+        </a>
+      {/if}
       <nav class="grid">
         {#each items as item}
           <a href={item.href} class="tile" on:click={onClose}>
@@ -76,7 +89,15 @@
     max-width: 600px; margin: 0 auto;
   }
   .sheet-handle { width: 36px; height: 4px; border-radius: 2px; background: var(--border); margin: 0 auto 14px; }
-  .sheet-title { display: block; font-size: 17px; font-weight: 700; margin: 0 4px 14px; }
+  .sheet-head { display: flex; align-items: center; justify-content: space-between; margin: 0 4px 14px; }
+  .sheet-title { display: block; font-size: 17px; font-weight: 700; }
+  .signin-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px; margin-bottom: 10px; border-radius: 12px;
+    text-decoration: none; background: var(--primary-l); color: var(--primary);
+    font-size: 14px; font-weight: 600;
+  }
+  .signin-row svg { flex-shrink: 0; }
   .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
   .tile {
     display: flex; flex-direction: column; align-items: center; gap: 7px;

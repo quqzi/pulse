@@ -1,6 +1,8 @@
 <script lang="ts">
   import { page } from '$app/stores';
   import { t } from '$lib/i18n';
+  import { auth } from '$lib/stores/auth';
+  import LangToggle from '$lib/components/LangToggle.svelte';
   import type { I18n } from '$lib/i18n/en';
 
   type NavKey = keyof I18n['nav'];
@@ -55,6 +57,18 @@
       {/each}
     </div>
   {/each}
+
+  <div class="side-footer">
+    {#if $auth.mode === 'guest'}
+      <a class="signin-btn pressable" href="/auth">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>
+        </svg>
+        <span>{$t.common.signInSync}</span>
+      </a>
+    {/if}
+    <LangToggle />
+  </div>
 </aside>
 
 <style>
@@ -118,4 +132,18 @@
   .nav-item:hover svg { transform: scale(1.12); }
   .nav-item svg { transition: transform var(--dur-base) var(--ease-spring); flex-shrink: 0; }
   .nav-item.active { background: var(--primary-l); color: var(--primary); font-weight: 600; }
+  .side-footer {
+    margin-top: auto; display: flex; flex-direction: column; gap: 10px;
+    align-items: flex-start; padding: 8px 4px 0;
+    border-top: 1px solid var(--border);
+  }
+  .signin-btn {
+    display: flex; align-items: center; gap: 8px; width: 100%;
+    padding: 9px 10px; border-radius: 10px; text-decoration: none;
+    background: var(--primary-l); color: var(--primary);
+    font-size: 13px; font-weight: 600;
+    transition: background 140ms ease;
+  }
+  .signin-btn:hover { background: color-mix(in srgb, var(--primary) 18%, transparent); }
+  .signin-btn svg { flex-shrink: 0; }
 </style>

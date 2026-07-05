@@ -14,6 +14,7 @@
   import { t } from '$lib/i18n';
   import Picker from '$lib/components/Picker.svelte';
   import MusicPlayer from '$lib/components/MusicPlayer.svelte';
+  import InlineSettings from '$lib/components/InlineSettings.svelte';
 
   let showSummary = false;
   let lastSession: { durationSec: number; subjectName: string; topicName: string | null } | null = null;
@@ -36,6 +37,17 @@
   $: canStart = $timerStore.subjectId !== null;
   $: isRunning = $timerStore.status === 'running';
   $: isPaused = $timerStore.status === 'paused';
+
+  // Keep the idle pomodoro clock in sync when the work length changes (e.g.
+  // via the quick-settings popover); the !== guard prevents a reactive loop.
+  $: if (
+    $timerStore.status === 'idle' &&
+    $timerStore.mode === 'pomodoro' &&
+    $timerStore.phase === 'work' &&
+    $timerStore.total !== $settings.pomodoroWork * 60
+  ) {
+    timerStore.update(tp => ({ ...tp, total: $settings.pomodoroWork * 60, elapsed: 0 }));
+  }
 
   function formatTime(secs: number): string {
     const total = Math.max(0, Math.floor(secs));
@@ -155,7 +167,21 @@
 {/if}
 
 <div class="page" class:focus={$timerStore.focusMode}>
-  <h1 class="text-large-title page-title">{$t.nav.timer}</h1>
+  <div class="title-row">
+    <h1 class="text-large-title page-title">{$t.nav.timer}</h1>
+    <InlineSettings label={$t.common.quickSettings}>
+      <label class="qs-row">
+        <span class="qs-label">{$t.settings.pomodoroWork}</span>
+        <input type="number" min="5" max="60" step="5" class="qs-num" value={$settings.pomodoroWork}
+          on:change={e => settings.update(s => ({ ...s, pomodoroWork: +e.currentTarget.value }))} />
+      </label>
+      <label class="qs-row">
+        <span class="qs-label">{$t.settings.pomodoroBreak}</span>
+        <input type="number" min="1" max="30" step="1" class="qs-num" value={$settings.pomodoroBreak}
+          on:change={e => settings.update(s => ({ ...s, pomodoroBreak: +e.currentTarget.value }))} />
+      </label>
+    </InlineSettings>
+  </div>
 
   <div class="mode-tabs">
     <button class="mode-tab" class:active={$timerStore.mode === 'pomodoro'} on:click={() => setMode('pomodoro')} disabled={isRunning || isPaused}>{$t.timer.pomodoro}</button>
@@ -261,7 +287,16 @@
     justify-content: center;
   }
   .page-title { align-self: flex-start; }
-  .page.focus .page-title, .page.focus .mode-tabs, .page.focus .selector-row, .page.focus .mode-note { display: none; }
+  .title-row { align-self: stretch; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .qs-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .qs-label { font-size: 13px; color: var(--text); }
+  .qs-num {
+    width: 64px; padding: 7px 10px; border-radius: 8px; border: 1.5px solid var(--border);
+    background: var(--bg); color: var(--text); font-family: inherit; font-size: 14px;
+    text-align: center; outline: none;
+  }
+  .qs-num:focus { border-color: var(--primary); }
+  .page.focus .title-row, .page.focus .mode-tabs, .page.focus .selector-row, .page.focus .mode-note { display: none; }
   .mode-note {
     font-size: 12px;
     line-height: 1.45;

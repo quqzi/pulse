@@ -14,6 +14,7 @@
   import ScheduleSidebar from '$lib/components/calendar/ScheduleSidebar.svelte';
   import ExamBanner from '$lib/components/calendar/ExamBanner.svelte';
   import BottomSheet from '$lib/components/BottomSheet.svelte';
+  import InlineSettings from '$lib/components/InlineSettings.svelte';
   import { pendingAiCount } from '$lib/pendingAiCount';
   import { t, fmt } from '$lib/i18n';
   import type { ScheduleSlot } from '$lib/types';
@@ -213,12 +214,43 @@
         <button class="today-pill pressable" on:click={goToday}>{$t.schedule.today}</button>
       </div>
       <div class="header-actions">
-        <a class="customize-link" href="/settings" title={$t.schedule.customize} aria-label={$t.schedule.customize}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="3"/>
-            <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/>
-          </svg>
-        </a>
+        <InlineSettings label={$t.schedule.customize}>
+          <div class="qs-row">
+            <span class="qs-label">{$t.settings.studyWindow}</span>
+            <div class="qs-times">
+              <input type="time" class="qs-time" bind:value={$settings.studyStart} aria-label={$t.settings.from} />
+              <span class="text-muted">–</span>
+              <input type="time" class="qs-time" bind:value={$settings.studyEnd} aria-label={$t.settings.to} />
+            </div>
+          </div>
+          <div class="qs-row">
+            <span class="qs-label">{$t.settings.blockLength}</span>
+            <div class="qs-pills">
+              {#each [45, 60, 90] as len (len)}
+                <button class="qs-pill" class:active={$settings.blockMinutes === len}
+                  on:click={() => settings.update(s => ({ ...s, blockMinutes: len }))}>{len}{$t.common.minutes}</button>
+              {/each}
+            </div>
+          </div>
+          <div class="qs-col">
+            <span class="qs-label">{$t.settings.restDays}</span>
+            <div class="qs-days">
+              {#each $t.settings.weekdays as dayLabel, i (i)}
+                <button
+                  class="qs-day"
+                  class:active={$settings.restDays.includes(i + 1)}
+                  on:click={() => {
+                    const v = i + 1;
+                    const days = $settings.restDays.includes(v)
+                      ? $settings.restDays.filter(d => d !== v)
+                      : [...$settings.restDays, v];
+                    settings.update(s => ({ ...s, restDays: days }));
+                  }}
+                >{dayLabel}</button>
+              {/each}
+            </div>
+          </div>
+        </InlineSettings>
         <button
           class="auto-btn pressable"
           class:loading={isScheduling}
@@ -379,13 +411,29 @@
 
   .header-actions { display: flex; align-items: center; gap: 8px; }
 
-  .customize-link {
-    display: flex; align-items: center; justify-content: center;
-    width: 30px; height: 30px; border-radius: 6px;
-    color: var(--muted); transition: color 120ms ease, background 120ms ease;
+  .qs-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .qs-col { display: flex; flex-direction: column; gap: 6px; }
+  .qs-label { font-size: 13px; color: var(--text); }
+  .qs-times { display: flex; align-items: center; gap: 6px; }
+  .qs-time {
+    padding: 6px 8px; border-radius: 8px; border: 1.5px solid var(--border);
+    background: var(--bg); color: var(--text); font-family: inherit; font-size: 13px; outline: none;
   }
-  .customize-link:hover { color: var(--text); background: var(--bg3); }
-  @media (max-width: 768px) { .customize-link { width: 44px; height: 44px; } }
+  .qs-time:focus { border-color: var(--primary); }
+  .qs-pills { display: flex; gap: 4px; }
+  .qs-pill {
+    padding: 5px 10px; border-radius: 999px; border: 1.5px solid var(--border);
+    background: var(--bg); color: var(--muted); font-family: inherit; font-size: 12px;
+    font-weight: 600; cursor: pointer;
+  }
+  .qs-pill.active { border-color: var(--primary); background: var(--primary-l); color: var(--primary); }
+  .qs-days { display: flex; gap: 4px; flex-wrap: wrap; }
+  .qs-day {
+    min-width: 32px; padding: 6px 4px; border-radius: 8px; border: 1.5px solid var(--border);
+    background: var(--bg); color: var(--muted); font-family: inherit; font-size: 11.5px;
+    font-weight: 600; cursor: pointer;
+  }
+  .qs-day.active { border-color: var(--primary); background: var(--primary-l); color: var(--primary); }
 
   .auto-btn {
     font-size: 13px;

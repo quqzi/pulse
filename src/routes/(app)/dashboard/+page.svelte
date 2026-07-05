@@ -88,7 +88,13 @@
   <ExamCountdown />
 
   <div use:cardTilt class="hero-wrap">
-    <HeroCard todayHours={$todayHours} goalHours={$settings.dailyGoalHours} streak={$streak} />
+    <HeroCard
+      todayHours={$todayHours}
+      goalHours={$settings.dailyGoalHours}
+      streak={$streak}
+      editable
+      on:goalChange={e => settings.update(s => ({ ...s, dailyGoalHours: e.detail }))}
+    />
   </div>
 
   <section class="readiness-section">
