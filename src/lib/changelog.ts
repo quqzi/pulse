@@ -10,6 +10,33 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.5',
+    date: '2026-07-05',
+    title: { en: 'A calmer, clearer schedule', th: 'ตารางที่สงบและชัดเจนขึ้น' },
+    items: [
+      {
+        en: 'Study blocks got a softer look — gentle subject tints with a colored edge instead of loud solid colors, easier on the eyes in every theme.',
+        th: 'บล็อกอ่านหนังสือดูนุ่มนวลขึ้น — สีอ่อนตามวิชาพร้อมขอบสี แทนสีทึบจัดจ้าน สบายตาในทุกธีม',
+      },
+      {
+        en: "Today's column is highlighted so you can find \"now\" at a glance.",
+        th: 'คอลัมน์วันนี้ถูกเน้นไว้ ให้หาว่า "ตอนนี้" อยู่ตรงไหนได้ทันที',
+      },
+      {
+        en: 'Your rest days now show on the calendar with a subtle pattern and a "Rest" tag.',
+        th: 'วันพักของคุณแสดงบนปฏิทินด้วยลวดลายบาง ๆ และป้าย "พัก"',
+      },
+      {
+        en: 'An empty week now tells you how to get started — drag to plan, or use Auto-schedule.',
+        th: 'สัปดาห์ว่างจะบอกวิธีเริ่มต้น — ลากเพื่อวางแผน หรือใช้จัดตารางอัตโนมัติ',
+      },
+      {
+        en: 'Tidier empty screens across Scores and Analytics.',
+        th: 'หน้าว่างของคะแนนและสถิติเป็นระเบียบขึ้น',
+      },
+    ],
+  },
+  {
     version: '1.4',
     date: '2026-07-05',
     title: { en: 'A readiness score you can trust & a brand-new notes editor', th: 'คะแนนความพร้อมที่เชื่อถือได้ และตัวแก้ไขโน้ตโฉมใหม่' },

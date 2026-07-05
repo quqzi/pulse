@@ -205,7 +205,7 @@
   <section class="sessions-section">
     <h2 class="section-title">{$t.analytics.recentSessions}</h2>
     {#if recentSessions.length === 0}
-      <p class="empty-sessions">{$t.analytics.noSessions}</p>
+      <div class="empty-state"><p class="empty-sub">{$t.analytics.noSessions}</p></div>
     {:else}
       {#each recentSessions as session (session.id)}
         {#if editingSessionId === session.id}
@@ -377,5 +377,6 @@
     padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border);
     background: var(--bg3); color: var(--muted); font-size: 12px; cursor: pointer; font-family: inherit;
   }
-  .empty-sessions { font-size: 13px; color: var(--muted); padding: 12px 0; }
+  .empty-state { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 24px 16px; text-align: center; }
+  .empty-sub { font-size: 13px; color: var(--muted); }
 </style>
