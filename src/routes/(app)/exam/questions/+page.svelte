@@ -16,6 +16,7 @@
   import type { ExamQuestion } from '$lib/types';
   import MathText from '$lib/components/MathText.svelte';
   import MathToolbar from '$lib/components/MathToolbar.svelte';
+  import MathInput from '$lib/components/MathInput.svelte';
 
   $: diffLabels = { easy: $t.exam.diffEasy, medium: $t.exam.diffMedium, hard: $t.exam.diffHard };
 
@@ -118,20 +119,13 @@
   }
 
   let mathOpen = false;
-  let textEl: HTMLTextAreaElement;
-  let choiceEls: (HTMLInputElement | undefined)[] = [undefined, undefined, undefined, undefined];
+  let textEl: MathInput;
+  let choiceEls: (MathInput | undefined)[] = [undefined, undefined, undefined, undefined];
   let focusedField: 'text' | number = 'text';
 
   function insertTex(tex: string) {
     const el = focusedField === 'text' ? textEl : choiceEls[focusedField];
-    const cur = focusedField === 'text' ? formText : formChoices[focusedField];
-    const start = el?.selectionStart ?? cur.length;
-    const end = el?.selectionEnd ?? start;
-    const next = cur.slice(0, start) + tex + cur.slice(end);
-    const hole = tex.includes('{}') ? tex.indexOf('{}') + 1 : tex.includes('()') ? tex.indexOf('()') + 1 : tex.length;
-    if (focusedField === 'text') formText = next;
-    else formChoices[focusedField] = next;
-    queueMicrotask(() => { el?.focus(); el?.setSelectionRange(start + hole, start + hole); });
+    el?.insertSnippet(tex);
   }
 
   async function saveQuestion() {
@@ -276,22 +270,21 @@
     <div class="form-card">
       <h3 class="form-title">{editingQuestion ? $t.exam.editQuestionTitle : $t.exam.addQuestionTitle}</h3>
 
-      <label class="field-label" for="q-text">{$t.exam.questionLabel}</label>
-      <textarea id="q-text" class="field-input" bind:value={formText} bind:this={textEl} on:focus={() => (focusedField = 'text')} rows={3} placeholder={$t.exam.questionPlaceholder}></textarea>
+      <span class="field-label">{$t.exam.questionLabel}</span>
+      <MathInput multiline bind:value={formText} bind:this={textEl} on:focus={() => (focusedField = 'text')} placeholder={$t.exam.questionPlaceholder} ariaLabel={$t.exam.questionLabel} />
 
       <div class="math-row">
         <button class="math-toggle" class:active={mathOpen} on:click={() => (mathOpen = !mathOpen)} aria-label={$t.common.insertMath} aria-pressed={mathOpen}>√x</button>
         {#if mathOpen}<MathToolbar on:insert={(e) => insertTex(e.detail.tex)} />{/if}
       </div>
-      {#if formText.includes('$')}
-        <p class="math-preview"><MathText text={formText} liveTail /></p>
-      {/if}
 
       <span class="field-label">{$t.exam.choicesLabel}</span>
       {#each formChoices as _choice, i}
         <div class="choice-row">
           <span class="choice-letter">{String.fromCharCode(65 + i)}</span>
-          <input class="field-input choice-input" bind:value={formChoices[i]} bind:this={choiceEls[i]} on:focus={() => (focusedField = i)} placeholder={$t.exam.choicePlaceholder(String.fromCharCode(65 + i))} aria-label={$t.exam.choiceAria(String.fromCharCode(65 + i))} />
+          <div class="choice-input">
+            <MathInput bind:value={formChoices[i]} bind:this={choiceEls[i]} on:focus={() => (focusedField = i)} placeholder={$t.exam.choicePlaceholder(String.fromCharCode(65 + i))} ariaLabel={$t.exam.choiceAria(String.fromCharCode(65 + i))} />
+          </div>
           <button
             class="correct-btn"
             class:selected={formCorrectIndex === i}
@@ -300,9 +293,6 @@
             aria-label={$t.exam.markChoiceCorrect(String.fromCharCode(65 + i))}
           ></button>
         </div>
-        {#if formChoices[i].includes('$')}
-          <p class="math-preview choice-preview"><MathText text={formChoices[i]} liveTail /></p>
-        {/if}
       {/each}
 
       <div class="form-row">
@@ -435,8 +425,6 @@
     font-family: var(--font-mono); font-size: 12px; font-weight: 600; cursor: pointer;
   }
   .math-toggle.active { border-color: var(--primary); color: var(--primary); background: var(--primary-l); }
-  .math-preview { margin: 0 0 10px; padding: 8px 10px; border-radius: 8px; background: var(--bg3); font-size: 14px; color: var(--text); }
-  .choice-preview { margin: -2px 0 8px 24px; font-size: 13px; }
   .topics-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
   .topic-chip {
     display: inline-flex; align-items: center; gap: 4px;
