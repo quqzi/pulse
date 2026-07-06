@@ -478,6 +478,12 @@
     return $fmt.date(d.toISOString(), { hour: 'numeric' });
   };
 
+  $: formatMin = (min: number): string => {
+    const d = new Date(weekStart);
+    d.setHours(0, min, 0, 0);
+    return $fmt.date(d.toISOString(), { hour: 'numeric', minute: '2-digit' });
+  };
+
   function dayDateLabel(d: Date): string {
     return String(d.getDate());
   }
@@ -576,7 +582,11 @@
 
           <!-- Ghost block while dragging -->
           {#if ghostVisible && ghostDayIdx === i}
-            <div class="ghost-block" style="top: {ghostTop}px; height: {ghostHeight}px;"></div>
+            <div class="ghost-block" class:resizing={dragMode === 'resize'} style="top: {ghostTop}px; height: {ghostHeight}px;">
+              {#if dragMode === 'resize'}
+                <span class="ghost-time">{formatMin(ghostTop + START_HOUR * 60)} – {formatMin(ghostTop + ghostHeight + START_HOUR * 60)}</span>
+              {/if}
+            </div>
           {/if}
 
           <!-- Actual blocks -->
@@ -836,6 +846,27 @@
     z-index: 5;
   }
   .ghost-block.pending { opacity: 0.55; }
+  /* Resize preview must paint ABOVE the block being resized — at z-index 5 a
+     shrinking ghost is fully hidden behind the block and gives no feedback. */
+  .ghost-block.resizing {
+    z-index: 30;
+    background: rgba(var(--primary-rgb), 0.08);
+    box-shadow: none;
+    border: 1.5px dashed var(--primary);
+  }
+  .ghost-time {
+    position: absolute;
+    bottom: 4px;
+    right: 6px;
+    font-size: 10px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--bg);
+    background: var(--primary);
+    padding: 1px 6px;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
 
   /* A lifted (dragged) block must float above neighbouring slots. */
   .day-col :global(.slot-wrap:has(.cal-block.lifting)) { z-index: 20; }
