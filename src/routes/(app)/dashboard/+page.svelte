@@ -51,18 +51,16 @@
 
   $: subjectById = Object.fromEntries($subjects.map((s) => [s.id, s]));
 
-  async function handleLog(e: CustomEvent<{ subjectId: string; topicId: string | undefined; durationMin: number }>) {
-    const { subjectId, topicId, durationMin } = e.detail;
+  async function handleLog(e: CustomEvent<{ subjectId: string; topicId: string | undefined; durationMin: number; startedAt: string; endedAt: string }>) {
+    const { subjectId, topicId, durationMin, startedAt, endedAt } = e.detail;
     const { userId } = getAuthContext();
-    const now = new Date();
-    const startedAt = new Date(now.getTime() - durationMin * 60000);
     const session = {
       id: newId(),
       userId,
       subjectId,
       topicId,
-      startedAt: startedAt.toISOString(),
-      endedAt: now.toISOString(),
+      startedAt,
+      endedAt,
       durationSec: durationMin * 60,
       mode: 'quick' as const,
     };
