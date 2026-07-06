@@ -52,6 +52,15 @@ export const en = {
     subjectField: 'Subject',
     topicField: 'Topic (opt.)',
     logBtn: 'Log',
+    periodField: 'When',
+    periods: {
+      justNow: 'Just now',
+      morning: 'This morning',
+      afternoon: 'This afternoon',
+      custom: 'Custom',
+    },
+    startTime: 'Start',
+    endTime: 'End',
   },
   readiness: {
     title: 'Exam Readiness',

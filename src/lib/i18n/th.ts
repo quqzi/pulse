@@ -54,6 +54,15 @@ export const th: I18n = {
     subjectField: 'วิชา',
     topicField: 'หัวข้อ (ไม่บังคับ)',
     logBtn: 'บันทึก',
+    periodField: 'ช่วงเวลา',
+    periods: {
+      justNow: 'เมื่อกี้',
+      morning: 'เช้านี้',
+      afternoon: 'บ่ายนี้',
+      custom: 'กำหนดเอง',
+    },
+    startTime: 'เริ่ม',
+    endTime: 'สิ้นสุด',
   },
   readiness: {
     title: 'ความพร้อมสอบ',
