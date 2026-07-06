@@ -8,6 +8,7 @@
   import { languages } from '@codemirror/language-data';
   import { tags } from '@lezer/highlight';
   import { insertLink, toggleWrap } from '$lib/notesFormat';
+  import { mathPreview } from '$lib/cmMath';
 
   export let value = '';
   export let disabled = false;
@@ -125,6 +126,8 @@
       { background: 'rgba(var(--primary-rgb), 0.22)' },
     '.cm-placeholder': { color: 'var(--muted)' },
     '.cm-task-toggle': { accentColor: 'var(--primary)', marginRight: '2px', verticalAlign: 'middle' },
+    '.cm-math .katex': { fontSize: '1.06em' },
+    '.cm-math-display': { display: 'block', textAlign: 'center', margin: '6px 0' },
   });
 
   /** Apply a pure (text, selStart, selEnd) edit — the tested notesFormat helpers. */
@@ -162,6 +165,7 @@
           markdown({ base: markdownLanguage, codeLanguages: languages }),
           syntaxHighlighting(mdHighlight),
           livePreview,
+          mathPreview,
           theme,
           cmPlaceholder(placeholder),
           editable.of(EditorView.editable.of(!disabled)),

@@ -3,15 +3,12 @@
   import 'katex/dist/katex.min.css';
 
   export let text = '';
-  /** Editor previews: render a trailing unclosed $…/$$… as math so the
-   *  formula appears live while typing, before the closing delimiter. */
-  export let liveTail = false;
 
   type Seg = { kind: 'text' | 'inline' | 'display'; value: string };
 
   // Split on $$...$$ (display) first, then $...$ (inline). Unmatched or empty
   // delimiters fall through as plain text, so non-math dollar signs survive.
-  function segment(src: string, tail: boolean): Seg[] {
+  function segment(src: string): Seg[] {
     const out: Seg[] = [];
     const re = /\$\$([^$]+?)\$\$|\$([^$\n]+?)\$/g;
     let last = 0;
@@ -21,19 +18,7 @@
       else out.push({ kind: 'inline', value: m[2] });
       last = m.index + m[0].length;
     }
-    if (last < src.length) {
-      const rest = src.slice(last);
-      const d = tail ? rest.lastIndexOf('$') : -1;
-      if (d >= 0) {
-        const isDisplay = d > 0 && rest[d - 1] === '$';
-        const cut = isDisplay ? d - 1 : d;
-        if (cut > 0) out.push({ kind: 'text', value: rest.slice(0, cut) });
-        const inner = rest.slice(d + 1);
-        if (inner) out.push({ kind: isDisplay ? 'display' : 'inline', value: inner });
-      } else {
-        out.push({ kind: 'text', value: rest });
-      }
-    }
+    if (last < src.length) out.push({ kind: 'text', value: src.slice(last) });
     return out;
   }
 
@@ -41,7 +26,7 @@
     return katex.renderToString(tex, { throwOnError: false, displayMode: display });
   }
 
-  $: segs = segment(text, liveTail);
+  $: segs = segment(text);
 </script>
 
 {#each segs as seg, i (i)}
