@@ -48,7 +48,9 @@
   })();
   $: weekTitle = viewedWeekStart.getMonth() === weekLastDay.getMonth()
     ? $fmt.date(viewedWeekStart.toISOString(), { month: 'long', year: 'numeric' })
-    : `${$fmt.date(viewedWeekStart.toISOString(), { month: 'short' })} – ${$fmt.date(weekLastDay.toISOString(), { month: 'short', year: 'numeric' })}`;
+    : viewedWeekStart.getFullYear() === weekLastDay.getFullYear()
+      ? `${$fmt.date(viewedWeekStart.toISOString(), { month: 'short' })} – ${$fmt.date(weekLastDay.toISOString(), { month: 'short', year: 'numeric' })}`
+      : `${$fmt.date(viewedWeekStart.toISOString(), { month: 'short', year: 'numeric' })} – ${$fmt.date(weekLastDay.toISOString(), { month: 'short', year: 'numeric' })}`;
 
   // Direction of the last navigation, so the title slides in the matching way.
   let navDir = 1;
