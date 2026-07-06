@@ -123,6 +123,7 @@
             class="subject-chip"
             class:active={selectedSubjectId === s.id}
             style="--chip-color: {s.color};"
+            aria-pressed={selectedSubjectId === s.id}
             on:click={() => { selectedSubjectId = selectedSubjectId === s.id ? '' : s.id; selectedTopicId = ''; }}
           >
             <span class="chip-dot" style="background: {s.color};"></span>
@@ -144,6 +145,7 @@
           <button
             class="period-chip"
             class:active={period === p}
+            aria-pressed={period === p}
             on:click={() => selectPeriod(p)}
           >{$t.dashboard.periods[p]}</button>
         {/each}
@@ -169,6 +171,7 @@
               <button
                 class="dur-pill"
                 class:active={durationMin === m}
+                aria-pressed={durationMin === m}
                 on:click={() => (durationMin = m)}
               >{m}</button>
             {/each}
