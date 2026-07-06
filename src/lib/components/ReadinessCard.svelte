@@ -118,7 +118,10 @@
   }
   .gauge-center { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
   .gauge-num { font-size: 38px; font-weight: 700; color: var(--primary); line-height: 1; font-variant-numeric: tabular-nums; }
-  .gauge-pct { font-size: 16px; font-weight: 400; color: var(--muted); align-self: flex-start; margin-top: 34px; }
+  /* Both spans have line-height 1 and are center-aligned by the flex parent;
+     offsetting by half the size difference ((38 - 16) / 2) sits the % on the
+     number's baseline instead of floating beside its cap height. */
+  .gauge-pct { font-size: 16px; font-weight: 400; color: var(--muted); line-height: 1; margin-top: 11px; margin-left: 2px; }
 
   /* Per-subject mini bar (kept) */
   .seg-bar.small { display: flex; gap: 2px; height: 5px; border-radius: 4px; background: var(--bg3); overflow: hidden; margin-bottom: 6px; }

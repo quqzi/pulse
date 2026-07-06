@@ -127,7 +127,11 @@
     transition: transform 280ms var(--ease-spring);
   }
   .nav-item.active::before { transform: scaleY(1); }
-  .nav-item:active { transform: scale(0.96); transition-duration: var(--dur-fast); }
+  /* Press-scale only the contents — scaling the whole item would drag the
+     absolutely-positioned ::before accent bar along and visibly misalign it. */
+  .nav-item:active svg,
+  .nav-item:active span { transform: scale(0.96); transition-duration: var(--dur-fast); }
+  .nav-item span { transition: transform var(--dur-base) var(--ease-spring); }
   .nav-item:hover { background: var(--bg3); color: var(--text); }
   .nav-item:hover svg { transform: scale(1.12); }
   .nav-item svg { transition: transform var(--dur-base) var(--ease-spring); flex-shrink: 0; }
