@@ -58,7 +58,12 @@ const GOAL_METRICS: Record<GoalMetric, (i: AchievementInput) => number> = {
   tasks: (i) => i.tasksCompleted,
 };
 
-/** Current value of the stat a custom goal tracks, from the same input as the built-ins. */
+/**
+ * Current value of the stat a custom goal tracks, from the same input as the
+ * built-ins. Metrics arrive from unconstrained storage (localStorage / a `text`
+ * DB column), so an unknown metric returns 0 rather than crashing the render.
+ */
 export function goalValue(metric: GoalMetric, input: AchievementInput): number {
-  return GOAL_METRICS[metric](input);
+  const fn = GOAL_METRICS[metric];
+  return fn ? fn(input) : 0;
 }
