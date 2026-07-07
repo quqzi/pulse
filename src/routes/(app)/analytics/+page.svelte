@@ -73,7 +73,14 @@
   let deleteSessionOpen = false;
   let pendingDeleteSession: StudySession | null = null;
 
-  $: recentSessions = [...$sessions].sort((a, b) => b.startedAt.localeCompare(a.startedAt)).slice(0, 20);
+  const SESSIONS_PAGE_SIZE = 6;
+  let sessionsShown = SESSIONS_PAGE_SIZE;
+  $: sortedSessions = [...$sessions].sort((a, b) => b.startedAt.localeCompare(a.startedAt));
+  $: recentSessions = sortedSessions.slice(0, sessionsShown);
+  $: sessionsHasMore = sortedSessions.length > sessionsShown;
+  $: sessionsRemaining = sortedSessions.length - sessionsShown;
+  function showMoreSessions() { sessionsShown += 10; }
+  function collapseSessions() { sessionsShown = SESSIONS_PAGE_SIZE; }
 
   function subjectColor(subjectId: string): string {
     return $subjects.find(s => s.id === subjectId)?.color ?? 'var(--muted)';
@@ -235,6 +242,16 @@
           </div>
         {/if}
       {/each}
+      {#if sessionsHasMore || sessionsShown > SESSIONS_PAGE_SIZE}
+        <div class="show-more">
+          {#if sessionsHasMore}
+            <button class="show-more-btn" on:click={showMoreSessions}>{$t.analytics.showMore(sessionsRemaining)}</button>
+          {/if}
+          {#if sessionsShown > SESSIONS_PAGE_SIZE}
+            <button class="show-more-btn muted" on:click={collapseSessions}>{$t.analytics.showLess}</button>
+          {/if}
+        </div>
+      {/if}
     {/if}
   </section>
 
@@ -379,4 +396,8 @@
   }
   .empty-state { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 24px 16px; text-align: center; }
   .empty-sub { font-size: 13px; color: var(--muted); }
+  .show-more { display: flex; justify-content: center; gap: 20px; padding: 12px 0 0; }
+  .show-more-btn { font-size: 13px; font-weight: 600; color: var(--primary); background: none; border: none; cursor: pointer; padding: 6px 4px; font-family: inherit; }
+  .show-more-btn.muted { color: var(--muted); font-weight: 500; }
+  .show-more-btn:hover { color: var(--text); }
 </style>

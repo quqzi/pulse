@@ -1,3 +1,5 @@
+import type { GoalMetric } from '$lib/types';
+
 export interface AchievementInput {
   sessionCount: number;
   totalHours: number;
@@ -44,4 +46,24 @@ export function computeAchievements(input: AchievementInput): Achievement[] {
       target,
     };
   });
+}
+
+const GOAL_METRICS: Record<GoalMetric, (i: AchievementInput) => number> = {
+  sessions: (i) => i.sessionCount,
+  hours: (i) => i.totalHours,
+  streak: (i) => i.streak,
+  mocks: (i) => i.mockCount,
+  mockAccuracy: (i) => i.bestMockAccuracy,
+  cards: (i) => i.cardCount,
+  tasks: (i) => i.tasksCompleted,
+};
+
+/**
+ * Current value of the stat a custom goal tracks, from the same input as the
+ * built-ins. Metrics arrive from unconstrained storage (localStorage / a `text`
+ * DB column), so an unknown metric returns 0 rather than crashing the render.
+ */
+export function goalValue(metric: GoalMetric, input: AchievementInput): number {
+  const fn = GOAL_METRICS[metric];
+  return fn ? fn(input) : 0;
 }

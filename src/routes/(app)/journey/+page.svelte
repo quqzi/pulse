@@ -9,7 +9,7 @@
   import { HISTORY_WEEKS } from '$lib/constants';
   import { t, fmt } from '$lib/i18n';
 
-  const TIMELINE_PAGE_SIZE = 30;
+  const TIMELINE_PAGE_SIZE = 7;
 
   $: totalHours = $sessions.reduce((sum, s) => sum + s.durationSec / 3600, 0);
   $: totalSessions = $sessions.length;
@@ -47,6 +47,7 @@
   $: remainingDays = dayGroups.length - shownCount;
 
   function showMore() { shownCount += TIMELINE_PAGE_SIZE; }
+  function collapse() { shownCount = TIMELINE_PAGE_SIZE; }
 
   $: formatTimeRange = (startedAt: string, endedAt: string): string =>
     `${$fmt.date(startedAt, { hour: 'numeric', minute: '2-digit' })} – ${$fmt.date(endedAt, { hour: 'numeric', minute: '2-digit' })}`;
@@ -155,9 +156,14 @@
           </div>
         {/each}
 
-        {#if hasMore}
+        {#if hasMore || shownCount > TIMELINE_PAGE_SIZE}
           <div class="show-more">
-            <button class="show-more-btn" on:click={showMore}>{$t.journey.showMore(remainingDays)}</button>
+            {#if hasMore}
+              <button class="show-more-btn" on:click={showMore}>{$t.journey.showMore(remainingDays)}</button>
+            {/if}
+            {#if shownCount > TIMELINE_PAGE_SIZE}
+              <button class="show-more-btn muted" on:click={collapse}>{$t.journey.showLess}</button>
+            {/if}
           </div>
         {/if}
       </div>
@@ -218,8 +224,9 @@
   .mode-free { background: rgba(var(--primary-rgb), 0.06); color: var(--muted); }
   .mode-quick { background: rgba(var(--primary-rgb), 0.06); color: var(--muted); }
 
-  .show-more { text-align: center; padding: 12px; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); }
-  .show-more-btn { font-size: 13px; color: var(--muted); background: none; border: none; cursor: pointer; padding: 0; }
+  .show-more { display: flex; justify-content: center; gap: 20px; padding: 12px; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); }
+  .show-more-btn { font-size: 13px; font-weight: 600; color: var(--primary); background: none; border: none; cursor: pointer; padding: 0; }
+  .show-more-btn.muted { color: var(--muted); font-weight: 500; }
   .show-more-btn:hover { color: var(--text); }
 
   .bottom-spacer { height: 40px; }

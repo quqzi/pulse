@@ -154,3 +154,24 @@ export interface ExamSession {
   timerMode: 'overall' | 'per-question';
   createdAt: string;    // ISO timestamp
 }
+
+// Which running stat a user-defined goal tracks. Each maps to one field of
+// AchievementInput (see $lib/achievements → goalValue).
+export type GoalMetric =
+  | 'sessions'
+  | 'hours'
+  | 'streak'
+  | 'mocks'
+  | 'mockAccuracy'
+  | 'cards'
+  | 'tasks';
+
+export interface CustomGoal {
+  id: string;
+  userId: string;
+  title: string;
+  icon: string;         // single emoji
+  metric: GoalMetric;
+  target: number;       // threshold to "unlock" the goal
+  createdAt: string;    // ISO timestamp
+}
