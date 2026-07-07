@@ -5,11 +5,14 @@
   import { deckState, isDeckDue } from '$lib/flashcards';
   import { localDateStr } from '$lib/utils';
   import EmptyState from '$lib/components/EmptyState.svelte';
+  import QuickCardSheet from '$lib/components/QuickCardSheet.svelte';
   import { t, fmt } from '$lib/i18n';
   import type { Topic, Subject } from '$lib/types';
 
   onMount(() => loadData($auth));
   $: if ($auth.mode !== 'loading') loadData($auth);
+
+  let newCardOpen = false;
 
   $: today = localDateStr(new Date());
   $: subjectMap = Object.fromEntries($subjects.map(s => [s.id, s]));
@@ -38,7 +41,10 @@
 </script>
 
 <div class="flashcards-page">
-  <h1 class="text-large-title page-title">{$t.flashcards.title}</h1>
+  <div class="page-head">
+    <h1 class="text-large-title page-title">{$t.flashcards.title}</h1>
+    <button class="new-card-btn" on:click={() => (newCardOpen = true)}>+ {$t.flashcards.newCard}</button>
+  </div>
 
   {#if decks.length === 0}
     <EmptyState icon="cards" title={$t.flashcards.emptyTitle} sub={$t.flashcards.emptySub} />
@@ -89,9 +95,16 @@
   <div class="bottom-spacer"></div>
 </div>
 
+<QuickCardSheet bind:open={newCardOpen} on:close={() => (newCardOpen = false)} />
+
 <style>
   .flashcards-page { padding: 20px 16px 0; max-width: 720px; margin: 0 auto; }
-  .page-title { margin-bottom: 20px; color: var(--text); }
+  .page-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+  .page-title { margin-bottom: 0; color: var(--text); }
+  .new-card-btn { flex-shrink: 0; padding: 9px 16px; border-radius: 16px; border: none; background: var(--primary); color: var(--bg); font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: transform var(--dur-base) var(--ease-spring); }
+  .new-card-btn:hover { transform: scale(1.04); }
+  .new-card-btn:active { transform: scale(0.94); transition-duration: var(--dur-fast); }
+  @media (max-width: 768px) { .new-card-btn { min-height: 44px; } }
   .section { margin-bottom: 20px; }
   .section-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 8px; padding: 0 2px; }
   .subject-group { margin-bottom: 12px; }

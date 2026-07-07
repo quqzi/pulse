@@ -1,4 +1,4 @@
-import type { Task, MockScore, Template, SubjectPreset, Subject, Topic, SrsCard, StudySession, ScheduleSlot, ExamQuestion, ExamSession, Flashcard, Note } from '$lib/types';
+import type { Task, MockScore, Template, SubjectPreset, Subject, Topic, SrsCard, StudySession, ScheduleSlot, ExamQuestion, ExamSession, Flashcard, Note, CustomGoal, GoalMetric } from '$lib/types';
 
 export const taskFromRow = (r: Record<string, unknown>): Task => ({
   id: r.id as string,
@@ -271,4 +271,24 @@ export const examSessionToRow = (s: ExamSession): Record<string, unknown> => ({
   duration_seconds: s.durationSeconds,
   timer_mode: s.timerMode,
   created_at: s.createdAt,
+});
+
+export const customGoalFromRow = (r: Record<string, unknown>): CustomGoal => ({
+  id: r.id as string,
+  userId: r.user_id as string,
+  title: r.title as string,
+  icon: r.icon as string,
+  metric: r.metric as GoalMetric,
+  target: r.target as number,
+  createdAt: r.created_at as string,
+});
+
+export const customGoalToRow = (g: CustomGoal): Record<string, unknown> => ({
+  id: g.id,
+  user_id: g.userId,
+  title: g.title,
+  icon: g.icon,
+  metric: g.metric,
+  target: g.target,
+  created_at: g.createdAt,
 });

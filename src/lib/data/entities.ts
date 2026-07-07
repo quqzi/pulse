@@ -1,9 +1,9 @@
 import { get } from 'svelte/store';
-import type { Task, MockScore, Template, Subject, Topic, StudySession, ScheduleSlot, ExamQuestion, ExamSession, Flashcard, Note } from '$lib/types';
-import { tasks, scores, templates, subjects, topics, sessions, scheduleSlots, examQuestions, examSessions, flashcards, notes } from '$lib/data/stores';
+import type { Task, MockScore, Template, Subject, Topic, StudySession, ScheduleSlot, ExamQuestion, ExamSession, Flashcard, Note, CustomGoal } from '$lib/types';
+import { tasks, scores, templates, subjects, topics, sessions, scheduleSlots, examQuestions, examSessions, flashcards, notes, customGoals } from '$lib/data/stores';
 import { repo, reportError } from '$lib/data/repository';
 import { writeThrough, loadInto } from '$lib/data/engine';
-import { taskFromRow, taskToRow, scoreFromRow, scoreToRow, templateFromRow, templateToRow, subjectFromRow, subjectToRow, topicFromRow, topicToRow, sessionFromRow, sessionToRow, slotFromRow, slotToRow, examQuestionFromRow, examQuestionToRow, examSessionFromRow, examSessionToRow, flashcardFromRow, flashcardToRow, noteFromRow, noteToRow } from '$lib/data/mappers';
+import { taskFromRow, taskToRow, scoreFromRow, scoreToRow, templateFromRow, templateToRow, subjectFromRow, subjectToRow, topicFromRow, topicToRow, sessionFromRow, sessionToRow, slotFromRow, slotToRow, examQuestionFromRow, examQuestionToRow, examSessionFromRow, examSessionToRow, flashcardFromRow, flashcardToRow, noteFromRow, noteToRow, customGoalFromRow, customGoalToRow } from '$lib/data/mappers';
 import { getAuthContext } from '$lib/data/authctx';
 import { toast } from '$lib/stores/toast';
 import { t } from '$lib/i18n';
@@ -86,6 +86,17 @@ export const flashcardsRepo = repo<Flashcard>({
   table: 'flashcards',
   toRow: flashcardToRow,
   fromRow: flashcardFromRow,
+  orderColumn: 'created_at',
+  ascending: true,
+  order: (a, b) => a.createdAt.localeCompare(b.createdAt),
+});
+
+export const customGoalsRepo = repo<CustomGoal>({
+  store: customGoals,
+  lsKey: 'pulse.customGoals',
+  table: 'custom_goals',
+  toRow: customGoalToRow,
+  fromRow: customGoalFromRow,
   orderColumn: 'created_at',
   ascending: true,
   order: (a, b) => a.createdAt.localeCompare(b.createdAt),
