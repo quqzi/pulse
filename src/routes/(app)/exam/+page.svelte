@@ -42,17 +42,22 @@
 
   $: canStart = selectedSubjects.length > 0 && selectedDifficulties.length > 0 && filteredPool.length > 0;
 
-  $: summaryLine = canStart
-    ? `${$t.exam.questionCount(totalQuestions)} · ${selectedSubjects.join(' + ')} · ${selectedDifficulties
-        .map((d) => diffLabels[d])
-        .join(' + ')} · ${
-        timerMode === 'overall'
-          ? noOverallLimit
-            ? $t.exam.noTimeLimit
-            : $t.exam.minOverall(overallMinutes)
-          : $t.exam.secPerQuestion(secondsPerQuestion)
-      }`
-    : $t.exam.noMatch;
+  $: subjectColorByName = Object.fromEntries($subjects.map((s) => [s.name, s.color]));
+
+  // Per-question mode still has a predictable ceiling: n questions × s seconds.
+  $: estMinutes =
+    timerMode === 'overall'
+      ? noOverallLimit
+        ? null
+        : overallMinutes
+      : Math.max(1, Math.ceil((totalQuestions * secondsPerQuestion) / 60));
+
+  $: timeLabel =
+    timerMode === 'overall'
+      ? noOverallLimit
+        ? $t.exam.noTimeLimit
+        : $t.exam.minOverall(overallMinutes)
+      : $t.exam.secPerQuestion(secondsPerQuestion);
 
   function toggleSubject(s: string) {
     selectedSubjects = selectedSubjects.includes(s)
@@ -153,6 +158,11 @@
   // ── Results ───────────────────────────────────────────────
   let resultSession: ExamSession | null = null;
   let weakestSubject = '';
+  // Per-topic tallies live only in the results view — not persisted.
+  let topicScores: Record<string, { correct: number; total: number }> = {};
+  $: topicRows = Object.entries(topicScores).sort(
+    (a, b) => a[1].correct / a[1].total - b[1].correct / b[1].total,
+  );
   const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
   async function finishExam() {
@@ -167,6 +177,7 @@
 
     const durationSeconds = Math.round((Date.now() - startedAt) / 1000);
     const subjectScores: Record<string, { correct: number; total: number }> = {};
+    const byTopic: Record<string, { correct: number; total: number }> = {};
 
     for (let i = 0; i < queue.length; i++) {
       const q = queue[i];
@@ -174,7 +185,13 @@
       if (!subjectScores[subjId]) subjectScores[subjId] = { correct: 0, total: 0 };
       subjectScores[subjId].total++;
       if (answers[i] === q.correctIndex) subjectScores[subjId].correct++;
+      for (const tp of q.topics ?? []) {
+        if (!byTopic[tp]) byTopic[tp] = { correct: 0, total: 0 };
+        byTopic[tp].total++;
+        if (answers[i] === q.correctIndex) byTopic[tp].correct++;
+      }
     }
+    topicScores = byTopic;
 
     const totalCorrect = Object.values(subjectScores).reduce((s, v) => s + v.correct, 0);
 
@@ -224,6 +241,7 @@
     resultSession = null;
     queue = [];
     answers = [];
+    topicScores = {};
   }
 
   onDestroy(() => {
@@ -233,7 +251,7 @@
 </script>
 
 {#if phase === 'setup'}
-  <div class="page">
+  <div class="page page-setup">
     <div class="page-header">
       <div>
         <h1 class="text-large-title page-title">{$t.exam.title}</h1>
@@ -242,75 +260,109 @@
       <a href="/exam/questions" class="btn-secondary">{$t.exam.manageQuestions}</a>
     </div>
 
-    <div class="setup-card">
-      <div class="section">
-        <div class="section-label">{$t.exam.subjects}</div>
-        <div class="pill-group">
-          {#each availableSubjects as s}
-            <button class="pill" class:active={selectedSubjects.includes(s)} on:click={() => toggleSubject(s)}>{s}</button>
-          {/each}
-          {#if availableSubjects.length === 0}
-            <span class="empty-hint">{$t.exam.noQuestionsHint}<a href="/exam/questions">{$t.exam.addSomeFirst}</a></span>
-          {/if}
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-label">{$t.exam.difficulty}</div>
-        <div class="pill-group">
-          {#each ['easy', 'medium', 'hard'] as const as d}
-            <button class="pill" class:active={selectedDifficulties.includes(d)} on:click={() => toggleDifficulty(d)}>
-              {diffLabels[d]}
-            </button>
-          {/each}
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-label">{$t.exam.questionsPerSubject}</div>
-        <div class="number-row">
-          <input class="number-input" type="number" min={1} bind:value={questionsPerSubject} disabled={useAllQuestions} aria-label={$t.exam.questionsPerSubject} />
-          <label class="toggle-label">
-            <input type="checkbox" bind:checked={useAllQuestions} /> {$t.exam.useAllAvailable}
-          </label>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-label">{$t.exam.timerMode}</div>
-        <div class="timer-cards">
-          <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
-          <div class="timer-card" class:selected={timerMode === 'overall'} on:click={() => (timerMode = 'overall')}>
-            <div class="timer-card-title">{$t.exam.overallLimit}</div>
-            <div class="timer-card-sub">{$t.exam.overallLimitSub}</div>
-            {#if timerMode === 'overall'}
-              <div class="number-row" style="margin-top:10px">
-                <input class="number-input" type="number" min={1} bind:value={overallMinutes} disabled={noOverallLimit} aria-label={$t.exam.overallMinutesAria} />
-                <span class="unit">{$t.exam.minutes}</span>
-                <label class="toggle-label">
-                  <input type="checkbox" bind:checked={noOverallLimit} /> {$t.exam.noLimit}
-                </label>
-              </div>
-            {/if}
-          </div>
-
-          <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
-          <div class="timer-card" class:selected={timerMode === 'per-question'} on:click={() => (timerMode = 'per-question')}>
-            <div class="timer-card-title">{$t.exam.perQuestionLimit}</div>
-            <div class="timer-card-sub">{$t.exam.perQuestionLimitSub}</div>
-            {#if timerMode === 'per-question'}
-              <div class="number-row" style="margin-top:10px">
-                <input class="number-input" type="number" min={5} bind:value={secondsPerQuestion} aria-label={$t.exam.secondsPerQuestionAria} />
-                <span class="unit">{$t.exam.secondsPerQuestionUnit}</span>
-              </div>
+    <div class="setup-grid">
+      <div class="setup-card">
+        <div class="section">
+          <div class="section-label">{$t.exam.subjects}</div>
+          <div class="pill-group">
+            {#each availableSubjects as s}
+              <button
+                class="pill subject-pill"
+                class:active={selectedSubjects.includes(s)}
+                style="--pill-color: {subjectColorByName[s] ?? 'var(--primary)'};"
+                aria-pressed={selectedSubjects.includes(s)}
+                on:click={() => toggleSubject(s)}
+              >
+                <span class="pill-dot" style="background: {subjectColorByName[s] ?? 'var(--primary)'};"></span>
+                {s}
+              </button>
+            {/each}
+            {#if availableSubjects.length === 0}
+              <span class="empty-hint">{$t.exam.noQuestionsHint}<a href="/exam/questions">{$t.exam.addSomeFirst}</a></span>
             {/if}
           </div>
         </div>
+
+        <div class="section">
+          <div class="section-label">{$t.exam.difficulty}</div>
+          <div class="pill-group">
+            {#each ['easy', 'medium', 'hard'] as const as d}
+              <button class="pill" class:active={selectedDifficulties.includes(d)} aria-pressed={selectedDifficulties.includes(d)} on:click={() => toggleDifficulty(d)}>
+                {diffLabels[d]}
+              </button>
+            {/each}
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-label">{$t.exam.questionsPerSubject}</div>
+          <div class="number-row">
+            <input class="number-input" type="number" min={1} bind:value={questionsPerSubject} disabled={useAllQuestions} aria-label={$t.exam.questionsPerSubject} />
+            <label class="toggle-label">
+              <input type="checkbox" bind:checked={useAllQuestions} /> {$t.exam.useAllAvailable}
+            </label>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-label">{$t.exam.timerMode}</div>
+          <div class="timer-cards">
+            <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
+            <div class="timer-card" class:selected={timerMode === 'overall'} on:click={() => (timerMode = 'overall')}>
+              <div class="timer-card-title">{$t.exam.overallLimit}</div>
+              <div class="timer-card-sub">{$t.exam.overallLimitSub}</div>
+              {#if timerMode === 'overall'}
+                <div class="number-row" style="margin-top:10px">
+                  <input class="number-input" type="number" min={1} bind:value={overallMinutes} disabled={noOverallLimit} aria-label={$t.exam.overallMinutesAria} />
+                  <span class="unit">{$t.exam.minutes}</span>
+                  <label class="toggle-label">
+                    <input type="checkbox" bind:checked={noOverallLimit} /> {$t.exam.noLimit}
+                  </label>
+                </div>
+              {/if}
+            </div>
+
+            <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
+            <div class="timer-card" class:selected={timerMode === 'per-question'} on:click={() => (timerMode = 'per-question')}>
+              <div class="timer-card-title">{$t.exam.perQuestionLimit}</div>
+              <div class="timer-card-sub">{$t.exam.perQuestionLimitSub}</div>
+              {#if timerMode === 'per-question'}
+                <div class="number-row" style="margin-top:10px">
+                  <input class="number-input" type="number" min={5} bind:value={secondsPerQuestion} aria-label={$t.exam.secondsPerQuestionAria} />
+                  <span class="unit">{$t.exam.secondsPerQuestionUnit}</span>
+                </div>
+              {/if}
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div class="summary-line" class:warn={!canStart}>{summaryLine}</div>
-
-      <button class="btn-start" disabled={!canStart} on:click={startExam}>{$t.exam.startExam}</button>
+      <div class="summary-card">
+        <div class="summary-title">{$t.exam.summaryTitle}</div>
+        {#if canStart}
+          <div class="summary-count">
+            {totalQuestions}
+            <span class="summary-count-label">{$t.exam.questionsUnit}</span>
+          </div>
+          <dl class="summary-meta">
+            <div class="summary-row">
+              <dt>{$t.exam.subjects}</dt>
+              <dd>{selectedSubjects.join(', ')}</dd>
+            </div>
+            <div class="summary-row">
+              <dt>{$t.exam.difficulty}</dt>
+              <dd>{selectedDifficulties.map((d) => diffLabels[d]).join(', ')}</dd>
+            </div>
+            <div class="summary-row">
+              <dt>{$t.exam.timerMode}</dt>
+              <dd>{timeLabel}{#if timerMode === 'per-question' && estMinutes}<span class="est"> · {$t.exam.estMin(estMinutes)}</span>{/if}</dd>
+            </div>
+          </dl>
+        {:else}
+          <p class="summary-empty">{$t.exam.noMatch}</p>
+        {/if}
+        <button class="btn-start" disabled={!canStart} on:click={startExam}>{$t.exam.startExam}</button>
+      </div>
     </div>
   </div>
 
@@ -379,6 +431,23 @@
         {/each}
       </div>
 
+      {#if topicRows.length > 0}
+        <div class="topic-breakdown">
+          <div class="topic-breakdown-title">{$t.exam.topicBreakdown}</div>
+          {#each topicRows as [topic, val] (topic)}
+            {@const pct = val.total > 0 ? (val.correct / val.total) * 100 : 0}
+            <div class="topic-row">
+              <span class="topic-label">{topic}</span>
+              <div class="breakdown-bar">
+                <div class="breakdown-fill" style="width:{pct}%;background:var(--primary)"></div>
+              </div>
+              <span class="breakdown-score">{val.correct}/{val.total}</span>
+            </div>
+          {/each}
+          <a class="review-link" href="/subjects">{$t.exam.reviewTopics}</a>
+        </div>
+      {/if}
+
       {#if weakestSubject}
         <div class="weakest">
           {$t.exam.weakestArea} <strong>{weakestSubject}</strong>
@@ -395,6 +464,7 @@
 
 <style>
   .page { max-width: 600px; margin: 0 auto; padding: 32px 24px; }
+  .page-setup { max-width: 920px; }
   .page-exam { max-width: 560px; }
   .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; gap: 12px; }
   .page-title { color: var(--text); margin: 0 0 2px; }
@@ -404,11 +474,30 @@
   .btn-secondary { background: var(--bg2); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 8px 14px; font-size: 13px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; flex-shrink: 0; }
 
   /* Setup */
+  .setup-grid { display: grid; grid-template-columns: 1fr; gap: 16px; align-items: start; }
+  @media (min-width: 1024px) {
+    .setup-grid { grid-template-columns: 1fr 300px; }
+    .summary-card { position: sticky; top: 24px; }
+  }
   .setup-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+  .summary-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+  .summary-title { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+  .summary-count { font-size: 36px; font-weight: 700; color: var(--text); line-height: 1.1; }
+  .summary-count-label { font-size: 14px; font-weight: 500; color: var(--muted); margin-left: 4px; }
+  .summary-meta { display: flex; flex-direction: column; gap: 8px; margin: 0; }
+  .summary-row { display: flex; flex-direction: column; gap: 1px; }
+  .summary-row dt { font-size: 11px; color: var(--muted); }
+  .summary-row dd { font-size: 13px; color: var(--text); font-weight: 500; margin: 0; }
+  .summary-row .est { color: var(--muted); font-weight: 400; }
+  .summary-empty { font-size: 13px; color: var(--muted); margin: 0; }
   .section-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
   .pill-group { display: flex; flex-wrap: wrap; gap: 8px; }
   .pill { background: var(--bg3); border: 1px solid var(--border); color: var(--muted); border-radius: 20px; padding: 6px 14px; font-size: 12px; cursor: pointer; font-family: inherit; }
   .pill.active { background: var(--primary-l); border-color: var(--primary); color: var(--primary); font-weight: 600; }
+  .subject-pill { display: inline-flex; align-items: center; gap: 7px; }
+  .subject-pill .pill-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; opacity: 0.55; }
+  .subject-pill.active { background: color-mix(in srgb, var(--pill-color) 12%, var(--bg2)); border-color: var(--pill-color); color: var(--text); }
+  .subject-pill.active .pill-dot { opacity: 1; }
   .empty-hint { font-size: 12px; color: var(--muted); }
   .empty-hint a { color: var(--primary); }
   .number-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -421,18 +510,16 @@
   .timer-card.selected { border-color: var(--primary); background: var(--primary-l); }
   .timer-card-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
   .timer-card-sub { font-size: 11px; color: var(--muted); }
-  .summary-line { font-size: 12px; color: var(--muted); background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; }
-  .summary-line.warn { color: var(--danger); }
-  .btn-start { background: var(--primary); color: var(--bg); border: none; border-radius: var(--radius-md); padding: 12px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; }
+  .btn-start { background: var(--primary); color: var(--bg); border: none; border-radius: var(--radius-md); padding: 12px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; margin-top: auto; }
   .btn-start:disabled { opacity: 0.4; cursor: not-allowed; }
 
   /* Running */
   .exam-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
   .progress-label { font-size: 13px; color: var(--muted); }
-  .timer { font-size: 15px; font-weight: 600; color: var(--primary); font-variant-numeric: tabular-nums; }
-  .timer.urgent { color: var(--danger); }
-  .progress-bar { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 24px; overflow: hidden; }
-  .progress-fill { height: 100%; background: var(--primary); border-radius: 2px; transform-origin: left; transition: transform 0.3s; }
+  .timer { font-size: 14px; font-weight: 600; color: var(--primary); font-variant-numeric: tabular-nums; background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; padding: 4px 12px; }
+  .timer.urgent { color: var(--danger); border-color: var(--danger); }
+  .progress-bar { height: 6px; background: var(--bg3); border: 1px solid var(--border); border-radius: 3px; margin-bottom: 24px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--primary); border-radius: 3px; transform-origin: left; transition: transform 0.3s; }
   .question-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 24px; }
   .badge-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 12px; }
   .subject-badge { display: inline-block; background: var(--primary-l); color: var(--primary); font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 10px; letter-spacing: .5px; }
@@ -443,10 +530,11 @@
     border-radius: var(--radius-md); border: 1px solid var(--border);
   }
   .choices { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
-  .choice { display: flex; align-items: center; gap: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px 14px; font-size: 14px; color: var(--text); cursor: pointer; text-align: left; font-family: inherit; }
+  .choice { display: flex; align-items: center; gap: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 10px 12px; font-size: 14px; color: var(--text); cursor: pointer; text-align: left; font-family: inherit; transition: border-color 0.12s, background 0.12s; }
+  .choice:hover { border-color: var(--primary); background: var(--bg2); }
   .choice.selected { border-color: var(--primary); background: var(--primary-l); color: var(--text); }
-  .choice .choice-letter { font-weight: 700; color: var(--muted); font-size: 13px; flex-shrink: 0; }
-  .choice.selected .choice-letter { color: var(--primary); }
+  .choice .choice-letter { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: var(--bg3); border: 1px solid var(--border); font-weight: 700; color: var(--muted); font-size: 12px; flex-shrink: 0; }
+  .choice.selected .choice-letter { background: var(--primary); border-color: var(--primary); color: var(--bg); }
   .btn-next { background: var(--primary); color: var(--bg); border: none; border-radius: var(--radius-md); padding: 11px; font-size: 14px; font-weight: 600; cursor: pointer; width: 100%; }
   .btn-next:disabled { opacity: 0.4; cursor: not-allowed; }
 
@@ -462,12 +550,18 @@
   .breakdown-bar { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
   .breakdown-fill { height: 100%; border-radius: 3px; }
   .breakdown-score { width: 40px; text-align: right; font-weight: 600; color: var(--text); }
+  .topic-breakdown { border-top: 1px solid var(--border); padding-top: 16px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px; text-align: left; }
+  .topic-breakdown-title { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+  .topic-row { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+  .topic-label { width: 110px; color: var(--muted); flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .review-link { align-self: flex-start; color: var(--primary); font-size: 12px; font-weight: 600; text-decoration: none; margin-top: 2px; }
   .weakest { font-size: 13px; color: var(--muted); background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; text-align: left; }
   .weakest strong { color: var(--text); }
   .result-actions { display: flex; gap: 10px; justify-content: center; }
 
   @media (max-width: 768px) {
     .page { padding: 24px 16px 80px; }
+    .pill { min-height: 44px; padding: 6px 16px; }
     .choice { min-height: 48px; }
     .btn-next, .btn-start { min-height: 48px; }
   }
