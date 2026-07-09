@@ -172,7 +172,7 @@
           }}
         >
           <div class="score-left">
-            <span class="subj-chip" style="background:color-mix(in srgb, {color} 13%, transparent);color:{color}">
+            <span class="subj-chip" style="background:{color}21;background:color-mix(in srgb, {color} 13%, transparent);color:{color}">
               {subjectSymbol(score.subjectId)}
             </span>
             <div class="score-meta">

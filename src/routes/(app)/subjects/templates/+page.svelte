@@ -273,6 +273,7 @@
     .template-row:hover {
       transform: translateY(-1px) scale(1.01);
       background: var(--bg3);
+      border-color: var(--border);
       border-color: color-mix(in srgb, var(--primary) 25%, var(--border));
     }
     .template-row:hover .chevron { transform: translateX(2px); }
@@ -343,6 +344,7 @@
   .import-tpl-btn {
     display: flex; align-items: center; justify-content: center; gap: 6px;
     padding: 12px 16px; border-radius: var(--radius-md);
+    border: 1.5px solid var(--border);
     border: 1.5px solid color-mix(in srgb, var(--primary) 30%, var(--border));
     background: var(--primary-l); color: var(--primary);
     font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap;

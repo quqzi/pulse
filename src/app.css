@@ -8,6 +8,7 @@ body {
   font-family: var(--font-sans, 'Inter', system-ui, sans-serif);
   background: var(--bg);
   color: var(--text);
+  min-height: 100vh;
   min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
   transition: background 200ms ease, color 200ms ease;
@@ -341,9 +342,11 @@ body.theme-dark a:hover { filter: brightness(1.2); }
   /* Mostly-opaque surface so text stays readable even where backdrop-filter is
      unsupported / throttled (common on mobile with large blur radii); the blur
      adds a light frost on top where it does render. Readability first. */
+  background: var(--bg3);
   background: color-mix(in srgb, var(--bg2) 92%, transparent);
   backdrop-filter: blur(24px) saturate(1.5);
   -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  border: 1px solid var(--border);
   border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.22),

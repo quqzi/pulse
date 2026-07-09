@@ -137,6 +137,7 @@
     position: fixed; bottom: 0; left: 0; right: 0; z-index: 201;
     border-radius: 20px 20px 0 0;
     border: none;
+    border-top: 1px solid var(--border);
     border-top: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
     padding: 12px 20px calc(40px + env(safe-area-inset-bottom)); max-width: 600px; margin: 0 auto;
   }
@@ -146,6 +147,7 @@
   .field-label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
   .field-input {
     width: 100%; padding: 11px 13px; border: 1.5px solid var(--border);
+    border-radius: 12px; background: var(--border); color: var(--text);
     border-radius: 12px; background: color-mix(in srgb, var(--bg) 70%, transparent); color: var(--text);
     font-family: inherit; font-size: 15px; outline: none; box-sizing: border-box;
     transition: border-color 140ms ease, box-shadow 140ms ease;

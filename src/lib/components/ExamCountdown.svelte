@@ -47,11 +47,15 @@
     gap: 16px;
     padding: 16px 18px;
     border-radius: var(--radius-md);
+    background: var(--bg2);
     background: color-mix(in srgb, var(--primary) 8%, var(--bg2));
+    border: 1px solid var(--border);
     border: 1px solid color-mix(in srgb, var(--primary) 20%, var(--border));
   }
   .countdown.urgent {
+    background: var(--bg2);
     background: color-mix(in srgb, var(--warning) 12%, var(--bg2));
+    border-color: var(--border);
     border-color: color-mix(in srgb, var(--warning) 35%, var(--border));
   }
   .big {

@@ -2,6 +2,7 @@
   import { createEventDispatcher } from 'svelte';
   import { t } from '$lib/i18n';
   import { localDateStr } from '$lib/utils';
+  import { newId } from '$lib/id';
   import Picker from '$lib/components/Picker.svelte';
   import type { Subject, MockScore } from '$lib/types';
 
@@ -34,7 +35,7 @@
       return;
     }
     const entry: MockScore = {
-      id: initial?.id ?? crypto.randomUUID(),
+      id: initial?.id ?? newId(),
       userId: initial?.userId ?? '',
       subjectId,
       score,

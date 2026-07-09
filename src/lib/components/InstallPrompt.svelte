@@ -57,6 +57,7 @@
     max-width: 480px; margin: 0 auto;
     display: flex; flex-direction: column; gap: 12px;
     padding: 14px 16px; border-radius: 16px;
+    border: 1px solid var(--border);
     border: 1px solid color-mix(in srgb, var(--text) 12%, transparent);
   }
   .head { display: flex; align-items: center; gap: 12px; }

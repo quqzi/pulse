@@ -149,6 +149,7 @@
   }
   .subject-chip.active {
     border-color: var(--chip-color);
+    background: var(--bg3);
     background: color-mix(in srgb, var(--chip-color) 12%, transparent);
     color: var(--chip-color);
   }
@@ -195,6 +196,7 @@
   :global(body.design-apple) .subject-chip { border-radius: var(--radius-sm); }
   :global(body.design-apple) .subject-chip.active {
     border-color: var(--primary);
+    background: rgba(var(--primary-rgb), 0.12);
     background: color-mix(in srgb, var(--primary) 12%, transparent);
     color: var(--primary);
   }

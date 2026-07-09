@@ -3,6 +3,11 @@ import { defineConfig } from 'vite';
 import { SvelteKitPWA } from '@vite-pwa/sveltekit';
 
 export default defineConfig({
+	build: {
+		// School PCs run years-old Chrome; keep the bundle parseable down to
+		// ~Chrome 90 instead of Vite's modern default (~Chrome 107+).
+		target: ['chrome90', 'safari14', 'firefox90'],
+	},
 	plugins: [
 		sveltekit(),
 		SvelteKitPWA({

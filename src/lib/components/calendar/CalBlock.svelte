@@ -75,6 +75,11 @@
   // black/white (the tint composites with the theme background, unlike the
   // old solid-color fills).
   $: blockText = subject ? `color-mix(in srgb, ${subject.color} 45%, var(--text))` : 'var(--muted)';
+  // Pre-color-mix Chrome fallbacks: plain subject color / rgba tint.
+  $: blockTextFallback = subject ? subject.color : 'var(--muted)';
+  $: blockBgFallback = subject
+    ? `rgba(${subject.colorRgb}, ${slot.isAiSuggested ? 0.09 : 0.18})`
+    : 'var(--bg3)';
   $: blockBg = subject
     ? (slot.isAiSuggested
         ? `rgba(${subject.colorRgb}, 0.09)`
@@ -152,7 +157,7 @@
   class:suggested={slot.isAiSuggested}
   class:lifting
   class:focus-block={slot.isFocusBlock && !!subject}
-  style="background: {blockBg}; {blockBorderCss} color: {blockText}; translate: {dragDx}px {dragDy}px;{liftTransform ? ` transform: ${liftTransform};` : ''}"
+  style="background: {blockBgFallback}; background: {blockBg}; {blockBorderCss} color: {blockTextFallback}; color: {blockText}; translate: {dragDx}px {dragDy}px;{liftTransform ? ` transform: ${liftTransform};` : ''}"
   bind:this={blockEl}
   on:click={onBlockClick}
   on:keydown={onBlockKeydown}
@@ -390,6 +395,7 @@
   }
   .pop-chip.active {
     border-color: var(--chip-color, var(--muted));
+    background: var(--bg3);
     background: color-mix(in srgb, var(--chip-color, var(--muted)) 12%, transparent);
     color: var(--chip-color, var(--muted));
   }
@@ -430,6 +436,7 @@
   :global(body.design-apple) .pop-chip { border-radius: var(--radius-sm); }
   :global(body.design-apple) .pop-chip.active {
     border-color: var(--primary);
+    background: rgba(var(--primary-rgb), 0.12);
     background: color-mix(in srgb, var(--primary) 12%, transparent);
     color: var(--primary);
   }

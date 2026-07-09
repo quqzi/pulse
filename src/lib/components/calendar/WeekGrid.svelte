@@ -524,7 +524,7 @@
     {#each weekDays as _day, i}
       <div class="allday-cell">
         {#each tasksByDay.get(i) ?? [] as task}
-          <div class="task-pill" style="background: color-mix(in srgb, {taskSubjectColor(task)} 12%, transparent); border-color: {taskSubjectColor(task)}; color: {taskSubjectColor(task)};">
+          <div class="task-pill" style="background: {taskSubjectColor(task)}1f; background: color-mix(in srgb, {taskSubjectColor(task)} 12%, transparent); border-color: {taskSubjectColor(task)}; color: {taskSubjectColor(task)};">
             {task.title}
           </div>
         {/each}

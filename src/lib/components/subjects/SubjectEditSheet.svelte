@@ -163,6 +163,7 @@
     border-radius: 20px 20px 0 0;
     /* glass-panel supplies bg/blur/shadow; the sheet sits at the viewport edge */
     border: none;
+    border-top: 1px solid var(--border);
     border-top: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
     padding: 12px 20px 40px; max-width: 600px; margin: 0 auto;
   }
@@ -171,6 +172,7 @@
   .preview-row {
     display: flex; align-items: center; gap: 10px;
     padding: 10px 12px; margin-bottom: 16px;
+    background: var(--bg3);
     background: color-mix(in srgb, var(--bg) 55%, transparent);
     border: 1px solid var(--border); border-radius: 14px;
   }
@@ -188,6 +190,7 @@
   .field-hint { font-weight: 400; text-transform: none; letter-spacing: 0; }
   .field-input {
     width: 100%; padding: 11px 13px; border: 1.5px solid var(--border);
+    border-radius: 12px; background: var(--border); color: var(--text);
     border-radius: 12px; background: color-mix(in srgb, var(--bg) 70%, transparent); color: var(--text);
     font-family: inherit; font-size: 15px; outline: none; box-sizing: border-box;
     transition: border-color 140ms ease, box-shadow 140ms ease;

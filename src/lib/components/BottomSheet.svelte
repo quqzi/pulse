@@ -129,6 +129,7 @@
     flex-direction: column;
     /* top edge only — the sheet's sides and bottom sit at the viewport edge */
     border: none;
+    border-top: 1px solid var(--border);
     border-top: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
     border-radius: 20px 20px 0 0;
     box-shadow:

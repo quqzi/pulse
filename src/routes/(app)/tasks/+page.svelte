@@ -258,13 +258,16 @@
   .suggest-chip {
     display: inline-flex; align-items: center; gap: 5px;
     padding: 6px 12px; border-radius: 999px;
+    border: 1.5px dashed rgba(var(--primary-rgb), 0.35);
     border: 1.5px dashed color-mix(in srgb, var(--primary) 35%, transparent);
+    background: rgba(var(--primary-rgb), 0.06);
     background: color-mix(in srgb, var(--primary) 6%, transparent);
     color: var(--text); font-size: 12.5px; font-weight: 500;
     cursor: pointer; font-family: inherit; text-align: left;
   }
   .suggest-chip:hover {
     border-style: solid; border-color: var(--primary);
+    background: rgba(var(--primary-rgb), 0.12);
     background: color-mix(in srgb, var(--primary) 12%, transparent);
   }
   .suggest-plus { color: var(--primary); font-weight: 700; }

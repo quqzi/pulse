@@ -101,7 +101,7 @@
             on:click={() => toggle(preset.name)}
             disabled={alreadyAdded}
           >
-            <span class="preset-chip" style="background:color-mix(in srgb, {preset.color} 14%, transparent); color:{preset.color}">{preset.symbol}</span>
+            <span class="preset-chip" style="background:{preset.color}24; background:color-mix(in srgb, {preset.color} 14%, transparent); color:{preset.color}">{preset.symbol}</span>
             <span class="preset-body">
               <span class="preset-name">{preset.name}</span>
               {#if topicNames.length > 0}
@@ -173,9 +173,11 @@
   .sticky-footer {
     position: fixed; bottom: 0; left: 0; right: 0;
     padding: 12px 16px 32px;
+    background: var(--bg3);
     background: color-mix(in srgb, var(--bg2) 72%, transparent);
     backdrop-filter: blur(20px) saturate(1.5);
     -webkit-backdrop-filter: blur(20px) saturate(1.5);
+    border-top: 1px solid var(--border);
     border-top: 1px solid color-mix(in srgb, var(--text) 10%, transparent);
     z-index: 100;
   }

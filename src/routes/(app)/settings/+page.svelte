@@ -555,6 +555,7 @@
   .theme-card:active { transform:scale(0.97); transition-duration:var(--dur-fast); }
   .theme-card.selected {
     border-color:var(--t-accent);
+    box-shadow: 0 0 0 3px var(--t-accent);
     box-shadow:0 0 0 3px color-mix(in srgb, var(--t-accent) 22%, transparent);
   }
   .tc-check {
@@ -655,6 +656,7 @@
   .energy-chip:hover:not(.active) { border-color:var(--muted); }
   .energy-chip.active {
     border-color:var(--primary);
+    background: var(--bg);
     background:color-mix(in srgb, var(--primary) 8%, var(--bg));
   }
   .sign-out:hover span { filter:brightness(1.1); }

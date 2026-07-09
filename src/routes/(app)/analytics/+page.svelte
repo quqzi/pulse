@@ -293,6 +293,7 @@
   @media (hover: hover) {
     .stat-card:hover {
       transform: translateY(-2px) scale(1.02);
+      border-color: var(--border);
       border-color: color-mix(in srgb, var(--primary) 25%, var(--border));
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
     }

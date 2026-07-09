@@ -177,6 +177,7 @@
   .tpl-name-input {
     width: 100%; box-sizing: border-box; padding: 11px 13px; margin-bottom: 12px;
     border: 1.5px solid var(--border); border-radius: 12px;
+    background: var(--bg3); color: var(--text);
     background: color-mix(in srgb, var(--bg) 70%, transparent); color: var(--text);
     font-family: inherit; font-size: 15px; outline: none;
     transition: border-color 140ms ease, box-shadow 140ms ease;

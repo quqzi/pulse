@@ -51,6 +51,7 @@
     position: fixed; z-index: 301;
     left: 50%; top: 50%; transform: translate(-50%, -50%);
     width: calc(100% - 32px); max-width: 420px; max-height: 80vh; overflow-y: auto;
+    border: 1px solid var(--border);
     border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
     border-radius: 20px; padding: 24px 22px;
   }
