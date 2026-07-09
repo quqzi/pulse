@@ -85,19 +85,21 @@
 
   <ExamCountdown />
 
-  <div use:cardTilt class="hero-wrap">
-    <HeroCard
-      todayHours={$todayHours}
-      goalHours={$settings.dailyGoalHours}
-      streak={$streak}
-      editable
-      on:goalChange={e => settings.update(s => ({ ...s, dailyGoalHours: e.detail }))}
-    />
-  </div>
+  <div class="top-grid">
+    <div use:cardTilt class="hero-wrap">
+      <HeroCard
+        todayHours={$todayHours}
+        goalHours={$settings.dailyGoalHours}
+        streak={$streak}
+        editable
+        on:goalChange={e => settings.update(s => ({ ...s, dailyGoalHours: e.detail }))}
+      />
+    </div>
 
-  <section class="readiness-section">
-    <ReadinessCard />
-  </section>
+    <section class="readiness-section">
+      <ReadinessCard />
+    </section>
+  </div>
 
   {#if $subjects.length > 0}
     <section class="subjects-section">
@@ -114,6 +116,8 @@
     </section>
   {/if}
 
+  <div class="cols">
+  <div class="col-main">
   {#if $dueDecks.length > 0}
     <section class="review-section">
       <button class="review-cta" on:click={() => goto('/flashcards')}>
@@ -163,7 +167,9 @@
       </div>
     </section>
   {/if}
+  </div>
 
+  <div class="col-side">
   <QuickLog
     subjects={$subjects}
     topics={$topics}
@@ -190,6 +196,8 @@
       </div>
     </section>
   {/if}
+  </div>
+  </div>
 
   <div class="bottom-spacer"></div>
 </div>
@@ -253,4 +261,12 @@
     transition: transform var(--dur-base) var(--ease-spring);
   }
   .review-cta:active { transform: scale(0.97); transition: transform 80ms ease-in; }
+
+  @media (min-width: 1024px) {
+    .page { max-width: 1040px; }
+    .top-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; align-items: stretch; }
+    .top-grid > * { min-width: 0; }
+    .cols { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 0 24px; align-items: start; }
+    .subjects-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+  }
 </style>

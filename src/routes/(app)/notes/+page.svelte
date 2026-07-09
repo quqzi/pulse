@@ -119,4 +119,9 @@
   .empty-state { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 32px 16px; text-align: center; }
   .empty-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
   .empty-sub { font-size: 13px; color: var(--muted); }
+
+  @media (min-width: 1024px) {
+    .notes-page { max-width: 1040px; }
+    .note-list { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; align-items: start; }
+  }
 </style>

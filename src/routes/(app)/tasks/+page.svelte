@@ -150,6 +150,8 @@
     {/if}
   </div>
 
+  <div class="cols">
+  <div class="col-main">
   {#if adding}
     <TaskForm subjects={$subjects} on:add={handleAdd} on:cancel={() => adding = false} />
   {:else}
@@ -194,8 +196,11 @@
         </ul>
       {/if}
     {/each}
+  {/if}
+  </div>
 
-    {#if done.length > 0}
+  {#if done.length > 0}
+    <aside class="col-side">
       <button class="group-toggle" on:click={() => (showDone = !showDone)} aria-expanded={showDone}>
         <span class="group-title done-title">{$t.tasks.groupDone}</span>
         <span class="done-count">{done.length}</span>
@@ -214,12 +219,17 @@
           {/each}
         </ul>
       {/if}
-    {/if}
+    </aside>
   {/if}
+  </div>
 </div>
 
 <style>
   .page { padding: 20px 16px 80px; max-width: 600px; margin: 0 auto; }
+  @media (min-width: 1024px) {
+    .page { max-width: 1040px; }
+    .cols { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 0 24px; align-items: start; }
+  }
   .header-row { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
   .count-badge {
     background: var(--primary); color: var(--bg);

@@ -67,7 +67,7 @@
       </section>
     {/if}
 
-    <section class="section">
+    <section class="section all-decks">
       <div class="section-label">{$t.flashcards.allDecks}</div>
       {#each allBySubject as group (group.subject?.id ?? '?')}
         <div class="subject-group">
@@ -124,4 +124,10 @@
   .study-btn:active { transform: scale(0.92); transition-duration: var(--dur-fast); }
   .bottom-spacer { height: 40px; }
   @media (max-width: 768px) { .study-btn { min-height: 44px; display: inline-flex; align-items: center; } }
+
+  @media (min-width: 1024px) {
+    .flashcards-page { max-width: 1040px; }
+    .all-decks { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 24px; align-items: start; }
+    .all-decks .section-label { grid-column: 1 / -1; }
+  }
 </style>

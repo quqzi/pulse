@@ -35,4 +35,9 @@
   .page-title { margin: 0; color: var(--text); }
   .page-sub { font-size: 13px; color: var(--muted); margin: 4px 0 0; }
   .feed { display: flex; flex-direction: column; gap: 10px; }
+
+  @media (min-width: 1024px) {
+    .insights-page { max-width: 1040px; }
+    .feed { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; align-items: start; }
+  }
 </style>

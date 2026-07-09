@@ -336,4 +336,9 @@
   @media (max-width: 768px) {
     .btn-add-score { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
   }
+
+  @media (min-width: 1024px) {
+    .page { max-width: 1040px; }
+    .score-list { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; align-items: start; }
+  }
 </style>
