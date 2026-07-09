@@ -80,7 +80,7 @@
 </div>
 
 <style>
-  .auth-page { min-height:100dvh; display:flex; align-items:center; justify-content:center; padding:20px; }
+  .auth-page { min-height:100vh; min-height:100dvh; display:flex; align-items:center; justify-content:center; padding:20px; }
   .auth-card { width:100%; max-width:380px; padding:32px 28px; border-radius:22px; }
   .logo-row { display:flex; align-items:center; gap:10px; margin-bottom:24px; }
   .logo-mark {
@@ -105,6 +105,7 @@
   .field-label { font-size:13px; font-weight:600; color:var(--muted); }
   .auth-form input {
     padding:12px 14px; border-radius:12px; border:1.5px solid var(--border);
+    background: var(--bg3); color:var(--text);
     background:color-mix(in srgb, var(--bg) 70%, transparent); color:var(--text);
     font-family:inherit; font-size:15px; outline:none;
     transition:border-color 140ms ease, box-shadow 140ms ease;

@@ -157,7 +157,7 @@
               </span>
             {/if}
           </div>
-          {#if task !== $tasksDueToday.slice(0, 5).at(-1)}
+          {#if task !== $tasksDueToday.slice(0, 5)[Math.min($tasksDueToday.length, 5) - 1]}
             <div class="task-divider"></div>
           {/if}
         {/each}
@@ -252,6 +252,7 @@
     padding: 14px 16px;
     border-radius: var(--radius-md);
     border: 1.5px solid var(--primary);
+    background: rgba(var(--primary-rgb), 0.08);
     background: color-mix(in srgb, var(--primary) 8%, transparent);
     color: var(--primary);
     font-size: 14px;

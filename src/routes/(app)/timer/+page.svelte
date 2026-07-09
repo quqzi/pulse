@@ -340,6 +340,7 @@
   .ring { width: 100%; height: 100%; transform: rotate(-90deg); }
   /* Invisible at rest — the ring fades in only while a session is live. */
   .ring-track {
+    fill: none; stroke: var(--text); stroke-width: 4;
     fill: none; stroke: color-mix(in srgb, var(--text) 12%, transparent); stroke-width: 4;
     opacity: 0; transition: opacity 500ms ease;
   }
@@ -434,7 +435,9 @@
   .task-done-btn {
     display: block; width: 100%; margin-bottom: 10px;
     padding: 9px 14px; border-radius: 10px;
+    border: 1.5px solid rgba(var(--primary-rgb), 0.35);
     border: 1.5px solid color-mix(in srgb, var(--primary) 35%, transparent);
+    background: rgba(var(--primary-rgb), 0.08);
     background: color-mix(in srgb, var(--primary) 8%, transparent);
     color: var(--primary); font-size: 13px; font-weight: 600;
     cursor: pointer; font-family: inherit;
@@ -457,6 +460,7 @@
     width: 52px;
     height: 52px;
     border-radius: 50%;
+    background: rgba(var(--primary-rgb), 0.12);
     background: color-mix(in srgb, var(--primary) 12%, transparent);
     display: flex;
     align-items: center;

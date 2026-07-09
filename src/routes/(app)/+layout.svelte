@@ -100,7 +100,7 @@
 </div>
 
 <style>
-  .app-shell { display: flex; height: 100dvh; overflow: hidden; }
+  .app-shell { display: flex; height: 100vh; height: 100dvh; overflow: hidden; }
   .sidebar-slot { display: none; }
   .main-content {
     flex: 1;

@@ -59,6 +59,7 @@
 		align-items: center;
 		gap: 8px;
 		padding: 6px 16px;
+		background: var(--bg2);
 		background: color-mix(in srgb, var(--primary) 8%, var(--bg2));
 		border-bottom: 1px solid var(--border);
 		font-size: 12px;

@@ -40,18 +40,21 @@
   .b1 {
     top: -12vmax;
     left: -8vmax;
+    background: radial-gradient(circle at 50% 50%, var(--bg3), transparent 68%);
     background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--aurora-1) 45%, transparent), transparent 68%);
     animation: drift1 26s ease-in-out infinite;
   }
   .b2 {
     bottom: -14vmax;
     right: -10vmax;
+    background: radial-gradient(circle at 50% 50%, var(--bg3), transparent 68%);
     background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--aurora-2) 40%, transparent), transparent 68%);
     animation: drift2 32s ease-in-out infinite;
   }
   .b3 {
     bottom: -6vmax;
     left: 18vmax;
+    background: radial-gradient(circle at 50% 50%, var(--bg3), transparent 68%);
     background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--aurora-3) 38%, transparent), transparent 68%);
     animation: drift3 38s ease-in-out infinite;
   }

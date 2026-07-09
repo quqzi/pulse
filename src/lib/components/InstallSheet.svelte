@@ -55,6 +55,7 @@
     position: fixed; bottom: 0; left: 0; right: 0; z-index: 201;
     border-radius: 20px 20px 0 0;
     border: none;
+    border-top: 1px solid var(--border);
     border-top: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
     padding: 12px 20px calc(40px + env(safe-area-inset-bottom)); max-width: 600px; margin: 0 auto;
   }

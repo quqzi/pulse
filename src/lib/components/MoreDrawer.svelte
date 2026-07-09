@@ -83,6 +83,7 @@
   .sheet {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 201;
     border: none;
+    border-top: 1px solid var(--border);
     border-top: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
     border-radius: 20px 20px 0 0;
     padding: 12px 16px calc(20px + env(safe-area-inset-bottom));
@@ -102,6 +103,7 @@
   .tile {
     display: flex; flex-direction: column; align-items: center; gap: 7px;
     padding: 14px 6px; border-radius: 14px; text-decoration: none;
+    color: var(--text); background: var(--bg);
     color: var(--text); background: color-mix(in srgb, var(--bg) 45%, transparent);
     border: 1px solid var(--border);
     transition: transform var(--dur-base) var(--ease-spring), background 140ms ease;

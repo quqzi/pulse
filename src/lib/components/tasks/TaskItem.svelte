@@ -128,7 +128,7 @@
           </span>
         {/if}
         {#if subj}
-          <span class="subject-chip" style="background:color-mix(in srgb, {subj.color} 13%, transparent);color:{subj.color}">{subj.symbol}</span>
+          <span class="subject-chip" style="background:{subj.color}21;background:color-mix(in srgb, {subj.color} 13%, transparent);color:{subj.color}">{subj.symbol}</span>
         {/if}
         {#if task.repeat}
           <span class="repeat-badge" title={task.repeat === 'daily' ? $t.tasks.repeatDaily : $t.tasks.repeatWeekly}>
@@ -192,6 +192,7 @@
     display: inline-flex; align-items: center; justify-content: center;
     width: 28px; height: 28px; flex-shrink: 0;
     border: none; border-radius: 999px; cursor: pointer;
+    background: rgba(var(--primary-rgb), 0.12);
     background: color-mix(in srgb, var(--primary) 12%, transparent);
     color: var(--primary); line-height: 0;
   }

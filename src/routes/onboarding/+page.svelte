@@ -206,7 +206,7 @@
 </div>
 
 <style>
-  .ob-page { min-height:100dvh; display:flex; align-items:center; justify-content:center; padding:20px; background:var(--bg); }
+  .ob-page { min-height:100vh; min-height:100dvh; display:flex; align-items:center; justify-content:center; padding:20px; background:var(--bg); }
   .ob-card { width:100%; max-width:420px; padding:32px 28px; display:flex; flex-direction:column; gap:16px; }
   .dots { display:flex; gap:6px; }
   .dot { width:6px; height:6px; border-radius:999px; background:var(--border); transition:background 200ms ease, width 200ms ease; }

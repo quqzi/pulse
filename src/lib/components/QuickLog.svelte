@@ -249,6 +249,7 @@
   .subject-chip:active { transform: scale(0.94); transition-duration: var(--dur-fast); }
   .subject-chip.active {
     border-color: var(--chip-color);
+    background: var(--bg3);
     background: color-mix(in srgb, var(--chip-color) 12%, transparent);
     color: var(--chip-color);
   }
@@ -370,6 +371,7 @@
     position: relative;
     width: 32px; height: 32px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
+    background: rgba(var(--primary-rgb), 0.14);
     background: color-mix(in srgb, var(--primary) 14%, transparent);
     color: var(--primary);
     animation: badge-pop var(--dur-base) var(--ease-spring);

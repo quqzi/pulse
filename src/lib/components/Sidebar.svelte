@@ -77,9 +77,11 @@
     width: var(--sidebar-width);
     /* Glass over the aurora — mostly opaque so nav links stay readable even
        where the backdrop blur doesn't render; a hint of the wash still shows. */
+    background: var(--bg3);
     background: color-mix(in srgb, var(--bg2) 90%, transparent);
     backdrop-filter: blur(24px) saturate(1.5);
     -webkit-backdrop-filter: blur(24px) saturate(1.5);
+    border-right: 1px solid var(--border);
     border-right: 1px solid color-mix(in srgb, var(--text) 10%, transparent);
     padding: 20px 12px; overflow-y: auto; z-index: 100;
     display: flex; flex-direction: column; gap: 24px;

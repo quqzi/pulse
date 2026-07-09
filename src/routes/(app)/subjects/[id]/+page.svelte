@@ -221,7 +221,7 @@
               {#if (state === 'new' || state === 'due') && editingTopicId !== topic.id}
                 <a
                   class="review-btn"
-                  style="background: color-mix(in srgb, {subject.color} 12%, transparent); color: {subject.color};"
+                  style="background: {subject.color}1f; background: color-mix(in srgb, {subject.color} 12%, transparent); color: {subject.color};"
                   href="/flashcards/{topic.id}?study=1"
                 >{$t.flashcards.study}</a>
               {/if}

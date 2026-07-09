@@ -97,6 +97,7 @@
     padding: 7px 14px;
     border-radius: 20px;
     border: none;
+    background: var(--bg3);
     background: color-mix(in srgb, var(--subject-color) 12%, transparent);
     color: var(--subject-color);
     font-size: 13px;

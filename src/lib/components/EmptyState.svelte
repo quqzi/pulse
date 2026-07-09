@@ -36,6 +36,7 @@
     width: 56px; height: 56px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     color: var(--primary);
+    background: rgba(var(--primary-rgb), 0.1);
     background: color-mix(in srgb, var(--primary) 10%, transparent);
     margin-bottom: 14px;
   }
