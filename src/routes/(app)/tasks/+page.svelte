@@ -229,6 +229,7 @@
   @media (min-width: 1024px) {
     .page { max-width: 1040px; }
     .cols { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 0 24px; align-items: start; }
+    .col-main:only-child { grid-column: 1 / -1; max-width: 720px; width: 100%; justify-self: center; }
   }
   .header-row { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
   .count-badge {
