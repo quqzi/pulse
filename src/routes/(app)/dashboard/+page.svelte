@@ -264,7 +264,7 @@
 
   @media (min-width: 1024px) {
     .page { max-width: 1040px; }
-    .top-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; align-items: stretch; }
+    .top-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; align-items: start; }
     .top-grid > * { min-width: 0; }
     .cols { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 0 24px; align-items: start; }
     .subjects-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
