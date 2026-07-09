@@ -154,6 +154,7 @@
     </div>
   </div>
 
+  <div class="content-grid">
   <section class="section">
     <div class="section-header">
       <span class="section-label">{$t.analytics.studyTrend}</span>
@@ -254,6 +255,7 @@
       {/if}
     {/if}
   </section>
+  </div>
 
   <div class="bottom-spacer"></div>
 </div>
@@ -267,6 +269,10 @@
 
 <style>
   .analytics-page { padding: 20px 16px 0; max-width: 720px; margin: 0 auto; }
+  @media (min-width: 1024px) {
+    .analytics-page { max-width: 1040px; }
+    .content-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 24px; align-items: start; }
+  }
   .page-title { margin-bottom: 20px; color: var(--text); }
 
   .stat-grid {

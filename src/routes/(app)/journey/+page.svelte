@@ -84,6 +84,8 @@
     </div>
   </div>
 
+  <div class="cols">
+  <div class="col-side">
   <section class="section">
     <div class="section-header">
       <span class="section-label">{$t.achievements.title}</span>
@@ -100,8 +102,9 @@
       <HeatmapGrid sessions={$sessions} />
     </div>
   </section>
+  </div>
 
-  <section class="section">
+  <section class="section col-main">
     <div class="section-header">
       <span class="section-label">{$t.journey.sessionsLabel}</span>
       <span class="section-sub">{$t.journey.sessionsTotal(totalSessions)}</span>
@@ -169,12 +172,17 @@
       </div>
     {/if}
   </section>
+  </div>
 
   <div class="bottom-spacer"></div>
 </div>
 
 <style>
   .journey-page { padding: 20px 16px 0; max-width: 720px; margin: 0 auto; }
+  @media (min-width: 1024px) {
+    .journey-page { max-width: 1040px; }
+    .cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 0 24px; align-items: start; }
+  }
   .page-title { margin-bottom: 20px; color: var(--text); }
 
   .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px; }
