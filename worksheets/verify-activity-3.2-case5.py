@@ -15,7 +15,7 @@ import pymupdf
 
 HERE = pathlib.Path(__file__).parent
 SRC = HERE / "activity-3.2-digital-detective-blank.pdf"
-OUT = HERE / "activity-3.2-digital-detective-case5-filled.pdf"
+OUT = HERE / "งานอีดรอบ.pdf"
 SRC_PAGE = 4      # case 5 in the original five-case worksheet
 OUT_PAGE = 0      # the deliverable is that one page on its own
 DPI = 300
