@@ -10,7 +10,7 @@ import subprocess
 
 HERE = pathlib.Path(__file__).parent
 SRC = HERE / "activity-3.2-digital-detective-blank.pdf"
-OUT = HERE / "งานอีดรอบ.pdf"
+OUT = HERE / "งานอีกรอบ.pdf"
 OVERLAY_HTML = HERE / ".overlay.html"
 OVERLAY_PDF = HERE / ".overlay.pdf"
 
