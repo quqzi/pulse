@@ -84,6 +84,7 @@ def main() -> None:
     over = pymupdf.open(OVERLAY_PDF)
     page = base[PAGE_INDEX]
     page.show_pdf_page(page.rect, over, 0, overlay=True)
+    base.select([PAGE_INDEX])          # keep case 5 only, as a standalone sheet
     base.save(OUT, garbage=3, deflate=True)
     OVERLAY_HTML.unlink()
     OVERLAY_PDF.unlink()

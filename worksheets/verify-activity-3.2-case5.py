@@ -16,7 +16,8 @@ import pymupdf
 HERE = pathlib.Path(__file__).parent
 SRC = HERE / "activity-3.2-digital-detective-blank.pdf"
 OUT = HERE / "activity-3.2-digital-detective-case5-filled.pdf"
-PAGE_INDEX = 4
+SRC_PAGE = 4      # case 5 in the original five-case worksheet
+OUT_PAGE = 0      # the deliverable is that one page on its own
 DPI = 300
 Z = DPI / 72.0
 
@@ -49,21 +50,21 @@ def dark(doc, page):
 
 base, filled = pymupdf.open(SRC), pymupdf.open(OUT)
 
-if base.page_count != filled.page_count:
-    errors.append("page count changed")
+if filled.page_count != 1:
+    errors.append(f"expected a single-page sheet, got {filled.page_count} pages")
 
-old = spans(base, PAGE_INDEX)
+old = spans(base, SRC_PAGE)
 old_keys = {(round(r.x0, 1), round(r.y0, 1), t) for r, t, _ in old}
-added = [(r, t, f) for r, t, f in spans(filled, PAGE_INDEX)
+added = [(r, t, f) for r, t, f in spans(filled, OUT_PAGE)
          if (round(r.x0, 1), round(r.y0, 1), t) not in old_keys]
-notes.append(f"{len(added)} added spans on page {PAGE_INDEX + 1}")
+notes.append(f"{len(added)} added spans")
 
-# other pages must be untouched
-for p in range(base.page_count):
-    if p == PAGE_INDEX:
-        continue
-    if spans(base, p) != spans(filled, p):
-        errors.append(f"page {p + 1} was modified")
+# every line of the original case 5 page must have survived the extraction
+kept = {(round(r.x0, 1), round(r.y0, 1), t) for r, t, _ in spans(filled, OUT_PAGE)}
+missing = [t for r, t, _ in old
+           if (round(r.x0, 1), round(r.y0, 1), t) not in kept]
+if missing:
+    errors.append(f"original text lost: {missing[:3]}")
 
 ticks = [r for r, t, _ in added if t.strip() == "✔"]
 answers = [(r, t) for r, t, _ in added if t.strip() != "✔"]
@@ -97,7 +98,7 @@ for i, (r, t) in enumerate(answers):
             errors.append(f"answers overlap: {t[:20]!r} / {ot[:20]!r}")
 
 # 4. pixel check — no added ink on top of ink that was already there
-before, after = dark(base, PAGE_INDEX), dark(filled, PAGE_INDEX)
+before, after = dark(base, SRC_PAGE), dark(filled, OUT_PAGE)
 if before.shape != after.shape:
     errors.append("render size mismatch")
 else:
